@@ -1,11 +1,11 @@
-package florian.util;
+package com.florian.vertibayes.util;
 
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
-import static florian.util.Util.factorial;
+import static com.florian.vertibayes.util.Util.factorial;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class UtilTest {

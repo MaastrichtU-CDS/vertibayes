@@ -1,28 +1,35 @@
-package florian.bayes;
+package com.florian.vertibayes.bayes;
 
 
-import florian.bayes.data.Attribute;
-import florian.bayes.stations.DataOwner;
+import com.florian.nscalarproduct.webservice.ServerEndpoint;
+import com.florian.vertibayes.bayes.data.Attribute;
+import com.florian.vertibayes.webservice.VertiBayesCentralServer;
+import com.florian.vertibayes.webservice.VertiBayesEndpoint;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-import static florian.util.Util.factorial;
+import static com.florian.vertibayes.util.Util.factorial;
 
 
 public class Network {
     private List<Node> nodes = new ArrayList<>();
-    private List<DataOwner> dataOwners;
+    private VertiBayesCentralServer central = new VertiBayesCentralServer();
     private static final int MAX_PARENTS = 3;
     private static final int ROUNDING = 100;
+    private List<ServerEndpoint> endpoints;
+    private ServerEndpoint secretServer;
 
-    public Network(List<DataOwner> dataOwners) {
-        this.dataOwners = dataOwners;
-        for (DataOwner owner : dataOwners) {
-            nodes.addAll(owner.createNodes());
+    public Network(List<ServerEndpoint> endpoints, ServerEndpoint secretServer) {
+        for (ServerEndpoint endpoint : endpoints) {
+            nodes.addAll(((VertiBayesEndpoint) endpoint).createNode());
         }
+        this.endpoints = endpoints;
+        this.secretServer = secretServer;
+
     }
 
     public void createNetwork() {
@@ -72,14 +79,11 @@ public class Network {
                 req.add(new Attribute(node.getType(), value, node.getName()));
 
                 //this should be a webservice call
-//                List<DataStation> stations = dataOwners.parallelStream().map(x -> {
-//                    x.createStation(req);
-//                    return x.getStation();
-//                }).collect(
-//                        Collectors.toList());
-//                BigDecimal aijk = new BigDecimal(central.calculateNPartyScalarProduct(stations));
+                endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initData(req));
+                secretServer.addSecretStation("start", endpoints.stream().map(x -> x.getServerId()).collect(
+                        Collectors.toList()), endpoints.get(0).getPopulation());
+                BigDecimal aijk = new BigDecimal(central.nparty(endpoints, secretServer));
 
-                BigDecimal aijk = BigDecimal.ONE;
                 sumaijk = sumaijk.add(aijk);
                 prodaijk = prodaijk.multiply(factorial(aijk));
             }
@@ -94,14 +98,10 @@ public class Network {
                     List<Attribute> r = new ArrayList<>(req);
                     r.add(new Attribute(node.getType(), value, node.getName()));
 
-//                    //this should be a webservice call
-//                    List<DataStation> stations = dataOwners.parallelStream().map(x -> {
-//                        x.createStation(r);
-//                        return x.getStation();
-//                    }).collect(
-//                            Collectors.toList());
-//                    BigDecimal aijk = new BigDecimal(central.calculateNPartyScalarProduct(stations));
-                    BigDecimal aijk = BigDecimal.ONE;
+                    endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initData(r));
+                    secretServer.addSecretStation("start", endpoints.stream().map(x -> x.getServerId()).collect(
+                            Collectors.toList()), endpoints.get(0).getPopulation());
+                    BigDecimal aijk = new BigDecimal(central.nparty(endpoints, secretServer));
                     sumaijk = sumaijk.add(aijk);
                     prodaijk = prodaijk.multiply(factorial(aijk));
                 }

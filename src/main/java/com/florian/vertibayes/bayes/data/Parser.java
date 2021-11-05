@@ -1,4 +1,4 @@
-package florian.bayes.data;
+package com.florian.vertibayes.bayes.data;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;

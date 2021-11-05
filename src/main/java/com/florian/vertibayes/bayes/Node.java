@@ -1,6 +1,6 @@
-package florian.bayes;
+package com.florian.vertibayes.bayes;
 
-import florian.bayes.data.Attribute;
+import com.florian.vertibayes.bayes.data.Attribute;
 
 import java.util.ArrayList;
 import java.util.List;

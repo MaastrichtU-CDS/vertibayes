@@ -1,4 +1,4 @@
-package florian.util;
+package com.florian.vertibayes.util;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

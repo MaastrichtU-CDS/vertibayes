@@ -1,4 +1,4 @@
-package florian.bayes.data;
+package com.florian.vertibayes.bayes.data;
 
 import java.util.HashMap;
 import java.util.HashSet;

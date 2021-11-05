@@ -1,37 +1,39 @@
-package florian.bayes.stations;
+package com.florian.vertibayes.bayes.stations;
 
-import com.florian.station.DataStation;
-import florian.bayes.Node;
-import florian.bayes.data.Attribute;
-import florian.bayes.data.Data;
+import com.florian.nscalarproduct.station.DataStation;
+import com.florian.nscalarproduct.webservice.Server;
+import com.florian.nscalarproduct.webservice.ServerEndpoint;
+import com.florian.vertibayes.bayes.Node;
+import com.florian.vertibayes.bayes.data.Attribute;
+import com.florian.vertibayes.bayes.data.Data;
 
 import java.math.BigInteger;
 import java.util.*;
 
-import static florian.bayes.data.Parser.parseCsv;
+import static com.florian.vertibayes.bayes.data.Parser.parseCsv;
 
-public class DataOwner {
+public class DataOwner extends Server {
     private Data data;
     private Map<String, Set<String>> uniqueValues = new HashMap<>();
-    private String id;
-    private DataStation a;
 
+    public DataOwner(String id, List<ServerEndpoint> endpoints) {
+        this.serverId = id;
+        this.setEndpoints(endpoints);
+    }
 
     public DataOwner(String path, String id) {
         this.data = parseCsv(path, 0);
         for (String name : data.getCollumnIds().keySet()) {
             uniqueValues.put(name, Data.getUniqueValues(data.getAttributeValues(name)));
         }
-        this.id = id;
+        this.serverId = id;
     }
 
-    public void createStation(List<Attribute> requirements) {
+    public void initData(List<Attribute> requirements) {
         int population = data.getNumberOfIndividuals();
-        BigInteger[][] matrix = new BigInteger[population][population];
+        localData = new BigInteger[population];
         for (int i = 0; i < population; i++) {
-            for (int j = 0; j < population; j++) {
-                matrix[i][j] = BigInteger.ONE;
-            }
+            localData[i] = BigInteger.ONE;
         }
 
         List<List<Attribute>> values = data.getData();
@@ -42,10 +44,12 @@ public class DataOwner {
             }
             for (int i = 0; i < population; i++) {
                 if (!values.get(data.getAttributeCollumn(req.getAttributeName())).get(i).equals(req)) {
-                    matrix[i][i] = BigInteger.ZERO;
+                    localData[i] = BigInteger.ZERO;
                 }
             }
         }
+        this.population = localData.length;
+        this.dataStations.put("start", new DataStation(this.serverId, this.localData));
     }
 
 
