@@ -5,7 +5,8 @@ import com.florian.nscalarproduct.webservice.Server;
 import com.florian.nscalarproduct.webservice.ServerEndpoint;
 import com.florian.vertibayes.bayes.Node;
 import com.florian.vertibayes.bayes.data.Attribute;
-import com.florian.vertibayes.bayes.stations.DataOwner;
+import com.florian.vertibayes.webservice.domain.AttributeRequirementsRequest;
+import com.florian.vertibayes.webservice.domain.NodesResponse;
 
 import java.util.List;
 
@@ -19,11 +20,20 @@ public class VertiBayesEndpoint extends ServerEndpoint {
         super(url);
     }
 
-    public void initData(List<Attribute> req) {
-        ((DataOwner) (server)).initData(req);
+    public void initK2Data(List<Attribute> req) {
+        AttributeRequirementsRequest request = new AttributeRequirementsRequest();
+        request.setRequirements(req);
+        if (testing) {
+            ((BayesServer) (server)).initK2Data(request);
+        } else {
+            REST_TEMPLATE.put(serverUrl + "/initK2Data", request);
+        }
     }
 
     public List<Node> createNode() {
-        return ((DataOwner) (server)).createNodes();
+        if (testing) {
+            return ((BayesServer) (server)).createNodes().getNodes();
+        }
+        return REST_TEMPLATE.getForEntity(serverUrl + "/createNodes", NodesResponse.class).getBody().getNodes();
     }
 }

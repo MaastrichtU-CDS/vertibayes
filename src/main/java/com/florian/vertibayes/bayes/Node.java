@@ -13,6 +13,9 @@ public class Node {
     private String name;
     private Attribute.AttributeType type;
 
+    public Node() {
+    }
+
     public Node(String name, Set<String> uniquevalues, Attribute.AttributeType type) {
         this.name = name;
         this.uniquevalues = uniquevalues;
@@ -45,5 +48,17 @@ public class Node {
 
     public void setChild(Node child) {
         this.child = child;
+    }
+
+    public void setUniquevalues(Set<String> uniquevalues) {
+        this.uniquevalues = uniquevalues;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setType(Attribute.AttributeType type) {
+        this.type = type;
     }
 }

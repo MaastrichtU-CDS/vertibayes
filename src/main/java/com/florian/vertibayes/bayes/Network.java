@@ -17,19 +17,19 @@ import static com.florian.vertibayes.util.Util.factorial;
 
 public class Network {
     private List<Node> nodes = new ArrayList<>();
-    private VertiBayesCentralServer central = new VertiBayesCentralServer();
+    private VertiBayesCentralServer central;
     private static final int MAX_PARENTS = 3;
     private static final int ROUNDING = 100;
     private List<ServerEndpoint> endpoints;
     private ServerEndpoint secretServer;
 
-    public Network(List<ServerEndpoint> endpoints, ServerEndpoint secretServer) {
+    public Network(List<ServerEndpoint> endpoints, ServerEndpoint secretServer, VertiBayesCentralServer central) {
         for (ServerEndpoint endpoint : endpoints) {
             nodes.addAll(((VertiBayesEndpoint) endpoint).createNode());
         }
         this.endpoints = endpoints;
         this.secretServer = secretServer;
-
+        this.central = central;
     }
 
     public void createNetwork() {
@@ -79,7 +79,7 @@ public class Network {
                 req.add(new Attribute(node.getType(), value, node.getName()));
 
                 //this should be a webservice call
-                endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initData(req));
+                endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initK2Data(req));
                 secretServer.addSecretStation("start", endpoints.stream().map(x -> x.getServerId()).collect(
                         Collectors.toList()), endpoints.get(0).getPopulation());
                 BigDecimal aijk = new BigDecimal(central.nparty(endpoints, secretServer));
@@ -98,7 +98,7 @@ public class Network {
                     List<Attribute> r = new ArrayList<>(req);
                     r.add(new Attribute(node.getType(), value, node.getName()));
 
-                    endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initData(r));
+                    endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initK2Data(r));
                     secretServer.addSecretStation("start", endpoints.stream().map(x -> x.getServerId()).collect(
                             Collectors.toList()), endpoints.get(0).getPopulation());
                     BigDecimal aijk = new BigDecimal(central.nparty(endpoints, secretServer));

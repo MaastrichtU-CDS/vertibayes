@@ -1,4 +1,4 @@
-package com.florian.vertibayes.webservice;
+package com.florian.vertibayes;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

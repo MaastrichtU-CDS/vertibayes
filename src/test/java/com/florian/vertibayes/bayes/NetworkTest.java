@@ -2,7 +2,8 @@ package com.florian.vertibayes.bayes;
 
 import com.florian.nscalarproduct.webservice.ServerEndpoint;
 import com.florian.vertibayes.bayes.data.Attribute;
-import com.florian.vertibayes.bayes.stations.DataOwner;
+import com.florian.vertibayes.webservice.BayesServer;
+import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
 import org.junit.jupiter.api.Test;
 
@@ -19,12 +20,12 @@ class NetworkTest {
 
     @Test
     public void CreateNetworkTest() {
-        DataOwner station1 = new DataOwner("resources/smallK2Example_firsthalf.csv", "1");
-        DataOwner station2 = new DataOwner("resources/smallK2Example_secondhalf.csv", "2");
+        BayesServer station1 = new BayesServer("resources/smallK2Example_firsthalf.csv", "1");
+        BayesServer station2 = new BayesServer("resources/smallK2Example_secondhalf.csv", "2");
 
         VertiBayesEndpoint endpoint1 = new VertiBayesEndpoint(station1);
         VertiBayesEndpoint endpoint2 = new VertiBayesEndpoint(station2);
-        DataOwner secret = new DataOwner("3", Arrays.asList(endpoint1, endpoint2));
+        BayesServer secret = new BayesServer("3", Arrays.asList(endpoint1, endpoint2));
 
         ServerEndpoint secretEnd = new ServerEndpoint(secret);
 
@@ -36,7 +37,7 @@ class NetworkTest {
         station1.setEndpoints(all);
         station2.setEndpoints(all);
 
-        Network network = new Network(Arrays.asList(endpoint1, endpoint2), secretEnd);
+        Network network = new Network(Arrays.asList(endpoint1, endpoint2), secretEnd, new VertiBayesCentralServer());
         network.createNetwork();
         List<Node> nodes = network.getNodes();
 
@@ -68,7 +69,7 @@ class NetworkTest {
             add("f");
         }}, Attribute.AttributeType.string));
 
-        Network net = new Network(new ArrayList<>(), null);
+        Network net = new Network(new ArrayList<>(), null, null);
         List<List<Attribute>> requirements = net.determineRequirements(nodes);
         List<List<Attribute>> expected = new ArrayList<>();
         List<Attribute> exp = new ArrayList<>();

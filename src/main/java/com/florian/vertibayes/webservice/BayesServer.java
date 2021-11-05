@@ -1,4 +1,4 @@
-package com.florian.vertibayes.bayes.stations;
+package com.florian.vertibayes.webservice;
 
 import com.florian.nscalarproduct.station.DataStation;
 import com.florian.nscalarproduct.webservice.Server;
@@ -6,30 +6,55 @@ import com.florian.nscalarproduct.webservice.ServerEndpoint;
 import com.florian.vertibayes.bayes.Node;
 import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.bayes.data.Data;
+import com.florian.vertibayes.webservice.domain.AttributeRequirementsRequest;
+import com.florian.vertibayes.webservice.domain.NodesResponse;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigInteger;
 import java.util.*;
 
 import static com.florian.vertibayes.bayes.data.Parser.parseCsv;
 
-public class DataOwner extends Server {
+@RestController
+public class BayesServer extends Server {
     private Data data;
     private Map<String, Set<String>> uniqueValues = new HashMap<>();
 
-    public DataOwner(String id, List<ServerEndpoint> endpoints) {
+    @Value ("${datapath}")
+    private String path;
+
+    public BayesServer() {
+        super();
+    }
+
+    public BayesServer(String id, List<ServerEndpoint> endpoints) {
         this.serverId = id;
         this.setEndpoints(endpoints);
     }
 
-    public DataOwner(String path, String id) {
+    public BayesServer(String path, String id) {
+        this.path = path;
+        this.serverId = id;
+        readData();
+    }
+
+    private void readData() {
         this.data = parseCsv(path, 0);
         for (String name : data.getCollumnIds().keySet()) {
             uniqueValues.put(name, Data.getUniqueValues(data.getAttributeValues(name)));
         }
-        this.serverId = id;
     }
 
-    public void initData(List<Attribute> requirements) {
+    @PutMapping ("initK2Data")
+    public void initK2Data(@RequestBody AttributeRequirementsRequest request) {
+        reset();
+        readData();
+        List<Attribute> requirements = request.getRequirements() == null ? new ArrayList<>() :
+                request.getRequirements();
         int population = data.getNumberOfIndividuals();
         localData = new BigInteger[population];
         for (int i = 0; i < population; i++) {
@@ -52,8 +77,8 @@ public class DataOwner extends Server {
         this.dataStations.put("start", new DataStation(this.serverId, this.localData));
     }
 
-
-    public List<Node> createNodes() {
+    @GetMapping ("createNodes")
+    public NodesResponse createNodes() {
         List<Node> nodes = new ArrayList<>();
         for (int i = 0; i < data.getData().size(); i++) {
             if (i == data.getIdColumn()) {
@@ -63,6 +88,14 @@ public class DataOwner extends Server {
             nodes.add(new Node(attribute.getAttributeName(), uniqueValues.get(attribute.getAttributeName()),
                                attribute.getType()));
         }
-        return nodes;
+        NodesResponse response = new NodesResponse();
+        response.setNodes(nodes);
+        return response;
+    }
+
+    @Override
+    protected void reset() {
+        dataStations = new HashMap<>();
+        secretStations = new HashMap<>();
     }
 }

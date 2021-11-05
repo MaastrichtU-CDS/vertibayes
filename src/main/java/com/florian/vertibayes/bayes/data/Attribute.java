@@ -41,6 +41,18 @@ public class Attribute implements Comparable<Attribute> {
         return type;
     }
 
+    public void setType(AttributeType type) {
+        this.type = type;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    public void setAttributeName(String attributeName) {
+        this.attributeName = attributeName;
+    }
+
     @Override
     public int compareTo(Attribute attribute) {
         if (type != attribute.type) {
