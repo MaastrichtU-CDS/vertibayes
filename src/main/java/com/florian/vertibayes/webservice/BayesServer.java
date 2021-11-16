@@ -4,6 +4,8 @@ import com.florian.nscalarproduct.station.DataStation;
 import com.florian.nscalarproduct.webservice.Server;
 import com.florian.nscalarproduct.webservice.ServerEndpoint;
 import com.florian.vertibayes.bayes.Node;
+import com.florian.vertibayes.bayes.ParentValue;
+import com.florian.vertibayes.bayes.Theta;
 import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.bayes.data.Data;
 import com.florian.vertibayes.webservice.domain.AttributeRequirementsRequest;
@@ -23,6 +25,11 @@ import static com.florian.vertibayes.bayes.data.Parser.parseCsv;
 public class BayesServer extends Server {
     private Data data;
     private Map<String, Set<String>> uniqueValues = new HashMap<>();
+    private List<Node> localNodes;
+
+    public BigInteger count() {
+        return Arrays.stream(localData).reduce(BigInteger::add).get();
+    }
 
     @Value ("${datapath}")
     private String path;
@@ -47,6 +54,61 @@ public class BayesServer extends Server {
         for (String name : data.getCollumnIds().keySet()) {
             uniqueValues.put(name, Data.getUniqueValues(data.getAttributeValues(name)));
         }
+    }
+
+    public void setLocalNodes(List<ArrayList> Node) {
+        this.localNodes = localNodes;
+    }
+
+    public List<Theta> getScrambledThetas(String id, String nodeName) {
+        Node local = null;
+        List<BigInteger> temp = new ArrayList<>();
+        for (Node n : localNodes) {
+            if (n.getName() == nodeName) {
+                local = n;
+            }
+        }
+        if (data.getAttributeCollumn(local.getName()) == null) {
+            // node attribute not locally available, this server is not in charge of this node
+            return null;
+        }
+        List<Theta> encrypted = new ArrayList<>();
+        for (Theta t : local.getProbabilities()) {
+            Theta e = new Theta();
+            List<ParentValue> parents = new ArrayList<>();
+            for (ParentValue p : t.getParents()) {
+                ParentValue pv = new ParentValue();
+                pv.setName(p.getName());
+                String encryptedValue = p.getValue().getValue();
+                //pv.setValue(new Attribute(p.getValue().getType(), p.getName()));
+            }
+        }
+        return null;
+    }
+
+    public void initInferenceNode(String id, String nodeName) {
+        Node local = null;
+        List<BigInteger> temp = new ArrayList<>();
+        for (Node n : localNodes) {
+            if (n.getName() == nodeName) {
+                local = n;
+            }
+        }
+        List<List<Attribute>> values = data.getData();
+        int row = data.getIndividualRow(id);
+        for (Theta t : local.getProbabilities()) {
+            if (data.getAttributeCollumn(local.getName()) == null) {
+                // attribute not locally available, skip
+            } else {
+                if (!values.get(data.getAttributeCollumn(local.getName())).get(row).equals(t.getLocalValue())) {
+                    // attribute locally available, but doesn't fullfill this theta, set to zero
+                    temp.add(BigInteger.ZERO);
+                } else {
+                    temp.add(BigInteger.ONE);
+                }
+            }
+        }
+
     }
 
     @PutMapping ("initK2Data")
