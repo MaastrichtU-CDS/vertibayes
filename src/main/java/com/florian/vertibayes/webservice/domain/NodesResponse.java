@@ -5,7 +5,7 @@ import com.florian.vertibayes.bayes.Node;
 import java.util.List;
 
 public class NodesResponse {
-    List<Node> nodes;
+    private List<Node> nodes;
 
     public NodesResponse() {
     }

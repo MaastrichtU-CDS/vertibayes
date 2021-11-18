@@ -43,6 +43,10 @@ public class BayesServer extends Server {
     }
 
     private void readData() {
+        if (System.getenv("DATABASE_URI") != null) {
+            // Check if running in vantage6 by looking for system env, if yes change to database_uri system env for path
+            this.path = System.getenv("DATABASE_URI");
+        }
         this.data = parseCsv(path, 0);
         for (String name : data.getCollumnIds().keySet()) {
             uniqueValues.put(name, Data.getUniqueValues(data.getAttributeValues(name)));
@@ -53,8 +57,8 @@ public class BayesServer extends Server {
     public void initK2Data(@RequestBody AttributeRequirementsRequest request) {
         reset();
         readData();
-        List<Attribute> requirements = request.getRequirements() == null ? new ArrayList<>() :
-                request.getRequirements();
+        List<Attribute> requirements = request.getRequirements() == null ? new ArrayList<>()
+                : request.getRequirements();
         int population = data.getNumberOfIndividuals();
         localData = new BigInteger[population];
         for (int i = 0; i < population; i++) {
@@ -92,6 +96,7 @@ public class BayesServer extends Server {
         response.setNodes(nodes);
         return response;
     }
+
 
     @Override
     protected void reset() {

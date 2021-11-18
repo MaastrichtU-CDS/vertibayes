@@ -31,11 +31,6 @@
             <version>5.3</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-math3</artifactId>
-            <version>3.6.1</version>
-        </dependency>
-        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <version>5.7.1</version>
@@ -82,6 +77,9 @@
                         <configuration>
                             <failOnWarning>true</failOnWarning>
                             <usedDependencies>
+                                <dependency>
+                                    org.springframework.boot:spring-boot-starter-web
+                                </dependency>
                             </usedDependencies>
                         </configuration>
                     </execution>

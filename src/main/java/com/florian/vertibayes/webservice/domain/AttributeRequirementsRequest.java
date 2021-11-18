@@ -5,7 +5,7 @@ import com.florian.vertibayes.bayes.data.Attribute;
 import java.util.List;
 
 public class AttributeRequirementsRequest {
-    List<Attribute> requirements;
+    private List<Attribute> requirements;
 
     public AttributeRequirementsRequest() {
     }
