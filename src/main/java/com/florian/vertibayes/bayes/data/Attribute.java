@@ -1,9 +1,5 @@
 package com.florian.vertibayes.bayes.data;
 
-import java.util.ArrayList;
-import java.util.List;
-
-
 public class Attribute implements Comparable<Attribute> {
     public enum AttributeType { bool, string, number }
 
@@ -75,18 +71,6 @@ public class Attribute implements Comparable<Attribute> {
         return 0;
     }
 
-    public int compareTo(String value) {
-        if (type == AttributeType.bool) {
-            return Boolean.parseBoolean(this.value) == Boolean.parseBoolean(value) ? 0 : 1;
-        } else if (type == AttributeType.string) {
-            return this.value.equals(value) ? 0 : 1;
-        } else if (type == AttributeType.number) {
-            return Double.compare(Double.parseDouble(this.value), Double.parseDouble(value));
-        }
-        //should never come here, but java wants it
-        return 0;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -109,15 +93,5 @@ public class Attribute implements Comparable<Attribute> {
         hash = prime * hash + (attributeName == null ? 0 : attributeName.hashCode());
         hash = prime * hash + (id == null ? 0 : id.hashCode());
         return hash;
-    }
-
-    public static List<Attribute> unique(List<Attribute> attributes) {
-        List<Attribute> unique = new ArrayList<>();
-        for (Attribute attribute : attributes) {
-            if (!unique.contains(attribute)) {
-                unique.add(attribute);
-            }
-        }
-        return unique;
     }
 }
