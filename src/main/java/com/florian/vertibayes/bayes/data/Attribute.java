@@ -60,7 +60,10 @@ public class Attribute implements Comparable<Attribute> {
             System.out.println("Checkstyle wants there to be stuff");
             //ToDo implement error handling
         }
-
+        if (value.equals("?") || attribute.getValue().equals("?")) {
+            // ? indicates a missing value. Only equal if both are missing values
+            return value.equals(attribute.getValue()) ? 0 : 1;
+        }
         if (type == AttributeType.bool) {
             return Boolean.parseBoolean(value) == Boolean.parseBoolean(attribute.getValue()) ? 0 : 1;
         } else if (type == AttributeType.string) {

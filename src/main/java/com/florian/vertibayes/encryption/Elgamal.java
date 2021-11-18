@@ -13,7 +13,7 @@ public class Elgamal {
     private BigInteger privateKey;
     private PublicElgamalKey publicKey;
     private Random sc = new SecureRandom();
-    private int bits = 64;
+    private final int bits = 64;
 
     public Elgamal() {
     }
@@ -37,10 +37,10 @@ public class Elgamal {
 
     public EncryptedElgamal encrypt(BigInteger i) {
         BigInteger r = new BigInteger(bits, sc);
-        BigInteger EC = i.multiply(publicKey.getC().modPow(r, publicKey.getP())).mod(publicKey.getP());
+        BigInteger eC = i.multiply(publicKey.getC().modPow(r, publicKey.getP())).mod(publicKey.getP());
         BigInteger brmodp = publicKey.getB().modPow(r, publicKey.getP());
         EncryptedElgamal e = new EncryptedElgamal();
-        e.setA(EC);
+        e.setA(eC);
         e.setB(brmodp);
         return e;
     }

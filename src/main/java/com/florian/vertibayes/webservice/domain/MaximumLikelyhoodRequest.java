@@ -4,10 +4,10 @@ import com.florian.vertibayes.bayes.Node;
 
 import java.util.List;
 
-public class NodesResponse {
+public class MaximumLikelyhoodRequest {
     private List<Node> nodes;
 
-    public NodesResponse() {
+    public MaximumLikelyhoodRequest() {
     }
 
     public List<Node> getNodes() {

@@ -35,15 +35,5 @@ class BayesServerTest {
         Network network = new Network(Arrays.asList(endpoint1, endpoint2), secretEnd, new VertiBayesCentralServer());
         network.createNetwork();
         List<Node> nodes = network.getNodes();
-
-        for (Node n : nodes) {
-            // init the thetas
-            n.initProbabilities();
-            // now give it more manageable values:
-            double size = n.getProbabilities().size();
-            for (Theta t : n.getProbabilities()) {
-                t.setP(1.0 / size);
-            }
-        }
     }
 }

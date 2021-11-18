@@ -4,8 +4,6 @@ import com.florian.nscalarproduct.station.DataStation;
 import com.florian.nscalarproduct.webservice.Server;
 import com.florian.nscalarproduct.webservice.ServerEndpoint;
 import com.florian.vertibayes.bayes.Node;
-import com.florian.vertibayes.bayes.ParentValue;
-import com.florian.vertibayes.bayes.Theta;
 import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.bayes.data.Data;
 import com.florian.vertibayes.webservice.domain.AttributeRequirementsRequest;
@@ -56,67 +54,12 @@ public class BayesServer extends Server {
         }
     }
 
-    public void setLocalNodes(List<ArrayList> Node) {
-        this.localNodes = localNodes;
-    }
-
-    public List<Theta> getScrambledThetas(String id, String nodeName) {
-        Node local = null;
-        List<BigInteger> temp = new ArrayList<>();
-        for (Node n : localNodes) {
-            if (n.getName() == nodeName) {
-                local = n;
-            }
-        }
-        if (data.getAttributeCollumn(local.getName()) == null) {
-            // node attribute not locally available, this server is not in charge of this node
-            return null;
-        }
-        List<Theta> encrypted = new ArrayList<>();
-        for (Theta t : local.getProbabilities()) {
-            Theta e = new Theta();
-            List<ParentValue> parents = new ArrayList<>();
-            for (ParentValue p : t.getParents()) {
-                ParentValue pv = new ParentValue();
-                pv.setName(p.getName());
-                String encryptedValue = p.getValue().getValue();
-                //pv.setValue(new Attribute(p.getValue().getType(), p.getName()));
-            }
-        }
-        return null;
-    }
-
-    public void initInferenceNode(String id, String nodeName) {
-        Node local = null;
-        List<BigInteger> temp = new ArrayList<>();
-        for (Node n : localNodes) {
-            if (n.getName() == nodeName) {
-                local = n;
-            }
-        }
-        List<List<Attribute>> values = data.getData();
-        int row = data.getIndividualRow(id);
-        for (Theta t : local.getProbabilities()) {
-            if (data.getAttributeCollumn(local.getName()) == null) {
-                // attribute not locally available, skip
-            } else {
-                if (!values.get(data.getAttributeCollumn(local.getName())).get(row).equals(t.getLocalValue())) {
-                    // attribute locally available, but doesn't fullfill this theta, set to zero
-                    temp.add(BigInteger.ZERO);
-                } else {
-                    temp.add(BigInteger.ONE);
-                }
-            }
-        }
-
-    }
-
     @PutMapping ("initK2Data")
     public void initK2Data(@RequestBody AttributeRequirementsRequest request) {
         reset();
         readData();
-        List<Attribute> requirements = request.getRequirements() == null ? new ArrayList<>() :
-                request.getRequirements();
+        List<Attribute> requirements = request.getRequirements() == null ? new ArrayList<>()
+                : request.getRequirements();
         int population = data.getNumberOfIndividuals();
         localData = new BigInteger[population];
         for (int i = 0; i < population; i++) {
