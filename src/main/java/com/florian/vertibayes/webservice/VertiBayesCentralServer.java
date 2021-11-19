@@ -12,6 +12,7 @@ import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.domain.AttributeRequirementsRequest;
 import com.florian.vertibayes.webservice.domain.MaximumLikelyhoodRequest;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -45,8 +46,9 @@ public class VertiBayesCentralServer extends CentralServer {
     }
 
 
-    @GetMapping ("maximumLikelyhood")
+    @PostMapping ("maximumLikelyhood")
     public List<Node> maximumLikelyhood(@RequestBody MaximumLikelyhoodRequest req) {
+        initEndpoints();
         initThetas(req.getNodes(), endpoints);
         return req.getNodes();
     }
@@ -65,7 +67,7 @@ public class VertiBayesCentralServer extends CentralServer {
             }
         }
         if (secretEndpoint == null) {
-            ServerEndpoint secretEndpoint = new ServerEndpoint(secretServer);
+            secretEndpoint = new ServerEndpoint(secretServer);
         }
     }
 
