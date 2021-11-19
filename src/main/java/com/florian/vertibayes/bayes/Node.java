@@ -8,6 +8,7 @@ import java.util.Set;
 
 public class Node {
     private List<Node> parents = new ArrayList<>();
+    private List<Node> children = new ArrayList<>();
     private Set<String> uniquevalues;
     private String name;
     private Attribute.AttributeType type;
@@ -56,5 +57,13 @@ public class Node {
 
     public void setType(Attribute.AttributeType type) {
         this.type = type;
+    }
+
+    public List<Node> getChildren() {
+        return children;
+    }
+
+    public void setChildren(List<Node> children) {
+        this.children = children;
     }
 }
