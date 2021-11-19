@@ -9,7 +9,6 @@ import com.florian.vertibayes.webservice.BayesServer;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
 import com.florian.vertibayes.webservice.domain.MaximumLikelyhoodRequest;
-import org.junit.Ignore;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -25,8 +24,7 @@ public class GenerateData {
     private static final String CSV_PATH = "output/generatedData.csv";
 
     @Test
-    @Ignore
-    public void generateData() {
+    public void testGenerateData() {
         //utility function to generate data locally without needing to create an entire vantage6 setup
         //easier for experiments
         BayesServer station1 = new BayesServer("resources/smallK2Example_firsthalf.csv", "1");
