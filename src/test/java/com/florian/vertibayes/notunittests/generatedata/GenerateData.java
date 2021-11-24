@@ -14,10 +14,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class GenerateData {
     private static final int POPULATION = 150;
@@ -53,7 +50,7 @@ public class GenerateData {
         data.add(types);
         data.add(names);
         for (int i = 0; i < POPULATION; i++) {
-            String individual = i + "," + generateIndividual(root, null);
+            String individual = i + "," + generateIndividual(nodes);
             data.add(individual);
         }
         printCSV(data);
@@ -86,6 +83,64 @@ public class GenerateData {
             for (Node n : node.getChildren()) {
                 s += "," + generateTypes(n);
             }
+        }
+        return s;
+    }
+
+    private String generateIndividual(List<Node> nodes) {
+        Map<String, String> individual = new HashMap<>();
+        boolean done = false;
+        Random random = new Random();
+        while (!done) {
+            done = true;
+            for (Node node : nodes) {
+                if (individual.get(node.getName()) == null) {
+                    done = false;
+                    //this attribute does not have a value yet
+                    double x = random.nextDouble();
+                    double y = 0;
+                    for (Theta theta : node.getProbabilities()) {
+                        if (node.getParents().size() == 0) {
+                            //no parents, just select a random value
+                            y += theta.getP();
+                            if (x <= y) {
+                                individual.put(node.getName(), theta.getLocalValue().getValue());
+                                break;
+                            }
+                        } else {
+                            //node has parents, so check if parent values have been selected yet
+                            boolean correctTheta = true;
+                            for (ParentValue parent : theta.getParents()) {
+                                if (individual.get(parent.getName()) == null) {
+                                    //not all parents are selected, move on
+                                    correctTheta = false;
+                                    break;
+                                } else if (individual.get(parent.getName()) != parent.getValue().getValue()) {
+                                    //A parent has the wrong value, move on
+                                    correctTheta = false;
+                                    break;
+                                }
+                            }
+                            if (correctTheta) {
+                                y += theta.getP();
+                                if (x <= y) {
+                                    individual.put(node.getName(), theta.getLocalValue().getValue());
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        String s = "";
+        int i = 0;
+        for (String key : individual.keySet()) {
+            if (i > 0) {
+                s += ",";
+            }
+            i++;
+            s += individual.get(key);
         }
         return s;
     }
