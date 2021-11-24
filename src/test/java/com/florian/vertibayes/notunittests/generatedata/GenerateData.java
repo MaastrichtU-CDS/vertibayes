@@ -27,25 +27,7 @@ public class GenerateData {
     public void testGenerateData() {
         //utility function to generate data locally without needing to create an entire vantage6 setup
         //easier for experiments
-        BayesServer station1 = new BayesServer("resources/smallK2Example_firsthalf.csv", "1");
-        BayesServer station2 = new BayesServer("resources/smallK2Example_secondhalf.csv", "2");
-
-        VertiBayesEndpoint endpoint1 = new VertiBayesEndpoint(station1);
-        VertiBayesEndpoint endpoint2 = new VertiBayesEndpoint(station2);
-        BayesServer secret = new BayesServer("3", Arrays.asList(endpoint1, endpoint2));
-
-        ServerEndpoint secretEnd = new ServerEndpoint(secret);
-
-        List<ServerEndpoint> all = new ArrayList<>();
-        all.add(endpoint1);
-        all.add(endpoint2);
-        all.add(secretEnd);
-        secret.setEndpoints(all);
-        station1.setEndpoints(all);
-        station2.setEndpoints(all);
-
-        VertiBayesCentralServer central = new VertiBayesCentralServer();
-        central.initEndpoints(Arrays.asList(endpoint1, endpoint2), secretEnd);
+        VertiBayesCentralServer central = createCentral();
         List<Node> nodes = central.buildNetwork();
         MaximumLikelyhoodRequest req = new MaximumLikelyhoodRequest();
         req.setNodes(nodes);
@@ -140,5 +122,28 @@ public class GenerateData {
             }
         }
         return s;
+    }
+
+    private VertiBayesCentralServer createCentral() {
+        BayesServer station1 = new BayesServer("resources/smallK2Example_firsthalf.csv", "1");
+        BayesServer station2 = new BayesServer("resources/smallK2Example_secondhalf.csv", "2");
+
+        VertiBayesEndpoint endpoint1 = new VertiBayesEndpoint(station1);
+        VertiBayesEndpoint endpoint2 = new VertiBayesEndpoint(station2);
+        BayesServer secret = new BayesServer("3", Arrays.asList(endpoint1, endpoint2));
+
+        ServerEndpoint secretEnd = new ServerEndpoint(secret);
+
+        List<ServerEndpoint> all = new ArrayList<>();
+        all.add(endpoint1);
+        all.add(endpoint2);
+        all.add(secretEnd);
+        secret.setEndpoints(all);
+        station1.setEndpoints(all);
+        station2.setEndpoints(all);
+
+        VertiBayesCentralServer central = new VertiBayesCentralServer();
+        central.initEndpoints(Arrays.asList(endpoint1, endpoint2), secretEnd);
+        return central;
     }
 }

@@ -49,6 +49,7 @@ public class VertiBayesCentralServer extends CentralServer {
     @PostMapping ("maximumLikelyhood")
     public List<Node> maximumLikelyhood(@RequestBody MaximumLikelyhoodRequest req) {
         initEndpoints();
+        endpoints.stream().forEach(x -> x.initEndpoints());
         initThetas(req.getNodes(), endpoints);
         return req.getNodes();
     }
