@@ -17,7 +17,7 @@ import java.io.PrintWriter;
 import java.util.*;
 
 public class GenerateData {
-    private static final int POPULATION = 150;
+    private static final int POPULATION = 1000;
     private static final String CSV_PATH = "output/generatedData.csv";
     public static final String FIRSTHALF = "resources/iris_firsthalf.csv";
     public static final String SECONDHALF = "resources/iris_secondhalf.csv";
@@ -74,7 +74,13 @@ public class GenerateData {
 
         String types = "";
         String names = "";
+        int j = 0;
         for (Node node : nodes) {
+            if (j > 0) {
+                types += ",";
+                names += ",";
+            }
+            j++;
             types += node.getType();
             names += node.getName();
         }
