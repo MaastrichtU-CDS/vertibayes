@@ -4,7 +4,6 @@ import com.florian.nscalarproduct.webservice.ServerEndpoint;
 import com.florian.vertibayes.bayes.Node;
 import com.florian.vertibayes.bayes.ParentValue;
 import com.florian.vertibayes.bayes.Theta;
-import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.BayesServer;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
@@ -141,40 +140,6 @@ public class GenerateData {
             }
             i++;
             s += individual.get(key);
-        }
-        return s;
-    }
-
-    private String generateIndividual(Node node, Attribute parent) {
-        Random r = new Random();
-        double x = r.nextDouble();
-        double y = 0;
-        String s = "";
-        Attribute selected = null;
-        for (Theta t : node.getProbabilities()) {
-            if (parent != null) {
-                ParentValue p = t.getParents().get(0);
-                if (p.getValue().equals(parent)) {
-                    y += t.getP();
-                    if (x <= y) {
-                        s += t.getLocalValue().getValue();
-                        selected = t.getLocalValue();
-                        break;
-                    }
-                }
-            } else {
-                y += t.getP();
-                if (x <= y) {
-                    s += t.getLocalValue().getValue();
-                    selected = t.getLocalValue();
-                    break;
-                }
-            }
-        }
-        if (node.getChildren().size() > 0) {
-            for (Node n : node.getChildren()) {
-                s += "," + generateIndividual(n, selected);
-            }
         }
         return s;
     }
