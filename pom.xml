@@ -136,6 +136,7 @@
                                         <exclude>com.florian.vertibayes.WebserviceDtApplication</exclude>
                                         <exclude>com.webservice.CentralServer</exclude>
                                         <exclude>com.florian.vertibayes</exclude>
+                                        <exclude>com.florian.vertibayes.webservice.domain</exclude>
                                         <exclude>com</exclude>
                                     </excludes>
                                     <element>PACKAGE</element>
