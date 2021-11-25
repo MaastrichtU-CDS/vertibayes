@@ -19,22 +19,32 @@ import java.util.*;
 public class GenerateData {
     private static final int POPULATION = 150;
     private static final String CSV_PATH = "output/generatedData.csv";
-    public static final String FIRSTHALF = "resources/smallK2Example_firsthalf.csv";
-    public static final String SECONDHALF = "resources/smallK2Example_secondhalf.csv";
+    public static final String FIRSTHALF = "resources/iris_firsthalf.csv";
+    public static final String SECONDHALF = "resources/iris_secondhalf.csv";
 
     public List<Node> buildNetwork() {
-        Node node1 = new Node();
-        Node node2 = new Node();
-        Node node3 = new Node();
-        node1.setName("x1");
-        node1.setType(Attribute.AttributeType.number);
-        node2.setName("x2");
-        node2.setType(Attribute.AttributeType.number);
-        node3.setName("x3");
-        node3.setType(Attribute.AttributeType.number);
-        node2.getParents().add(node1);
-        node3.getParents().add(node2);
-        return Arrays.asList(node1, node2, node3);
+        Node label = new Node();
+        Node petallength = new Node();
+        Node petalwidth = new Node();
+        Node sepallength = new Node();
+        Node sepalwidth = new Node();
+        label.setName("label");
+        label.setType(Attribute.AttributeType.string);
+        petallength.setName("petallength");
+        petallength.setType(Attribute.AttributeType.number);
+        petalwidth.setName("petalwidth");
+        petalwidth.setType(Attribute.AttributeType.number);
+        sepallength.setName("sepallength");
+        sepallength.setType(Attribute.AttributeType.number);
+        sepalwidth.setName("sepalwidth");
+        sepalwidth.setType(Attribute.AttributeType.number);
+        petallength.getParents().add(label);
+        petalwidth.getParents().add(label);
+        petalwidth.getParents().add(petallength);
+        sepalwidth.getParents().add(label);
+        sepallength.getParents().add(label);
+        //list nodes in the order you want the attributes printed
+        return Arrays.asList(sepallength, sepalwidth, petallength, petalwidth, label);
     }
 
     @Test
@@ -62,13 +72,16 @@ public class GenerateData {
         }
         List<String> data = new ArrayList<>();
 
-        String types = "string," + generateTypes(root);
-        String names = "ID," + generateNames(root);
+        String types = "";
+        String names = "";
+        for (Node node : nodes) {
+            types += node.getType();
+            names += node.getName();
+        }
         data.add(types);
         data.add(names);
         for (int i = 0; i < POPULATION; i++) {
-            String individual = i + "," + generateIndividual(nodes);
-            data.add(individual);
+            data.add(generateIndividual(nodes));
         }
         printCSV(data);
     }
@@ -152,13 +165,14 @@ public class GenerateData {
         }
         String s = "";
         int i = 0;
-        for (String key : individual.keySet()) {
+        for (Node node : nodes) {
             if (i > 0) {
                 s += ",";
             }
             i++;
-            s += individual.get(key);
+            s += individual.get(node.getName());
         }
+
         return s;
     }
 
