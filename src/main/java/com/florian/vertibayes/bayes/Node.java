@@ -3,13 +3,14 @@ package com.florian.vertibayes.bayes;
 import com.florian.vertibayes.bayes.data.Attribute;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class Node {
     private List<Node> parents = new ArrayList<>();
     private List<Node> children = new ArrayList<>();
-    private Set<String> uniquevalues;
+    private Set<String> uniquevalues = new HashSet<>();
     private String name;
     private Attribute.AttributeType type;
     private List<Theta> probabilities = new ArrayList<>();

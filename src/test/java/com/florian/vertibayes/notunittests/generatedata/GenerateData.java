@@ -4,6 +4,7 @@ import com.florian.nscalarproduct.webservice.ServerEndpoint;
 import com.florian.vertibayes.bayes.Node;
 import com.florian.vertibayes.bayes.ParentValue;
 import com.florian.vertibayes.bayes.Theta;
+import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.BayesServer;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
@@ -21,13 +22,27 @@ public class GenerateData {
     public static final String FIRSTHALF = "resources/smallK2Example_firsthalf.csv";
     public static final String SECONDHALF = "resources/smallK2Example_secondhalf.csv";
 
+    public List<Node> buildNetwork() {
+        Node node1 = new Node();
+        Node node2 = new Node();
+        Node node3 = new Node();
+        node1.setName("x1");
+        node1.setType(Attribute.AttributeType.number);
+        node2.setName("x2");
+        node2.setType(Attribute.AttributeType.number);
+        node3.setName("x3");
+        node3.setType(Attribute.AttributeType.number);
+        node2.getParents().add(node1);
+        node3.getParents().add(node2);
+        return Arrays.asList(node1, node2, node3);
+    }
+
     @Test
     public void testGenerateData() {
         //utility function to generate data locally without needing to create an entire vantage6 setup
         //easier for experiments
         VertiBayesCentralServer central = createCentral();
-        List<Node> nodes = central.buildNetwork();
-        nodes.stream().forEach(x -> x.setUniquevalues(new HashSet<>()));
+        List<Node> nodes = buildNetwork();
         MaximumLikelyhoodRequest req = new MaximumLikelyhoodRequest();
         req.setNodes(nodes);
         central.maximumLikelyhood(req);
