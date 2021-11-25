@@ -10,6 +10,7 @@ import com.florian.vertibayes.bayes.ParentValue;
 import com.florian.vertibayes.bayes.Theta;
 import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.domain.AttributeRequirementsRequest;
+import com.florian.vertibayes.webservice.domain.InitCentralServerRequest;
 import com.florian.vertibayes.webservice.domain.MaximumLikelyhoodRequest;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,6 +31,7 @@ public class VertiBayesCentralServer extends CentralServer {
     private Network network;
     private List<ServerEndpoint> endpoints = new ArrayList<>();
     private ServerEndpoint secretEndpoint;
+    private boolean isCentral = false;
 
     public VertiBayesCentralServer() {
 
@@ -52,6 +54,13 @@ public class VertiBayesCentralServer extends CentralServer {
         endpoints.stream().forEach(x -> x.initEndpoints());
         initThetas(req.getNodes(), endpoints);
         return req.getNodes();
+    }
+
+    @PostMapping ("initCentralServer")
+    public void initCentralServer(InitCentralServerRequest req) {
+        //purely exists for vantage6
+        super.secretServer = req.getSecretServer();
+        super.servers = req.getServers();
     }
 
     public BigInteger nparty(List<ServerEndpoint> endpoints, ServerEndpoint secretServer) {
