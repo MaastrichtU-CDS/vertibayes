@@ -18,6 +18,8 @@ import java.util.*;
 public class GenerateData {
     private static final int POPULATION = 150;
     private static final String CSV_PATH = "output/generatedData.csv";
+    public static final String FIRSTHALF = "resources/smallK2Example_firsthalf.csv";
+    public static final String SECONDHALF = "resources/smallK2Example_secondhalf.csv";
 
     @Test
     public void testGenerateData() {
@@ -25,6 +27,7 @@ public class GenerateData {
         //easier for experiments
         VertiBayesCentralServer central = createCentral();
         List<Node> nodes = central.buildNetwork();
+        nodes.stream().forEach(x -> x.setUniquevalues(new HashSet<>()));
         MaximumLikelyhoodRequest req = new MaximumLikelyhoodRequest();
         req.setNodes(nodes);
         central.maximumLikelyhood(req);
@@ -145,8 +148,8 @@ public class GenerateData {
     }
 
     private VertiBayesCentralServer createCentral() {
-        BayesServer station1 = new BayesServer("resources/smallK2Example_firsthalf.csv", "1");
-        BayesServer station2 = new BayesServer("resources/smallK2Example_secondhalf.csv", "2");
+        BayesServer station1 = new BayesServer(FIRSTHALF, "1");
+        BayesServer station2 = new BayesServer(SECONDHALF, "2");
 
         VertiBayesEndpoint endpoint1 = new VertiBayesEndpoint(station1);
         VertiBayesEndpoint endpoint2 = new VertiBayesEndpoint(station2);

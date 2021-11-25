@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigInteger;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.florian.vertibayes.bayes.data.Parser.parseCsv;
 
@@ -56,6 +57,12 @@ public class BayesServer extends Server {
         for (String name : data.getCollumnIds().keySet()) {
             uniqueValues.put(name, Data.getUniqueValues(data.getAttributeValues(name)));
         }
+    }
+
+    @GetMapping ("getUniqueValues")
+    public Set<String> getUniqueValues(String attribute) {
+        return new HashSet<>(data.getAttributeValues(attribute).stream().map(x -> x.getValue()).collect(
+                Collectors.toList()));
     }
 
     @PutMapping ("initK2Data")

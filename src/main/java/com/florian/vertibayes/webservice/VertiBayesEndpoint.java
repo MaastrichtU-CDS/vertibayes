@@ -9,6 +9,7 @@ import com.florian.vertibayes.webservice.domain.AttributeRequirementsRequest;
 import com.florian.vertibayes.webservice.domain.NodesResponse;
 
 import java.util.List;
+import java.util.Set;
 
 public class VertiBayesEndpoint extends ServerEndpoint {
 
@@ -35,5 +36,12 @@ public class VertiBayesEndpoint extends ServerEndpoint {
             return ((BayesServer) (server)).createNodes().getNodes();
         }
         return REST_TEMPLATE.getForEntity(serverUrl + "/createNodes", NodesResponse.class).getBody().getNodes();
+    }
+
+    public Set<String> getUniqueValues(Node node) {
+        if (testing) {
+            return ((BayesServer) (server)).getUniqueValues(node.getName());
+        }
+        return REST_TEMPLATE.getForEntity(serverUrl + "/getUniqueValues", Set.class).getBody();
     }
 }

@@ -1,9 +1,6 @@
 package com.florian.vertibayes.bayes.data;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class Data {
 
@@ -55,7 +52,7 @@ public class Data {
     }
 
     public List<Attribute> getAttributeValues(String name) {
-        return data.get(collumnIds.get(name));
+        return collumnIds.get(name) == null ? new ArrayList<Attribute>() : data.get(collumnIds.get(name));
     }
 
     public Integer getAttributeCollumn(String name) {

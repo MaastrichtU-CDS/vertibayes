@@ -52,7 +52,7 @@ public class VertiBayesCentralServer extends CentralServer {
     public List<Node> maximumLikelyhood(@RequestBody MaximumLikelyhoodRequest req) {
         initEndpoints();
         endpoints.stream().forEach(x -> x.initEndpoints());
-        initThetas(req.getNodes(), endpoints);
+        initThetas(req.getNodes());
         return req.getNodes();
     }
 
@@ -87,7 +87,14 @@ public class VertiBayesCentralServer extends CentralServer {
         this.secretEndpoint = secretServer;
     }
 
-    private void initThetas(List<Node> nodes, List<ServerEndpoint> endpoints) {
+    private void initNode(Node node) {
+        for (ServerEndpoint endpoint : endpoints) {
+            node.getUniquevalues().addAll(((VertiBayesEndpoint) endpoint).getUniqueValues(node));
+        }
+    }
+
+    private void initThetas(List<Node> nodes) {
+        nodes.stream().forEach(x -> initNode(x));
         for (Node node : nodes) {
             for (String unique : node.getUniquevalues()) {
                 // generate base thetas
