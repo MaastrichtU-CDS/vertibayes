@@ -8,10 +8,11 @@ import java.math.BigInteger;
 import static com.florian.vertibayes.util.Util.factorial;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class UtilTest {
+public class UtilTest {
+    private static int PRECISION = 10000;
 
     @Test
-    public void factorialTest() {
+    public void testFactorial() {
         BigInteger i = factorial(BigInteger.valueOf(3));
         BigDecimal j = factorial(BigDecimal.valueOf(3.0));
 

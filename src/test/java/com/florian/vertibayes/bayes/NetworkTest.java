@@ -15,11 +15,10 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-
-class NetworkTest {
+public class NetworkTest {
 
     @Test
-    public void CreateNetworkTest() {
+    public void testCreateNetwork() {
         BayesServer station1 = new BayesServer("resources/smallK2Example_firsthalf.csv", "1");
         BayesServer station2 = new BayesServer("resources/smallK2Example_secondhalf.csv", "2");
 
@@ -50,7 +49,6 @@ class NetworkTest {
         assertTrue(nodes.get(2).getParents().contains(nodes.get(1)));
 
         //expected network an example are based on the example in "resources/k2_algorithm.pdf"
-
     }
 
     @Test
@@ -117,7 +115,5 @@ class NetworkTest {
         for (List<Attribute> ex : expected) {
             assertTrue(requirements.contains(exp));
         }
-
-
     }
 }

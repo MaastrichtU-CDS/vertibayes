@@ -8,12 +8,17 @@ import java.util.Set;
 
 public class Node {
     private List<Node> parents = new ArrayList<>();
-    private Node child;
+    private List<Node> children = new ArrayList<>();
     private Set<String> uniquevalues;
     private String name;
     private Attribute.AttributeType type;
+    private List<Theta> probabilities = new ArrayList<>();
 
     public Node() {
+    }
+
+    public List<Theta> getProbabilities() {
+        return probabilities;
     }
 
     public Node(String name, Set<String> uniquevalues, Attribute.AttributeType type) {
@@ -42,14 +47,6 @@ public class Node {
         this.parents = parents;
     }
 
-    public Node getChild() {
-        return child;
-    }
-
-    public void setChild(Node child) {
-        this.child = child;
-    }
-
     public void setUniquevalues(Set<String> uniquevalues) {
         this.uniquevalues = uniquevalues;
     }
@@ -60,5 +57,13 @@ public class Node {
 
     public void setType(Attribute.AttributeType type) {
         this.type = type;
+    }
+
+    public List<Node> getChildren() {
+        return children;
+    }
+
+    public void setChildren(List<Node> children) {
+        this.children = children;
     }
 }

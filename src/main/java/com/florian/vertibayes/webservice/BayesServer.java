@@ -23,6 +23,11 @@ import static com.florian.vertibayes.bayes.data.Parser.parseCsv;
 public class BayesServer extends Server {
     private Data data;
     private Map<String, Set<String>> uniqueValues = new HashMap<>();
+    private List<Node> localNodes;
+
+    public BigInteger count() {
+        return Arrays.stream(localData).reduce(BigInteger::add).get();
+    }
 
     @Value ("${datapath}")
     private String path;
