@@ -17,42 +17,108 @@ import java.io.PrintWriter;
 import java.util.*;
 
 public class GenerateData {
-    private static final int POPULATION = 1000;
-    private static final String CSV_PATH = "output/generatedData.csv";
-    public static final String FIRSTHALF = "resources/iris_firsthalf.csv";
-    public static final String SECONDHALF = "resources/iris_secondhalf.csv";
+    private static final String CSV_PATH_IRIS = "output/generatedDataIris.csv";
+    public static final String FIRSTHALF_IRIS = "resources/iris_firsthalf.csv";
+    public static final String SECONDHALF_IRIS = "resources/iris_secondhalf.csv";
 
-    public List<Node> buildNetwork() {
-        Node label = new Node();
-        Node petallength = new Node();
-        Node petalwidth = new Node();
-        Node sepallength = new Node();
-        Node sepalwidth = new Node();
-        label.setName("label");
-        label.setType(Attribute.AttributeType.string);
-        petallength.setName("petallength");
-        petallength.setType(Attribute.AttributeType.number);
-        petalwidth.setName("petalwidth");
-        petalwidth.setType(Attribute.AttributeType.number);
-        sepallength.setName("sepallength");
-        sepallength.setType(Attribute.AttributeType.number);
-        sepalwidth.setName("sepalwidth");
-        sepalwidth.setType(Attribute.AttributeType.number);
-        petallength.getParents().add(label);
-        petalwidth.getParents().add(label);
-        petalwidth.getParents().add(petallength);
-        sepalwidth.getParents().add(label);
-        sepallength.getParents().add(label);
+    private static final String CSV_PATH_ASIA = "output/generatedDataAsia.csv";
+    public static final String FIRSTHALF_ASIA = "resources/Experiments/asia/Asia10k_firstHalf.csv";
+    public static final String SECONDHALF_ASIA = "resources/Experiments/asia/Asia10k_secondHalf.csv";
+
+    private static final String CSV_PATH_ALARM = "output/generatedDataAlarm.csv";
+    public static final String FIRSTHALF_ALARM = "resources/Experiments/alarm/Alarm10k_firsthalf.csv";
+    public static final String SECONDHALF_ALARM = "resources/Experiments/alarm/Alarm10k_secondhalf.csv";
+
+    @Test
+    public void generateAllData() {
+        generateData(buildIrisNetwork(), CSV_PATH_IRIS, FIRSTHALF_IRIS, SECONDHALF_IRIS, 150);
+        generateData(buildAsiaNetwork(), CSV_PATH_ASIA, FIRSTHALF_ASIA, SECONDHALF_ASIA, 10000);
+        generateData(buildAlarmNetwork(), CSV_PATH_ALARM, FIRSTHALF_ALARM, SECONDHALF_ALARM, 10000);
+    }
+
+    private List<Node> buildAlarmNetwork() {
+        Node mvs = createNode("MINVOLSET", Attribute.AttributeType.string, new ArrayList<>());
+        Node vmch = createNode("VENTMACH", Attribute.AttributeType.string, Arrays.asList(mvs));
+        Node disc = createNode("DISCONNECT", Attribute.AttributeType.string, new ArrayList<>());
+        Node vtub = createNode("VENTTUBE", Attribute.AttributeType.string, Arrays.asList(disc, vmch));
+        Node kink = createNode("KINKEDTUBE", Attribute.AttributeType.string, new ArrayList<>());
+        Node pmb = createNode("PULMEMBOLUS", Attribute.AttributeType.string, new ArrayList<>());
+        Node inT = createNode("INTUBATION", Attribute.AttributeType.string, new ArrayList<>());
+        Node pap = createNode("PAP", Attribute.AttributeType.string, Arrays.asList(pmb));
+        Node shnt = createNode("SHUNT", Attribute.AttributeType.string, Arrays.asList(pmb, inT));
+        Node vlng = createNode("VENTLUNG", Attribute.AttributeType.string, Arrays.asList(inT, kink, vtub));
+        Node prss = createNode("PRESS", Attribute.AttributeType.string, Arrays.asList(inT, kink, vtub));
+        Node fio2 = createNode("FIO2", Attribute.AttributeType.string, new ArrayList<>());
+        Node minv = createNode("MINVOLSET", Attribute.AttributeType.string, Arrays.asList(inT, vlng));
+        Node valv = createNode("VENTALV", Attribute.AttributeType.string, Arrays.asList(inT, vlng));
+        Node pvs = createNode("PVSAT", Attribute.AttributeType.string, Arrays.asList(fio2, valv));
+        Node aco2 = createNode("ARTCO2", Attribute.AttributeType.string, Arrays.asList(valv));
+        Node sao2 = createNode("SAO2", Attribute.AttributeType.string, Arrays.asList(shnt, pvs));
+        Node eco2 = createNode("EXPCO2", Attribute.AttributeType.string, Arrays.asList(aco2, vlng));
+        Node apl = createNode("ANAPHYLAXIS", Attribute.AttributeType.string, new ArrayList<>());
+        Node anes = createNode("INSUFFANESTH", Attribute.AttributeType.string, new ArrayList<>());
+        Node tpr = createNode("TPR", Attribute.AttributeType.string, Arrays.asList(apl));
+        Node cchl = createNode("CATECHOL", Attribute.AttributeType.string, Arrays.asList(tpr, sao2, aco2, anes));
+        Node lvf = createNode("LVFAILURE", Attribute.AttributeType.string, new ArrayList<>());
+        Node hyp = createNode("HYPOVOLEMIA", Attribute.AttributeType.string, new ArrayList<>());
+        Node hist = createNode("HISTORY", Attribute.AttributeType.string, Arrays.asList(lvf));
+        Node lvv = createNode("LVEDVOLUME", Attribute.AttributeType.string, Arrays.asList(lvf, hyp));
+        Node erlo = createNode("ERRLOWOUTPUT", Attribute.AttributeType.string, new ArrayList<>());
+        Node stkv = createNode("STROKEVOLUME", Attribute.AttributeType.string, Arrays.asList(lvf, hyp));
+        Node hr = createNode("HR", Attribute.AttributeType.string, Arrays.asList(cchl));
+        Node erca = createNode("ERRCAUTER", Attribute.AttributeType.string, new ArrayList<>());
+        Node cvp = createNode("CVP", Attribute.AttributeType.string, Arrays.asList(lvv));
+        Node pcwp = createNode("PCWP", Attribute.AttributeType.string, Arrays.asList(lvv));
+        Node hrbp = createNode("HRBP", Attribute.AttributeType.string, Arrays.asList(erlo, hr));
+        Node co = createNode("CO", Attribute.AttributeType.string, Arrays.asList(stkv, hr));
+        Node hrsa = createNode("HRSAT", Attribute.AttributeType.string, Arrays.asList(hr, erca));
+        Node hrek = createNode("HREKG", Attribute.AttributeType.string, Arrays.asList(hr, erca));
+        Node bp = createNode("BP", Attribute.AttributeType.string, Arrays.asList(tpr, co));
+
+        //list nodes in the order you want the attributes printed
+        return Arrays.asList(mvs, vmch, disc, vtub, kink, pmb, inT, pap, shnt, vlng, prss, fio2, minv, valv, pvs, aco2,
+                             sao2, eco2, apl, anes, tpr, cchl, lvf, hyp, hist, lvv, erlo, stkv, hr, erca, cvp, pcwp,
+                             hrbp, co, hrsa, hrek, bp);
+    }
+
+
+    private List<Node> buildIrisNetwork() {
+        Node label = createNode("label", Attribute.AttributeType.string, new ArrayList<>());
+        Node petallength = createNode("petallength", Attribute.AttributeType.number, Arrays.asList(label));
+        Node petalwidth = createNode("petalwidth", Attribute.AttributeType.number, Arrays.asList(label, petallength));
+        Node sepallength = createNode("sepallength", Attribute.AttributeType.number, Arrays.asList(label));
+        Node sepalwidth = createNode("sepalwidth", Attribute.AttributeType.number, Arrays.asList(label));
+
         //list nodes in the order you want the attributes printed
         return Arrays.asList(sepallength, sepalwidth, petallength, petalwidth, label);
     }
 
-    @Test
-    public void testGenerateData() {
+    private List<Node> buildAsiaNetwork() {
+        Node asia = createNode("asia", Attribute.AttributeType.string, new ArrayList<>());
+        Node tub = createNode("tub", Attribute.AttributeType.string, Arrays.asList(asia));
+        Node smoke = createNode("smoke", Attribute.AttributeType.string, new ArrayList<>());
+        Node lung = createNode("lung", Attribute.AttributeType.string, Arrays.asList(smoke));
+        Node bronc = createNode("bronc", Attribute.AttributeType.string, Arrays.asList(smoke));
+        Node either = createNode("either", Attribute.AttributeType.string, Arrays.asList(tub, lung));
+        Node xray = createNode("xray", Attribute.AttributeType.string, Arrays.asList(either));
+        Node dysp = createNode("dysp", Attribute.AttributeType.string, Arrays.asList(either, bronc));
+
+        //list nodes in the order you want the attributes printed
+        return Arrays.asList(asia, tub, smoke, lung, bronc, either, xray, dysp);
+    }
+
+    private Node createNode(String name, Attribute.AttributeType type, List<Node> parents) {
+        Node n = new Node();
+        n.setType(type);
+        n.setName(name);
+        n.setParents(parents);
+        return n;
+    }
+
+    private void generateData(List<Node> nodes, String output, String firsthalf, String secondhalf, int samplesize) {
         //utility function to generate data locally without needing to create an entire vantage6 setup
         //easier for experiments
-        VertiBayesCentralServer central = createCentral();
-        List<Node> nodes = buildNetwork();
+        VertiBayesCentralServer central = createCentral(firsthalf, secondhalf);
         MaximumLikelyhoodRequest req = new MaximumLikelyhoodRequest();
         req.setNodes(nodes);
         central.maximumLikelyhood(req);
@@ -86,14 +152,14 @@ public class GenerateData {
         }
         data.add(types);
         data.add(names);
-        for (int i = 0; i < POPULATION; i++) {
+        for (int i = 0; i < samplesize; i++) {
             data.add(generateIndividual(nodes));
         }
-        printCSV(data);
+        printCSV(data, output);
     }
 
-    private void printCSV(List<String> data) {
-        File csvOutputFile = new File(CSV_PATH);
+    private void printCSV(List<String> data, String path) {
+        File csvOutputFile = new File(path);
         try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
             data.stream()
                     .forEach(pw::println);
@@ -152,7 +218,7 @@ public class GenerateData {
                                     correctTheta = false;
                                     break;
                                 } else if (individual.get(parent.getName()) != parent.getValue().getValue()) {
-                                    //A parent has the wrong value, move on
+                                    //A parent has the wrong value for this theta, move on
                                     correctTheta = false;
                                     break;
                                 }
@@ -182,9 +248,9 @@ public class GenerateData {
         return s;
     }
 
-    private VertiBayesCentralServer createCentral() {
-        BayesServer station1 = new BayesServer(FIRSTHALF, "1");
-        BayesServer station2 = new BayesServer(SECONDHALF, "2");
+    private VertiBayesCentralServer createCentral(String firsthalf, String secondhalf) {
+        BayesServer station1 = new BayesServer(firsthalf, "1");
+        BayesServer station2 = new BayesServer(secondhalf, "2");
 
         VertiBayesEndpoint endpoint1 = new VertiBayesEndpoint(station1);
         VertiBayesEndpoint endpoint2 = new VertiBayesEndpoint(station2);
