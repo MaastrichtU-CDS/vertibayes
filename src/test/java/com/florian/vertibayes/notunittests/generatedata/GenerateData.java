@@ -33,7 +33,7 @@ public class GenerateData {
     public void generateAllData() {
         //this is not a unittest, this exists purely to be able to generate data without needing to setup an entire
         // vantage6 infra or even several spring boot instances
-        // Generating all 3 sets of data takes about 2:25 with Alarm taking 99% of that time
+        // Generating all 3 sets of data takes about 2 minutes with Alarm taking 99% of that time
 
         generateData(buildIrisNetwork(), CSV_PATH_IRIS, FIRSTHALF_IRIS, SECONDHALF_IRIS, 150);
         generateData(buildAsiaNetwork(), CSV_PATH_ASIA, FIRSTHALF_ASIA, SECONDHALF_ASIA, 10000);
