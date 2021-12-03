@@ -23,8 +23,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.florian.vertibayes.bayes.Node.findSliblings;
+
 @RestController
 public class VertiBayesCentralServer extends CentralServer {
+    public static final double ONE = 0.99;
     //inherets endpoints from centralserver
     //overriding endpoints is impossible, use a different endpoint if you want to override
 
@@ -32,6 +35,8 @@ public class VertiBayesCentralServer extends CentralServer {
     private List<ServerEndpoint> endpoints = new ArrayList<>();
     private ServerEndpoint secretEndpoint;
     private boolean isCentral = false;
+
+    private static final double MINIMUM_LIKELYHOOD = 0.001;
 
     public VertiBayesCentralServer() {
 
@@ -105,6 +110,7 @@ public class VertiBayesCentralServer extends CentralServer {
             for (Node parent : node.getParents()) {
                 // for each parent
                 List<Theta> copies = new ArrayList<>();
+
                 for (String p : parent.getUniquevalues()) {
                     // for each parent value
                     ParentValue v = new ParentValue();
@@ -118,7 +124,6 @@ public class VertiBayesCentralServer extends CentralServer {
                         copy.setParents(new ArrayList<>());
                         copy.getParents().addAll(t.getParents());
                         copy.getParents().add(v);
-
                         copies.add(copy);
                     }
                 }
@@ -129,6 +134,7 @@ public class VertiBayesCentralServer extends CentralServer {
             for (Theta t : node.getProbabilities()) {
                 determineProb(t);
             }
+            alignSliblings(node);
         }
     }
 
@@ -157,5 +163,39 @@ public class VertiBayesCentralServer extends CentralServer {
         secretEndpoint.addSecretStation("start", endpoints.stream().map(x -> x.getServerId()).collect(
                 Collectors.toList()), endpoints.get(0).getPopulation());
         return nparty(endpoints, secretEndpoint);
+    }
+
+    private void alignSliblings(Node node) {
+        //make sure no thetas are set to zero as this breaks bayesian networks
+        //Also make sure all sliblings add up to one, due to certain combinations not existing in the test set
+        //You can see weird behaviour there
+        boolean done = false;
+        while (!done) {
+            done = true;
+            for (Theta t : node.getProbabilities()) {
+                List<Theta> sliblings = findSliblings(t, node);
+                double sum = 0;
+                for (Theta x : sliblings) {
+                    sum += x.getP();
+                }
+                if (sum < ONE || Double.isNaN(sum)) {
+                    //this set of sliblings does not occur in the training set and only theoretically exists
+                    //So just set everything randomly
+                    for (Theta x : sliblings) {
+                        x.setP(1.0 / sliblings.size());
+                    }
+                }
+
+                if (t.getP() <= 0 || Double.isNaN(t.getP())) {
+                    // parent-child value does not occur in the training set, initiallize as minimum likelyhood
+                    // alter slibling values accordingly
+                    done = false;
+                    for (Theta s : sliblings) {
+                        s.setP(s.getP() - MINIMUM_LIKELYHOOD / (sliblings.size() - 1));
+                    }
+                    t.setP(MINIMUM_LIKELYHOOD);
+                }
+            }
+        }
     }
 }

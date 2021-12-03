@@ -17,15 +17,15 @@ import java.io.PrintWriter;
 import java.util.*;
 
 public class GenerateData {
-    private static final String CSV_PATH_IRIS = "output/generatedDataIris.csv";
-    public static final String FIRSTHALF_IRIS = "resources/iris_firsthalf.csv";
-    public static final String SECONDHALF_IRIS = "resources/iris_secondhalf.csv";
+    private static final String CSV_PATH_IRIS = "resources/Experiments/generated/generatedDataIris.csv";
+    public static final String FIRSTHALF_IRIS = "resources/Experiments/iris/iris_firsthalf.csv";
+    public static final String SECONDHALF_IRIS = "resources/Experiments/iris/iris_secondhalf.csv";
 
-    private static final String CSV_PATH_ASIA = "output/generatedDataAsia.csv";
+    private static final String CSV_PATH_ASIA = "resources/Experiments/generated/generatedDataAsia.csv";
     public static final String FIRSTHALF_ASIA = "resources/Experiments/asia/Asia10k_firstHalf.csv";
     public static final String SECONDHALF_ASIA = "resources/Experiments/asia/Asia10k_secondHalf.csv";
 
-    private static final String CSV_PATH_ALARM = "output/generatedDataAlarm.csv";
+    private static final String CSV_PATH_ALARM = "resources/Experiments/generated/generatedDataAlarm.csv";
     public static final String FIRSTHALF_ALARM = "resources/Experiments/alarm/Alarm10k_firsthalf.csv";
     public static final String SECONDHALF_ALARM = "resources/Experiments/alarm/Alarm10k_secondhalf.csv";
 
@@ -34,6 +34,7 @@ public class GenerateData {
         //this is not a unittest, this exists purely to be able to generate data without needing to setup an entire
         // vantage6 infra or even several spring boot instances
         // Generating all 3 sets of data takes about 2:25 with Alarm taking 99% of that time
+
         generateData(buildIrisNetwork(), CSV_PATH_IRIS, FIRSTHALF_IRIS, SECONDHALF_IRIS, 150);
         generateData(buildAsiaNetwork(), CSV_PATH_ASIA, FIRSTHALF_ASIA, SECONDHALF_ASIA, 10000);
         generateData(buildAlarmNetwork(), CSV_PATH_ALARM, FIRSTHALF_ALARM, SECONDHALF_ALARM, 10000);
@@ -52,7 +53,7 @@ public class GenerateData {
         Node vlng = createNode("VENTLUNG", Attribute.AttributeType.string, Arrays.asList(inT, kink, vtub));
         Node prss = createNode("PRESS", Attribute.AttributeType.string, Arrays.asList(inT, kink, vtub));
         Node fio2 = createNode("FIO2", Attribute.AttributeType.string, new ArrayList<>());
-        Node minv = createNode("MINVOLSET", Attribute.AttributeType.string, Arrays.asList(inT, vlng));
+        Node minv = createNode("MINVOL", Attribute.AttributeType.string, Arrays.asList(inT, vlng));
         Node valv = createNode("VENTALV", Attribute.AttributeType.string, Arrays.asList(inT, vlng));
         Node pvs = createNode("PVSAT", Attribute.AttributeType.string, Arrays.asList(fio2, valv));
         Node aco2 = createNode("ARTCO2", Attribute.AttributeType.string, Arrays.asList(valv));
@@ -171,26 +172,6 @@ public class GenerateData {
         }
     }
 
-    private String generateNames(Node node) {
-        String s = node.getName().toString();
-        if (node.getChildren().size() > 0) {
-            for (Node n : node.getChildren()) {
-                s += "," + generateNames(n);
-            }
-        }
-        return s;
-    }
-
-
-    private String generateTypes(Node node) {
-        String s = node.getType().toString();
-        if (node.getChildren().size() > 0) {
-            for (Node n : node.getChildren()) {
-                s += "," + generateTypes(n);
-            }
-        }
-        return s;
-    }
 
     private String generateIndividual(List<Node> nodes) {
         Map<String, String> individual = new HashMap<>();

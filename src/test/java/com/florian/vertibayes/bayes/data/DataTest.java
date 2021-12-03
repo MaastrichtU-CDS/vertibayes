@@ -9,7 +9,7 @@ public class DataTest {
 
     @Test
     public void testCreateNetwork() {
-        Data d = parseCsv("resources/smallK2Example_firsthalf.csv", 0);
+        Data d = parseCsv("resources/Experiments/k2/smallK2Example_firsthalf.csv", 0);
         assertEquals(d.getIndividualRow("1"), 0);
 
     }

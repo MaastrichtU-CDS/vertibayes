@@ -2,10 +2,7 @@ package com.florian.vertibayes.bayes;
 
 import com.florian.vertibayes.bayes.data.Attribute;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class Node {
     private List<Node> parents = new ArrayList<>();
@@ -66,5 +63,31 @@ public class Node {
 
     public void setChildren(List<Node> children) {
         this.children = children;
+    }
+
+    public static List<Theta> findSliblings(Theta t, Node node) {
+        List<Theta> sliblings = new ArrayList<>();
+        Map<String, String> parentValues = new HashMap<>();
+        if (node.getParents().size() == 0) {
+            //no parents, so all thetas are sliblings
+            sliblings.addAll(node.getProbabilities());
+        } else {
+            // collect parent values
+            for (ParentValue parent : t.getParents()) {
+                parentValues.put(parent.getName(), parent.getValue().getValue());
+            }
+            for (Theta theta : node.getProbabilities()) {
+                boolean correctTheta = true;
+                for (ParentValue p : theta.getParents()) {
+                    if (!parentValues.get(p.getName()).equals(p.getValue().getValue())) {
+                        correctTheta = false;
+                    }
+                }
+                if (correctTheta) {
+                    sliblings.add(theta);
+                }
+            }
+        }
+        return sliblings;
     }
 }

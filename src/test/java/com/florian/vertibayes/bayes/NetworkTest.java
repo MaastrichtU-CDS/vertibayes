@@ -19,8 +19,8 @@ public class NetworkTest {
 
     @Test
     public void testCreateNetwork() {
-        BayesServer station1 = new BayesServer("resources/smallK2Example_firsthalf.csv", "1");
-        BayesServer station2 = new BayesServer("resources/smallK2Example_secondhalf.csv", "2");
+        BayesServer station1 = new BayesServer("resources/Experiments/k2/smallK2Example_firsthalf.csv", "1");
+        BayesServer station2 = new BayesServer("resources/Experiments/k2/smallK2Example_secondhalf.csv", "2");
 
         VertiBayesEndpoint endpoint1 = new VertiBayesEndpoint(station1);
         VertiBayesEndpoint endpoint2 = new VertiBayesEndpoint(station2);
