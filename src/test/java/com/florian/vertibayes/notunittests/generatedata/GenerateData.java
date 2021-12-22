@@ -18,27 +18,56 @@ import java.util.*;
 
 public class GenerateData {
     private static final String CSV_PATH_IRIS = "resources/Experiments/generated/generatedDataIris.csv";
+    private static final String CSV_PATH_IRIS_COMPLEX = "resources/Experiments/generated/generatedDataIrisComplex.csv";
     public static final String FIRSTHALF_IRIS = "resources/Experiments/iris/iris_firsthalf.csv";
     public static final String SECONDHALF_IRIS = "resources/Experiments/iris/iris_secondhalf.csv";
+
+    private static final String CSV_PATH_IRIS_MISSING = "resources/Experiments/generated/generatedDataIrisMissing.csv";
+    private static final String CSV_PATH_IRIS_MISSING_COMPLEX = "resources/Experiments/generated" +
+            "/generatedDataIrisMissing_COMPLEX.csv";
+    public static final String FIRSTHALF_IRIS_MISSING = "resources/Experiments/iris/irisMissingFirstHalf.csv";
+    public static final String SECONDHALF_IRIS_MISSING = "resources/Experiments/iris/irisMissingSecondHalf.csv";
 
     private static final String CSV_PATH_ASIA = "resources/Experiments/generated/generatedDataAsia.csv";
     public static final String FIRSTHALF_ASIA = "resources/Experiments/asia/Asia10k_firstHalf.csv";
     public static final String SECONDHALF_ASIA = "resources/Experiments/asia/Asia10k_secondHalf.csv";
 
+    private static final String CSV_PATH_ASIA_MISSING = "resources/Experiments/generated/generatedDataAsiaMissing.csv";
+    public static final String FIRSTHALF_ASIA_MISSING = "resources/Experiments/asia/asiaMissingFirstHalf.csv";
+    public static final String SECONDHALF_ASIA_MISSING = "resources/Experiments/asia/asiaMissingSecondHalf.csv";
+
+
     private static final String CSV_PATH_ALARM = "resources/Experiments/generated/generatedDataAlarm.csv";
     public static final String FIRSTHALF_ALARM = "resources/Experiments/alarm/Alarm10k_firsthalf.csv";
     public static final String SECONDHALF_ALARM = "resources/Experiments/alarm/Alarm10k_secondhalf.csv";
+
+    private static final String CSV_PATH_ALARM_MISSING = "resources/Experiments/generated/generatedDataAlarmMissing" +
+            ".csv";
+    public static final String FIRSTHALF_ALARM_MISSING = "resources/Experiments/alarm/alarmMissingFirstHalf.csv";
+    public static final String SECONDHALF_ALARM_MISSING = "resources/Experiments/alarm/alarmMissingSecondHalf.csv";
+
 
     @Test
     public void generateAllData() {
         //this is not a unittest, this exists purely to be able to generate data without needing to setup an entire
         // vantage6 infra or even several spring boot instances
         // Generating all 3 sets of data takes about 2 minutes with Alarm taking 99% of that time
+        // With missing data it takes considerably longer, especially the "complex" iris network becomes hell
+        // Needs binning
 
         generateData(buildIrisNetwork(), CSV_PATH_IRIS, FIRSTHALF_IRIS, SECONDHALF_IRIS, 150);
+        generateData(buildIrisNetworkComplex(), CSV_PATH_IRIS_COMPLEX, FIRSTHALF_IRIS, SECONDHALF_IRIS, 150);
         generateData(buildAsiaNetwork(), CSV_PATH_ASIA, FIRSTHALF_ASIA, SECONDHALF_ASIA, 10000);
         generateData(buildAlarmNetwork(), CSV_PATH_ALARM, FIRSTHALF_ALARM, SECONDHALF_ALARM, 10000);
+
+        generateData(buildIrisNetwork(), CSV_PATH_IRIS_MISSING, FIRSTHALF_IRIS_MISSING, SECONDHALF_IRIS_MISSING, 150);
+        generateData(buildIrisNetworkComplex(), CSV_PATH_IRIS_MISSING_COMPLEX, FIRSTHALF_IRIS_MISSING,
+                     SECONDHALF_IRIS_MISSING, 150);
+        generateData(buildAsiaNetwork(), CSV_PATH_ASIA_MISSING, FIRSTHALF_ASIA_MISSING, SECONDHALF_ASIA_MISSING, 10000);
+        generateData(buildAlarmNetwork(), CSV_PATH_ALARM_MISSING, FIRSTHALF_ALARM_MISSING, SECONDHALF_ALARM_MISSING,
+                     10000);
     }
+
 
     private List<Node> buildAlarmNetwork() {
         Node mvs = createNode("MINVOLSET", Attribute.AttributeType.string, new ArrayList<>());
@@ -80,13 +109,24 @@ public class GenerateData {
         Node bp = createNode("BP", Attribute.AttributeType.string, Arrays.asList(tpr, co));
 
         //list nodes in the order you want the attributes printed
-        return Arrays.asList(mvs, vmch, disc, vtub, kink, pmb, inT, pap, shnt, vlng, prss, fio2, minv, valv, pvs, aco2,
-                             sao2, eco2, apl, anes, tpr, cchl, lvf, hyp, hist, lvv, erlo, stkv, hr, erca, cvp, pcwp,
-                             hrbp, co, hrsa, hrek, bp);
+        return Arrays.asList(hist, cvp, pcwp, hyp, lvv, lvf, stkv, erlo, hrbp, hrek, erca, hrsa, anes, apl, tpr, eco2,
+                             kink, minv, fio2, pvs, sao2, pap, pmb, shnt, inT, prss, disc, mvs, vmch, vtub,
+                             vlng, valv, aco2, cchl, hr, co, bp);
     }
 
 
     private List<Node> buildIrisNetwork() {
+        Node label = createNode("label", Attribute.AttributeType.string, new ArrayList<>());
+        Node petallength = createNode("petallength", Attribute.AttributeType.number, Arrays.asList(label));
+        Node petalwidth = createNode("petalwidth", Attribute.AttributeType.number, Arrays.asList(label));
+        Node sepallength = createNode("sepallength", Attribute.AttributeType.number, Arrays.asList(label));
+        Node sepalwidth = createNode("sepalwidth", Attribute.AttributeType.number, Arrays.asList(label));
+
+        //list nodes in the order you want the attributes printed
+        return Arrays.asList(sepallength, sepalwidth, petallength, petalwidth, label);
+    }
+
+    private List<Node> buildIrisNetworkComplex() {
         Node label = createNode("label", Attribute.AttributeType.string, new ArrayList<>());
         Node petallength = createNode("petallength", Attribute.AttributeType.number, Arrays.asList(label));
         Node petalwidth = createNode("petalwidth", Attribute.AttributeType.number, Arrays.asList(label, petallength));
