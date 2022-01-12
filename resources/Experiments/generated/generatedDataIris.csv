@@ -1,4 +1,3 @@
-number,number,number,number,string
 sepallength,sepalwidth,petallength,petalwidth,label
 7.2,3.3,6.1,1.9,Iris-virginica
 5.1,3.0,1.7,0.2,Iris-setosa
