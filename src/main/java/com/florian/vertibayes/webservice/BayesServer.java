@@ -44,7 +44,6 @@ public class BayesServer extends Server {
     public BayesServer(String id, List<ServerEndpoint> endpoints) {
         this.serverId = id;
         this.setEndpoints(endpoints);
-        readData();
     }
 
     public BayesServer(String path, String id) {
@@ -67,6 +66,9 @@ public class BayesServer extends Server {
 
     @GetMapping ("getUniqueValues")
     public Set<String> getUniqueValues(String attribute) {
+        if (this.data == null) {
+            readData();
+        }
         return new HashSet<>(data.getAttributeValues(attribute).stream().map(x -> x.getValue()).collect(
                 Collectors.toList()));
     }
