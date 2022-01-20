@@ -64,8 +64,8 @@ public class VertiBayesCentralServer extends CentralServer {
     @PostMapping ("initCentralServer")
     public void initCentralServer(@RequestBody InitCentralServerRequest req) {
         //purely exists for vantage6
-        super.secretServer = req.getSecretServer();
-        super.servers = req.getServers();
+        this.secretServer = req.getSecretServer();
+        this.servers = req.getServers();
     }
 
     public BigInteger nparty(List<ServerEndpoint> endpoints, ServerEndpoint secretServer) {
