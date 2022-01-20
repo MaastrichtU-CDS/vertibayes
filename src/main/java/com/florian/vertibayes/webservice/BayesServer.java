@@ -49,6 +49,7 @@ public class BayesServer extends Server {
     }
 
     private void readData() {
+        System.out.println("Logging " + System.getenv("DATABASE_URI"));
         if (System.getenv("DATABASE_URI") != null) {
             // Check if running in vantage6 by looking for system env, if yes change to database_uri system env for path
             this.path = System.getenv("DATABASE_URI");
