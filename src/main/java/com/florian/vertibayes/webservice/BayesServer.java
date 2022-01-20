@@ -28,7 +28,7 @@ public class BayesServer extends Server {
     private Map<String, Set<String>> uniqueValues = new HashMap<>();
     private List<Node> localNodes;
 
-    Logger logger = LoggerFactory.getLogger(BayesServer.class);
+    private Logger logger = LoggerFactory.getLogger(BayesServer.class);
 
     public BigInteger count() {
         return Arrays.stream(localData).reduce(BigInteger::add).get();
