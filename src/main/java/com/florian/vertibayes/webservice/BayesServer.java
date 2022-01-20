@@ -44,6 +44,7 @@ public class BayesServer extends Server {
     public BayesServer(String id, List<ServerEndpoint> endpoints) {
         this.serverId = id;
         this.setEndpoints(endpoints);
+        readData();
     }
 
     public BayesServer(String path, String id) {
