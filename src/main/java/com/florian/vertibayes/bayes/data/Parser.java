@@ -1,10 +1,7 @@
 package com.florian.vertibayes.bayes.data;
 
-import com.florian.vertibayes.webservice.BayesServer;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.FileReader;
 import java.io.IOException;
@@ -14,8 +11,6 @@ import java.util.List;
 
 
 public final class Parser {
-    private static Logger logger = LoggerFactory.getLogger(BayesServer.class);
-
     private Parser() {
     }
 
@@ -24,14 +19,6 @@ public final class Parser {
         List<String> types = records.get(0);
         List<String> attributes = records.get(1);
         List<List<Attribute>> parsed = new ArrayList<>();
-
-        for (List<String> row : records) {
-            String s = "";
-            for (String cell : row) {
-                s += cell + ",";
-            }
-            logger.info(s);
-        }
 
         for (int i = 0; i < attributes.size(); i++) {
             List<Attribute> attribute = new ArrayList<>();
