@@ -8,8 +8,6 @@ import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.bayes.data.Data;
 import com.florian.vertibayes.webservice.domain.AttributeRequirementsRequest;
 import com.florian.vertibayes.webservice.domain.NodesResponse;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -28,7 +26,6 @@ public class BayesServer extends Server {
     private Map<String, Set<String>> uniqueValues = new HashMap<>();
     private List<Node> localNodes;
 
-    private Logger logger = LoggerFactory.getLogger(BayesServer.class);
 
     public BigInteger count() {
         return Arrays.stream(localData).reduce(BigInteger::add).get();
@@ -53,7 +50,6 @@ public class BayesServer extends Server {
     }
 
     private void readData() {
-        logger.info("Logging " + System.getenv("DATABASE_URI"));
         if (System.getenv("DATABASE_URI") != null) {
             // Check if running in vantage6 by looking for system env, if yes change to database_uri system env for path
             this.path = System.getenv("DATABASE_URI");
@@ -66,7 +62,6 @@ public class BayesServer extends Server {
 
     @GetMapping ("getUniqueValues")
     public Set<String> getUniqueValues(String attribute) {
-        logger.info("Server: " + this.serverId);
         if (this.data == null) {
             readData();
         }
