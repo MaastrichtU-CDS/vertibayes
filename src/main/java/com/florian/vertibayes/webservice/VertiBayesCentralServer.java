@@ -12,6 +12,8 @@ import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.domain.AttributeRequirementsRequest;
 import com.florian.vertibayes.webservice.domain.InitCentralServerRequest;
 import com.florian.vertibayes.webservice.domain.MaximumLikelyhoodRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,6 +30,7 @@ import static com.florian.vertibayes.bayes.Node.findSliblings;
 @RestController
 public class VertiBayesCentralServer extends CentralServer {
     public static final double ONE = 0.99;
+    private Logger logger = LoggerFactory.getLogger(VertiBayesCentralServer.class);
     //inherets endpoints from centralserver
     //overriding endpoints is impossible, use a different endpoint if you want to override
 
@@ -157,9 +160,13 @@ public class VertiBayesCentralServer extends CentralServer {
     }
 
     private BigInteger countValue(List<Attribute> attributes) {
+        String s = "";
         for (ServerEndpoint endpoint : endpoints) {
+            s += endpoint.getServerId() + "";
             ((VertiBayesEndpoint) endpoint).initK2Data(attributes);
         }
+
+        logger.info("Secret endpoint " + secretEndpoint.getServerId() + " endpoints " + s);
         secretEndpoint.addSecretStation("start", endpoints.stream().map(x -> x.getServerId()).collect(
                 Collectors.toList()), endpoints.get(0).getPopulation());
         return nparty(endpoints, secretEndpoint);

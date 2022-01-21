@@ -66,6 +66,8 @@ public class BayesServer extends Server {
 
     @GetMapping ("getUniqueValues")
     public Set<String> getUniqueValues(String attribute) {
+        logger.info("Server: " + this.serverId);
+        
         if (this.data == null) {
             readData();
         }
