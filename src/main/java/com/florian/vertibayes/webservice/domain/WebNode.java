@@ -5,6 +5,7 @@ import com.florian.vertibayes.bayes.data.Attribute;
 import java.util.List;
 
 public class WebNode {
+    //Simplified Class for WebRequests that require communicating about Nodes
     private List<String> parents;
     private String name;
     private Attribute.AttributeType type;

@@ -192,20 +192,7 @@ public class GenerateData {
         MaximumLikelyhoodRequest req = new MaximumLikelyhoodRequest();
         req.setNodes(input);
         List<Node> nodes = central.maximumLikelyhood(req);
-
-        //select a root
-        Node root = null;
-        for (Node n : nodes) {
-            if (n.getParents().size() == 0) {
-                root = n;
-            }
-        }
-        //set child relationship
-        for (Node n : nodes) {
-            for (Node p : n.getParents()) {
-                p.getChildren().add(n);
-            }
-        }
+        
         List<String> data = new ArrayList<>();
 
         String types = "";

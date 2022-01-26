@@ -6,7 +6,6 @@ import java.util.*;
 
 public class Node {
     private List<Node> parents = new ArrayList<>();
-    private List<Node> children = new ArrayList<>();
     private Set<String> uniquevalues = new HashSet<>();
     private String name;
     private Attribute.AttributeType type;
@@ -57,13 +56,6 @@ public class Node {
         this.type = type;
     }
 
-    public List<Node> getChildren() {
-        return children;
-    }
-
-    public void setChildren(List<Node> children) {
-        this.children = children;
-    }
 
     public static List<Theta> findSliblings(Theta t, Node node) {
         List<Theta> sliblings = new ArrayList<>();
