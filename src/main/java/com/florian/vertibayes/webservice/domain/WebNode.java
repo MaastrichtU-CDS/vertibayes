@@ -5,9 +5,9 @@ import com.florian.vertibayes.bayes.data.Attribute;
 import java.util.List;
 
 public class WebNode {
-    List<String> parents;
-    String name;
-    Attribute.AttributeType type;
+    private List<String> parents;
+    private String name;
+    private Attribute.AttributeType type;
 
     public List<String> getParents() {
         return parents;

@@ -1,6 +1,8 @@
-package com.florian.vertibayes.bayes;
+package com.florian.vertibayes.bayes.webservice;
 
 import com.florian.nscalarproduct.webservice.ServerEndpoint;
+import com.florian.vertibayes.bayes.Network;
+import com.florian.vertibayes.bayes.Node;
 import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.BayesServer;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;

@@ -1,11 +1,15 @@
-package com.florian.vertibayes.bayes;
+package com.florian.vertibayes.bayes.webservice;
 
 import com.florian.nscalarproduct.webservice.ServerEndpoint;
+import com.florian.vertibayes.bayes.Node;
+import com.florian.vertibayes.bayes.ParentValue;
+import com.florian.vertibayes.bayes.Theta;
 import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.BayesServer;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
 import com.florian.vertibayes.webservice.domain.MaximumLikelyhoodRequest;
+import com.florian.vertibayes.webservice.domain.WebNode;
 import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
 import org.junit.jupiter.api.Test;
 
@@ -39,7 +43,7 @@ public class VertiBayesCentralServerTest {
         List<Node> nodes = central.buildNetwork();
         MaximumLikelyhoodRequest req = new MaximumLikelyhoodRequest();
         req.setNodes(WebNodeMapper.mapWebNodeFromNode(nodes));
-        central.maximumLikelyhood(req);
+        nodes = central.maximumLikelyhood(req);
 
 
         // check if it matches expected network
@@ -203,13 +207,19 @@ public class VertiBayesCentralServerTest {
 
         VertiBayesCentralServer central = new VertiBayesCentralServer();
         central.initEndpoints(Arrays.asList(endpoint1, endpoint2), secretEnd);
-        List<Node> nodes = buildSmallAlarmNetwork();
+        List<WebNode> WebNodes = buildSmallAlarmNetwork();
         MaximumLikelyhoodRequest req = new MaximumLikelyhoodRequest();
-        req.setNodes(WebNodeMapper.mapWebNodeFromNode(nodes));
-        central.maximumLikelyhood(req);
+        req.setNodes(WebNodes);
+        List<Node> nodes = central.maximumLikelyhood(req);
 
-        //the node with 3 parents
-        Node vntl = nodes.get(3);
+        // find the ventlung node, it's the one with three parents
+        Node vntl = null;
+        for (Node n : nodes) {
+            if (n.getName().equals("VENTLUNG")) {
+                vntl = n;
+                break;
+            }
+        }
 
         assertEquals(vntl.getParents().size(), 3);
         assertEquals(vntl.getUniquevalues().size(), 4);
@@ -248,17 +258,18 @@ public class VertiBayesCentralServerTest {
         }
     }
 
-    private List<Node> buildSmallAlarmNetwork() {
-        Node vtub = createNode("VENTTUBE", Attribute.AttributeType.string, new ArrayList<>());
-        Node kink = createNode("KINKEDTUBE", Attribute.AttributeType.string, new ArrayList<>());
-        Node inT = createNode("INTUBATION", Attribute.AttributeType.string, new ArrayList<>());
-        Node vlng = createNode("VENTLUNG", Attribute.AttributeType.string, Arrays.asList(inT, kink, vtub));
+    private List<WebNode> buildSmallAlarmNetwork() {
+        WebNode vtub = createWebNode("VENTTUBE", Attribute.AttributeType.string, new ArrayList<>());
+        WebNode kink = createWebNode("KINKEDTUBE", Attribute.AttributeType.string, new ArrayList<>());
+        WebNode inT = createWebNode("INTUBATION", Attribute.AttributeType.string, new ArrayList<>());
+        WebNode vlng = createWebNode("VENTLUNG", Attribute.AttributeType.string,
+                                     Arrays.asList(inT.getName(), kink.getName(), vtub.getName()));
         //list nodes in the order you want the attributes printed
         return Arrays.asList(vtub, kink, inT, vlng);
     }
 
-    private Node createNode(String name, Attribute.AttributeType type, List<Node> parents) {
-        Node n = new Node();
+    private WebNode createWebNode(String name, Attribute.AttributeType type, List<String> parents) {
+        WebNode n = new WebNode();
         n.setType(type);
         n.setName(name);
         n.setParents(parents);

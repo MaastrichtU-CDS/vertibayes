@@ -9,13 +9,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class WebNodeMapper {
+public final class WebNodeMapper {
+
+    private WebNodeMapper() {
+    }
+
     public static List<Node> mapWebNodeToNode(List<WebNode> input) {
         Map<String, Node> output = new HashMap<>();
         for (WebNode node : input) {
             Node n = new Node();
             n.setName(node.getName());
+            n.setType(node.getType());
             output.put(n.getName(), n);
+
         }
         for (WebNode n : input) {
             setParents(n.getParents(), output.get(n.getName()), output);
@@ -30,9 +36,11 @@ public class WebNodeMapper {
             WebNode n = new WebNode();
             n.setName(node.getName());
             n.setType(node.getType());
+            n.setParents(new ArrayList<>());
             for (Node parent : node.getParents()) {
                 n.getParents().add(parent.getName());
             }
+            output.add(n);
         }
 
         return output;
