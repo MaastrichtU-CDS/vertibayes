@@ -1,7 +1,11 @@
 package com.florian.vertibayes.webservice.mapping;
 
 import com.florian.vertibayes.bayes.Node;
+import com.florian.vertibayes.bayes.ParentValue;
+import com.florian.vertibayes.bayes.Theta;
+import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.domain.WebNode;
+import com.florian.vertibayes.webservice.domain.WebTheta;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -20,14 +24,47 @@ public final class WebNodeMapper {
             Node n = new Node();
             n.setName(node.getName());
             n.setType(node.getType());
+            if (node.getProbabilities() != null) {
+                for (WebTheta theta : node.getProbabilities()) {
+                    n.getUniquevalues().add(theta.getLocalValue());
+                }
+            }
             output.put(n.getName(), n);
 
         }
+        // map parents
         for (WebNode n : input) {
             setParents(n.getParents(), output.get(n.getName()), output);
         }
-
+        // map probabilities
+        for (WebNode node : input) {
+            if (node.getProbabilities() != null) {
+                mapToProbabilities(node.getProbabilities(), output.get(node.getName()), output);
+            }
+        }
         return output.values().stream().collect(Collectors.toList());
+    }
+
+    private static void mapToProbabilities(List<WebTheta> probabilities, Node node, Map<String, Node> nodes) {
+        List<Theta> prob = node.getProbabilities();
+        for (WebTheta theta : probabilities) {
+            Theta t = new Theta();
+            t.setP(theta.getP());
+            t.setLocalValue(new Attribute(node.getType(), theta.getLocalValue(), node.getName()));
+            List<ParentValue> parents = new ArrayList<>();
+            Map<String, String> webParents = theta.getParentValues();
+            if (webParents != null) {
+                for (String key : webParents.keySet()) {
+                    ParentValue p = new ParentValue();
+                    Node parent = nodes.get(key);
+                    p.setName(key);
+                    p.setValue(new Attribute(parent.getType(), webParents.get(key), node.getName()));
+                    parents.add(p);
+                }
+                t.setParents(parents);
+            }
+            prob.add(t);
+        }
     }
 
     public static List<WebNode> mapWebNodeFromNode(List<Node> input) {
@@ -39,6 +76,17 @@ public final class WebNodeMapper {
             n.setParents(new ArrayList<>());
             for (Node parent : node.getParents()) {
                 n.getParents().add(parent.getName());
+            }
+            n.setProbabilities(new ArrayList<>());
+            for (Theta t : node.getProbabilities()) {
+                WebTheta theta = new WebTheta();
+                theta.setP(t.getP());
+                theta.setLocalValue(t.getLocalValue().getValue());
+                theta.setParentValues(new HashMap<>());
+                for (ParentValue parent : t.getParents()) {
+                    theta.getParentValues().put(parent.getName(), parent.getValue().getValue());
+                }
+                n.getProbabilities().add(theta);
             }
             output.add(n);
         }

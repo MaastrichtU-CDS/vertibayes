@@ -8,7 +8,7 @@ import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.BayesServer;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
-import com.florian.vertibayes.webservice.domain.MaximumLikelyhoodRequest;
+import com.florian.vertibayes.webservice.domain.WebBayesNetwork;
 import com.florian.vertibayes.webservice.domain.WebNode;
 import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
 import org.junit.jupiter.api.Test;
@@ -40,11 +40,11 @@ public class VertiBayesCentralServerTest {
 
         VertiBayesCentralServer central = new VertiBayesCentralServer();
         central.initEndpoints(Arrays.asList(endpoint1, endpoint2), secretEnd);
-        List<Node> nodes = central.buildNetwork();
-        MaximumLikelyhoodRequest req = new MaximumLikelyhoodRequest();
-        req.setNodes(WebNodeMapper.mapWebNodeFromNode(nodes));
+        List<WebNode> webNodes = central.buildNetwork().getNodes();
+        WebBayesNetwork req = new WebBayesNetwork();
+        req.setNodes(webNodes);
 
-        nodes = central.maximumLikelyhood(req);
+        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
 
         // check if it matches expected network
         assertEquals(nodes.size(), 3);
@@ -208,9 +208,9 @@ public class VertiBayesCentralServerTest {
         VertiBayesCentralServer central = new VertiBayesCentralServer();
         central.initEndpoints(Arrays.asList(endpoint1, endpoint2), secretEnd);
         List<WebNode> WebNodes = buildSmallAlarmNetwork();
-        MaximumLikelyhoodRequest req = new MaximumLikelyhoodRequest();
+        WebBayesNetwork req = new WebBayesNetwork();
         req.setNodes(WebNodes);
-        List<Node> nodes = central.maximumLikelyhood(req);
+        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
 
         // find the ventlung node, it's the one with three parents
         Node vntl = null;

@@ -11,7 +11,7 @@ import com.florian.vertibayes.bayes.Theta;
 import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.domain.AttributeRequirementsRequest;
 import com.florian.vertibayes.webservice.domain.InitCentralServerRequest;
-import com.florian.vertibayes.webservice.domain.MaximumLikelyhoodRequest;
+import com.florian.vertibayes.webservice.domain.WebBayesNetwork;
 import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,24 +44,28 @@ public class VertiBayesCentralServer extends CentralServer {
     }
 
     @GetMapping ("buildNetwork")
-    public List<Node> buildNetwork() {
+    public WebBayesNetwork buildNetwork() {
         initEndpoints();
         endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initK2Data(new ArrayList<>()));
         endpoints.stream().forEach(x -> x.initEndpoints());
         network = new Network(endpoints, secretEndpoint, this);
         network.createNetwork();
-        return network.getNodes();
+        WebBayesNetwork response = new WebBayesNetwork();
+        response.setNodes(WebNodeMapper.mapWebNodeFromNode(network.getNodes()));
+        return response;
     }
 
 
     @PostMapping ("maximumLikelyhood")
-    public List<Node> maximumLikelyhood(@RequestBody MaximumLikelyhoodRequest req) {
+    public WebBayesNetwork maximumLikelyhood(@RequestBody WebBayesNetwork req) {
         initEndpoints();
         endpoints.stream().forEach(x -> x.initEndpoints());
         List<Node> nodes = WebNodeMapper.mapWebNodeToNode(req.getNodes());
         initNodesMaximumLikelyhood(nodes);
         initThetas(nodes);
-        return nodes;
+        WebBayesNetwork response = new WebBayesNetwork();
+        response.setNodes(WebNodeMapper.mapWebNodeFromNode(nodes));
+        return response;
     }
 
     @PostMapping ("initCentralServer")

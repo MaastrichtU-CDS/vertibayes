@@ -9,6 +9,15 @@ public class WebNode {
     private List<String> parents;
     private String name;
     private Attribute.AttributeType type;
+    private List<WebTheta> probabilities;
+
+    public List<WebTheta> getProbabilities() {
+        return probabilities;
+    }
+
+    public void setProbabilities(List<WebTheta> probabilities) {
+        this.probabilities = probabilities;
+    }
 
     public List<String> getParents() {
         return parents;

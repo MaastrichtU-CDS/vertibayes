@@ -2,11 +2,9 @@ package com.florian.vertibayes.webservice.domain;
 
 import java.util.List;
 
-public class MaximumLikelyhoodRequest {
+public class WebBayesNetwork {
+    // utility class for communicating about BayesNetworks with the outside world
     private List<WebNode> nodes;
-
-    public MaximumLikelyhoodRequest() {
-    }
 
     public List<WebNode> getNodes() {
         return nodes;

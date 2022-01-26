@@ -8,8 +8,9 @@ import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.BayesServer;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
-import com.florian.vertibayes.webservice.domain.MaximumLikelyhoodRequest;
+import com.florian.vertibayes.webservice.domain.WebBayesNetwork;
 import com.florian.vertibayes.webservice.domain.WebNode;
+import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -189,10 +190,10 @@ public class GenerateData {
         //utility function to generate data locally without needing to create an entire vantage6 setup
         //easier for experiments
         VertiBayesCentralServer central = createCentral(firsthalf, secondhalf);
-        MaximumLikelyhoodRequest req = new MaximumLikelyhoodRequest();
+        WebBayesNetwork req = new WebBayesNetwork();
         req.setNodes(input);
-        List<Node> nodes = central.maximumLikelyhood(req);
-        
+        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
+
         List<String> data = new ArrayList<>();
 
         String types = "";
