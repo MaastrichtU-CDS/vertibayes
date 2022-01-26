@@ -1,20 +1,18 @@
 package com.florian.vertibayes.webservice.domain;
 
-import com.florian.vertibayes.bayes.Node;
-
 import java.util.List;
 
 public class MaximumLikelyhoodRequest {
-    private List<Node> nodes;
+    private List<WebNode> nodes;
 
     public MaximumLikelyhoodRequest() {
     }
 
-    public List<Node> getNodes() {
+    public List<WebNode> getNodes() {
         return nodes;
     }
 
-    public void setNodes(List<Node> nodes) {
+    public void setNodes(List<WebNode> nodes) {
         this.nodes = nodes;
     }
 }

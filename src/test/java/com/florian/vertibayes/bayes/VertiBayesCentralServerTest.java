@@ -6,6 +6,7 @@ import com.florian.vertibayes.webservice.BayesServer;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
 import com.florian.vertibayes.webservice.domain.MaximumLikelyhoodRequest;
+import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -37,7 +38,7 @@ public class VertiBayesCentralServerTest {
         central.initEndpoints(Arrays.asList(endpoint1, endpoint2), secretEnd);
         List<Node> nodes = central.buildNetwork();
         MaximumLikelyhoodRequest req = new MaximumLikelyhoodRequest();
-        req.setNodes(nodes);
+        req.setNodes(WebNodeMapper.mapWebNodeFromNode(nodes));
         central.maximumLikelyhood(req);
 
 
@@ -204,7 +205,7 @@ public class VertiBayesCentralServerTest {
         central.initEndpoints(Arrays.asList(endpoint1, endpoint2), secretEnd);
         List<Node> nodes = buildSmallAlarmNetwork();
         MaximumLikelyhoodRequest req = new MaximumLikelyhoodRequest();
-        req.setNodes(nodes);
+        req.setNodes(WebNodeMapper.mapWebNodeFromNode(nodes));
         central.maximumLikelyhood(req);
 
         //the node with 3 parents
