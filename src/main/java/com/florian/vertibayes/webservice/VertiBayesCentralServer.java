@@ -59,6 +59,7 @@ public class VertiBayesCentralServer extends CentralServer {
         initEndpoints();
         endpoints.stream().forEach(x -> x.initEndpoints());
         List<Node> nodes = WebNodeMapper.mapWebNodeToNode(req.getNodes());
+        initNodesMaximumLikelyhood(nodes);
         initThetas(nodes);
         return nodes;
     }
@@ -94,9 +95,15 @@ public class VertiBayesCentralServer extends CentralServer {
         this.secretEndpoint = secretServer;
     }
 
+    private void initNodesMaximumLikelyhood(List<Node> nodes) {
+        for (Node n : nodes) {
+            initNode(n);
+        }
+    }
+
     private void initNode(Node node) {
         for (ServerEndpoint endpoint : endpoints) {
-            node.getUniquevalues().addAll(((VertiBayesEndpoint) endpoint).getUniqueValues(node));
+            node.getUniquevalues().addAll(((VertiBayesEndpoint) endpoint).getUniqueValues(node.getName()));
         }
     }
 

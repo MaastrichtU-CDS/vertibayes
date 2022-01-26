@@ -38,10 +38,11 @@ public class VertiBayesEndpoint extends ServerEndpoint {
         return REST_TEMPLATE.getForEntity(serverUrl + "/createNodes", NodesResponse.class).getBody().getNodes();
     }
 
-    public Set<String> getUniqueValues(Node node) {
+    public Set<String> getUniqueValues(String attributeName) {
         if (testing) {
-            return ((BayesServer) (server)).getUniqueValues(node.getName());
+            return ((BayesServer) (server)).getUniqueValues(attributeName);
         }
-        return REST_TEMPLATE.getForEntity(serverUrl + "/getUniqueValues", Set.class).getBody();
+        return REST_TEMPLATE.getForEntity(serverUrl + "/getUniqueValues?attribute=" + attributeName, Set.class)
+                .getBody();
     }
 }

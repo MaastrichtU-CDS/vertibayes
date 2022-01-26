@@ -43,8 +43,8 @@ public class VertiBayesCentralServerTest {
         List<Node> nodes = central.buildNetwork();
         MaximumLikelyhoodRequest req = new MaximumLikelyhoodRequest();
         req.setNodes(WebNodeMapper.mapWebNodeFromNode(nodes));
-        nodes = central.maximumLikelyhood(req);
 
+        nodes = central.maximumLikelyhood(req);
 
         // check if it matches expected network
         assertEquals(nodes.size(), 3);
