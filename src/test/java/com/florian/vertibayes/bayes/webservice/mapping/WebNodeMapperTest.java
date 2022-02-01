@@ -7,7 +7,7 @@ import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.BayesServer;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
-import com.florian.vertibayes.webservice.domain.WebNode;
+import com.florian.vertibayes.webservice.domain.external.WebNode;
 import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
 import org.junit.jupiter.api.Test;
 
@@ -80,7 +80,7 @@ public class WebNodeMapperTest {
             assertEquals(n.isDiscrete(), mapped.isDiscrete());
             assertEquals(n.getBins(), mapped.getBins());
             assertEquals(n.getProbabilities(), mapped.getProbabilities());
-            
+
             // put parents in map:
             Map<String, Node> mappedParents = new HashMap<>();
             for (Node p : mapped.getParents()) {

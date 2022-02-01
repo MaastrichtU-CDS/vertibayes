@@ -1,4 +1,4 @@
-package com.florian.vertibayes.webservice.domain;
+package com.florian.vertibayes.webservice.domain.external;
 
 public class WebValue {
     private String localValue;

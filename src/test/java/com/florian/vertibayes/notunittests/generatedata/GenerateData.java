@@ -9,8 +9,8 @@ import com.florian.vertibayes.webservice.BayesServer;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
 import com.florian.vertibayes.webservice.domain.AttributeRequirement;
-import com.florian.vertibayes.webservice.domain.WebBayesNetwork;
-import com.florian.vertibayes.webservice.domain.WebNode;
+import com.florian.vertibayes.webservice.domain.external.WebBayesNetwork;
+import com.florian.vertibayes.webservice.domain.external.WebNode;
 import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
 import org.junit.jupiter.api.Test;
 

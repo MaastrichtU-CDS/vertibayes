@@ -5,9 +5,9 @@ import com.florian.vertibayes.bayes.ParentValue;
 import com.florian.vertibayes.bayes.Theta;
 import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.domain.AttributeRequirement;
-import com.florian.vertibayes.webservice.domain.WebNode;
-import com.florian.vertibayes.webservice.domain.WebTheta;
-import com.florian.vertibayes.webservice.domain.WebValue;
+import com.florian.vertibayes.webservice.domain.external.WebNode;
+import com.florian.vertibayes.webservice.domain.external.WebTheta;
+import com.florian.vertibayes.webservice.domain.external.WebValue;
 
 import java.util.ArrayList;
 import java.util.HashMap;

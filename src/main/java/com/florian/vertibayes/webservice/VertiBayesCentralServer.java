@@ -9,7 +9,7 @@ import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.webservice.domain.AttributeRequirementsRequest;
 import com.florian.vertibayes.webservice.domain.InitCentralServerRequest;
-import com.florian.vertibayes.webservice.domain.WebBayesNetwork;
+import com.florian.vertibayes.webservice.domain.external.WebBayesNetwork;
 import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
