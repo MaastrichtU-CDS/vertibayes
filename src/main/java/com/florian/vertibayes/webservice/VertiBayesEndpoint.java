@@ -4,7 +4,7 @@ package com.florian.vertibayes.webservice;
 import com.florian.nscalarproduct.webservice.Server;
 import com.florian.nscalarproduct.webservice.ServerEndpoint;
 import com.florian.vertibayes.bayes.Node;
-import com.florian.vertibayes.bayes.data.Attribute;
+import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.webservice.domain.AttributeRequirementsRequest;
 import com.florian.vertibayes.webservice.domain.NodesResponse;
 
@@ -21,9 +21,10 @@ public class VertiBayesEndpoint extends ServerEndpoint {
         super(url);
     }
 
-    public void initK2Data(List<Attribute> req) {
+    public void initK2Data(List<AttributeRequirement> req) {
         AttributeRequirementsRequest request = new AttributeRequirementsRequest();
-        request.setRequirements(req);
+//        request.setRequirements(req);
+        request.setRequirements2(req);
         if (testing) {
             ((BayesServer) (server)).initK2Data(request);
         } else {

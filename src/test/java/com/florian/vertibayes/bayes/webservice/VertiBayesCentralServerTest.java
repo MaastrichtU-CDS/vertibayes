@@ -101,19 +101,19 @@ public class VertiBayesCentralServerTest {
         // put them in a map to easily find correct probability:
         HashMap<String, Theta> map = new HashMap<>();
         for (Theta t : nodes.get(0).getProbabilities()) {
-            map.put(t.getLocalValue().getValue(), t);
+            map.put(t.getLocalRequirement().getValue().getValue(), t);
         }
 
         // value 1
         assertEquals(map.get("0").getP(), 0.5);
-        assertEquals(map.get("0").getLocalValue().getValue(), "0");
-        assertEquals(map.get("0").getLocalValue().getAttributeName(), "x1");
+        assertEquals(map.get("0").getLocalRequirement().getValue().getValue(), "0");
+        assertEquals(map.get("0").getLocalRequirement().getValue().getAttributeName(), "x1");
         assertEquals(map.get("0").getParents().size(), 0);
 
         // value 2
         assertEquals(map.get("1").getP(), 0.5);
-        assertEquals(map.get("1").getLocalValue().getValue(), "1");
-        assertEquals(map.get("1").getLocalValue().getAttributeName(), "x1");
+        assertEquals(map.get("1").getLocalRequirement().getValue().getValue(), "1");
+        assertEquals(map.get("1").getLocalRequirement().getValue().getAttributeName(), "x1");
         assertEquals(map.get("1").getParents().size(), 0);
 
         //assert all probabilities are viewed as sliblings as there are no parents
@@ -127,36 +127,37 @@ public class VertiBayesCentralServerTest {
         // put them in a map to easily find correct probability:
         map = new HashMap<>();
         for (Theta t : nodes.get(1).getProbabilities()) {
-            String key = t.getLocalValue().getValue() + t.getParents().get(0).getValue().getValue();
+            String key = t.getLocalRequirement().getValue().getValue() + t.getParents().get(0).getRequirement()
+                    .getValue().getValue();
             map.put(key, t);
         }
 
         assertEquals(map.get("00").getP(), 0.8);
-        assertEquals(map.get("00").getLocalValue().getValue(), "0");
-        assertEquals(map.get("00").getLocalValue().getAttributeName(), "x2");
+        assertEquals(map.get("00").getLocalRequirement().getValue().getValue(), "0");
+        assertEquals(map.get("00").getLocalRequirement().getValue().getAttributeName(), "x2");
         assertEquals(map.get("00").getParents().size(), 1);
-        assertEquals(map.get("00").getParents().get(0).getValue().getValue(), "0");
+        assertEquals(map.get("00").getParents().get(0).getRequirement().getValue().getValue(), "0");
         assertEquals(map.get("00").getParents().get(0).getName(), "x1");
 
         assertEquals(map.get("10").getP(), 0.2);
-        assertEquals(map.get("10").getLocalValue().getValue(), "1");
-        assertEquals(map.get("10").getLocalValue().getAttributeName(), "x2");
+        assertEquals(map.get("10").getLocalRequirement().getValue().getValue(), "1");
+        assertEquals(map.get("10").getLocalRequirement().getValue().getAttributeName(), "x2");
         assertEquals(map.get("10").getParents().size(), 1);
-        assertEquals(map.get("10").getParents().get(0).getValue().getValue(), "0");
+        assertEquals(map.get("10").getParents().get(0).getRequirement().getValue().getValue(), "0");
         assertEquals(map.get("10").getParents().get(0).getName(), "x1");
 
         assertEquals(map.get("01").getP(), 0.2);
-        assertEquals(map.get("01").getLocalValue().getValue(), "0");
-        assertEquals(map.get("01").getLocalValue().getAttributeName(), "x2");
+        assertEquals(map.get("01").getLocalRequirement().getValue().getValue(), "0");
+        assertEquals(map.get("01").getLocalRequirement().getValue().getAttributeName(), "x2");
         assertEquals(map.get("01").getParents().size(), 1);
-        assertEquals(map.get("01").getParents().get(0).getValue().getValue(), "1");
+        assertEquals(map.get("01").getParents().get(0).getRequirement().getValue().getValue(), "1");
         assertEquals(map.get("01").getParents().get(0).getName(), "x1");
 
         assertEquals(map.get("11").getP(), 0.8);
-        assertEquals(map.get("11").getLocalValue().getValue(), "1");
-        assertEquals(map.get("11").getLocalValue().getAttributeName(), "x2");
+        assertEquals(map.get("11").getLocalRequirement().getValue().getValue(), "1");
+        assertEquals(map.get("11").getLocalRequirement().getValue().getAttributeName(), "x2");
         assertEquals(map.get("11").getParents().size(), 1);
-        assertEquals(map.get("11").getParents().get(0).getValue().getValue(), "1");
+        assertEquals(map.get("11").getParents().get(0).getRequirement().getValue().getValue(), "1");
         assertEquals(map.get("11").getParents().get(0).getName(), "x1");
 
 
@@ -178,35 +179,36 @@ public class VertiBayesCentralServerTest {
         // put them in a map to easily find correct probability:
         map = new HashMap<>();
         for (Theta t : nodes.get(2).getProbabilities()) {
-            String key = t.getLocalValue().getValue() + t.getParents().get(0).getValue().getValue();
+            String key = t.getLocalRequirement().getValue().getValue() + t.getParents().get(0).getRequirement()
+                    .getValue().getValue();
             map.put(key, t);
         }
         assertEquals(map.get("00").getP(), 0.8);
-        assertEquals(map.get("00").getLocalValue().getValue(), "0");
-        assertEquals(map.get("00").getLocalValue().getAttributeName(), "x3");
+        assertEquals(map.get("00").getLocalRequirement().getValue().getValue(), "0");
+        assertEquals(map.get("00").getLocalRequirement().getValue().getAttributeName(), "x3");
         assertEquals(map.get("00").getParents().size(), 1);
-        assertEquals(map.get("00").getParents().get(0).getValue().getValue(), "0");
+        assertEquals(map.get("00").getParents().get(0).getRequirement().getValue().getValue(), "0");
         assertEquals(map.get("00").getParents().get(0).getName(), "x2");
 
         assertEquals(map.get("10").getP(), 0.2);
-        assertEquals(map.get("10").getLocalValue().getValue(), "1");
-        assertEquals(map.get("10").getLocalValue().getAttributeName(), "x3");
+        assertEquals(map.get("10").getLocalRequirement().getValue().getValue(), "1");
+        assertEquals(map.get("10").getLocalRequirement().getValue().getAttributeName(), "x3");
         assertEquals(map.get("10").getParents().size(), 1);
-        assertEquals(map.get("10").getParents().get(0).getValue().getValue(), "0");
+        assertEquals(map.get("10").getParents().get(0).getRequirement().getValue().getValue(), "0");
         assertEquals(map.get("10").getParents().get(0).getName(), "x2");
 
         assertEquals(map.get("01").getP(), 0.001);
-        assertEquals(map.get("01").getLocalValue().getValue(), "0");
-        assertEquals(map.get("01").getLocalValue().getAttributeName(), "x3");
+        assertEquals(map.get("01").getLocalRequirement().getValue().getValue(), "0");
+        assertEquals(map.get("01").getLocalRequirement().getValue().getAttributeName(), "x3");
         assertEquals(map.get("01").getParents().size(), 1);
-        assertEquals(map.get("01").getParents().get(0).getValue().getValue(), "1");
+        assertEquals(map.get("01").getParents().get(0).getRequirement().getValue().getValue(), "1");
         assertEquals(map.get("01").getParents().get(0).getName(), "x2");
 
         assertEquals(map.get("11").getP(), 0.999);
-        assertEquals(map.get("11").getLocalValue().getValue(), "1");
-        assertEquals(map.get("11").getLocalValue().getAttributeName(), "x3");
+        assertEquals(map.get("11").getLocalRequirement().getValue().getValue(), "1");
+        assertEquals(map.get("11").getLocalRequirement().getValue().getAttributeName(), "x3");
         assertEquals(map.get("11").getParents().size(), 1);
-        assertEquals(map.get("11").getParents().get(0).getValue().getValue(), "1");
+        assertEquals(map.get("11").getParents().get(0).getRequirement().getValue().getValue(), "1");
         assertEquals(map.get("11").getParents().get(0).getName(), "x2");
 
         //assert there are two sets of sliblings as there is 1 parent with 2 unique values
@@ -280,7 +282,7 @@ public class VertiBayesCentralServerTest {
             List<Theta> slib = Node.findSliblings(t, vntl);
             String key = "";
             for (ParentValue p : t.getParents()) {
-                key += p.getName() + " " + p.getValue().getValue() + " ";
+                key += p.getName() + " " + p.getRequirement().getValue().getValue() + " ";
             }
             sliblings.put(key, slib);
             // each set of sliblings should be as large as the unique values in the node

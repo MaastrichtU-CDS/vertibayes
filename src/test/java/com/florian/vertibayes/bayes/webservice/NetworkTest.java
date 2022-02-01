@@ -7,6 +7,7 @@ import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.BayesServer;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
+import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -70,52 +71,53 @@ public class NetworkTest {
         }}, Attribute.AttributeType.string));
 
         Network net = new Network(new ArrayList<>(), null, null);
-        List<List<Attribute>> requirements = net.determineRequirements(nodes);
-        List<List<Attribute>> expected = new ArrayList<>();
-        List<Attribute> exp = new ArrayList<>();
-        exp.add(new Attribute(Attribute.AttributeType.string, "a", "1"));
-        exp.add(new Attribute(Attribute.AttributeType.string, "c", "2"));
-        exp.add(new Attribute(Attribute.AttributeType.string, "e", "3"));
+        List<List<AttributeRequirement>> requirements = net.determineRequirements(nodes);
+        List<List<AttributeRequirement>> expected = new ArrayList<>();
+        List<AttributeRequirement> exp = new ArrayList<>();
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "a", "1")));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "c", "2")));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "e", "3")));
         expected.add(exp);
         exp = new ArrayList<>();
-        exp.add(new Attribute(Attribute.AttributeType.string, "a", "1"));
-        exp.add(new Attribute(Attribute.AttributeType.string, "c", "2"));
-        exp.add(new Attribute(Attribute.AttributeType.string, "f", "3"));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "a", "1")));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "c", "2")));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "f", "3")));
         expected.add(exp);
         exp = new ArrayList<>();
-        exp.add(new Attribute(Attribute.AttributeType.string, "a", "1"));
-        exp.add(new Attribute(Attribute.AttributeType.string, "d", "2"));
-        exp.add(new Attribute(Attribute.AttributeType.string, "e", "3"));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "a", "1")));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "d", "2")));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "e", "3")));
         expected.add(exp);
         exp = new ArrayList<>();
-        exp.add(new Attribute(Attribute.AttributeType.string, "a", "1"));
-        exp.add(new Attribute(Attribute.AttributeType.string, "d", "2"));
-        exp.add(new Attribute(Attribute.AttributeType.string, "f", "3"));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "a", "1")));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "d", "2")));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "f", "3")));
         expected.add(exp);
         exp = new ArrayList<>();
-        exp.add(new Attribute(Attribute.AttributeType.string, "b", "1"));
-        exp.add(new Attribute(Attribute.AttributeType.string, "c", "2"));
-        exp.add(new Attribute(Attribute.AttributeType.string, "e", "3"));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "b", "1")));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "c", "2")));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "e", "3")));
         expected.add(exp);
         exp = new ArrayList<>();
-        exp.add(new Attribute(Attribute.AttributeType.string, "b", "1"));
-        exp.add(new Attribute(Attribute.AttributeType.string, "c", "2"));
-        exp.add(new Attribute(Attribute.AttributeType.string, "f", "3"));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "b", "1")));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "c", "2")));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "f", "3")));
         expected.add(exp);
         exp = new ArrayList<>();
-        exp.add(new Attribute(Attribute.AttributeType.string, "b", "1"));
-        exp.add(new Attribute(Attribute.AttributeType.string, "d", "2"));
-        exp.add(new Attribute(Attribute.AttributeType.string, "e", "3"));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "b", "1")));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "d", "2")));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "e", "3")));
         expected.add(exp);
         exp = new ArrayList<>();
-        exp.add(new Attribute(Attribute.AttributeType.string, "b", "1"));
-        exp.add(new Attribute(Attribute.AttributeType.string, "d", "2"));
-        exp.add(new Attribute(Attribute.AttributeType.string, "f", "3"));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "b", "1")));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "d", "2")));
+        exp.add(new AttributeRequirement(new Attribute(Attribute.AttributeType.string, "f", "3")));
         expected.add(exp);
 
         assertEquals(requirements.size(), expected.size());
-        for (List<Attribute> ex : expected) {
-            assertTrue(requirements.contains(exp));
+        expected.get(0).get(0).equals(requirements.get(0).get(0));
+        for (List<AttributeRequirement> ex : expected) {
+            assertTrue(requirements.contains(ex));
         }
     }
 }

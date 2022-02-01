@@ -5,6 +5,7 @@ import com.florian.nscalarproduct.webservice.ServerEndpoint;
 import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
+import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -46,7 +47,7 @@ public class Network {
         BigDecimal ri = BigDecimal.valueOf(node.getUniquevalues().size());
         BigDecimal ri1factorial = factorial(ri.subtract(BigDecimal.ONE));
         List<Node> parents = new ArrayList<>(node.getParents());
-        List<List<Attribute>> requirements = determineRequirements(parents);
+        List<List<AttributeRequirement>> requirements = determineRequirements(parents);
         BigDecimal curValue = calculateK2(node, ri, ri1factorial, requirements);
 
         List<Node> bestParents = new ArrayList<>();
@@ -68,42 +69,51 @@ public class Network {
     }
 
     private BigDecimal calculateK2(Node node, BigDecimal ri, BigDecimal ri1factorial,
-                                   List<List<Attribute>> requirements) {
+                                   List<List<AttributeRequirement>> requirements) {
         BigDecimal sumaijk = BigDecimal.ZERO;
         BigDecimal prodaijk = BigDecimal.ONE;
         BigDecimal partial = BigDecimal.ONE;
 
         if (requirements.size() == 0) {
-            for (String value : node.getUniquevalues()) {
-                List<Attribute> req = new ArrayList<>();
-                req.add(new Attribute(node.getType(), value, node.getName()));
+            if (node.isDiscrete()) {
+                for (String value : node.getUniquevalues()) {
+                    List<AttributeRequirement> req = new ArrayList<>();
 
-                //this should be a webservice call
-                endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initK2Data(req));
-                secretServer.addSecretStation("start", endpoints.stream().map(x -> x.getServerId()).collect(
-                        Collectors.toList()), endpoints.get(0).getPopulation());
-                BigDecimal aijk = new BigDecimal(central.nparty(endpoints, secretServer));
+                    req.add(new AttributeRequirement(new Attribute(node.getType(), value, node.getName())));
 
-                sumaijk = sumaijk.add(aijk);
-                prodaijk = prodaijk.multiply(factorial(aijk));
+                    //this should be a webservice call
+                    endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initK2Data(req));
+                    secretServer.addSecretStation("start", endpoints.stream().map(x -> x.getServerId()).collect(
+                            Collectors.toList()), endpoints.get(0).getPopulation());
+                    BigDecimal aijk = new BigDecimal(central.nparty(endpoints, secretServer));
+
+                    sumaijk = sumaijk.add(aijk);
+                    prodaijk = prodaijk.multiply(factorial(aijk));
+                }
+            } else {
+                //ToDo implement bin
             }
             return (ri1factorial.divide(factorial(sumaijk.add(ri).subtract(BigDecimal.ONE)), ROUNDING,
                                         RoundingMode.HALF_UP))
                     .multiply(prodaijk);
         } else {
-            for (List<Attribute> req : requirements) {
+            for (List<AttributeRequirement> req : requirements) {
                 sumaijk = BigDecimal.ZERO;
                 prodaijk = BigDecimal.ONE;
-                for (String value : node.getUniquevalues()) {
-                    List<Attribute> r = new ArrayList<>(req);
-                    r.add(new Attribute(node.getType(), value, node.getName()));
+                if (node.isDiscrete()) {
+                    for (String value : node.getUniquevalues()) {
+                        List<AttributeRequirement> r = new ArrayList<>(req);
+                        r.add(new AttributeRequirement(new Attribute(node.getType(), value, node.getName())));
 
-                    endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initK2Data(r));
-                    secretServer.addSecretStation("start", endpoints.stream().map(x -> x.getServerId()).collect(
-                            Collectors.toList()), endpoints.get(0).getPopulation());
-                    BigDecimal aijk = new BigDecimal(central.nparty(endpoints, secretServer));
-                    sumaijk = sumaijk.add(aijk);
-                    prodaijk = prodaijk.multiply(factorial(aijk));
+                        endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initK2Data(r));
+                        secretServer.addSecretStation("start", endpoints.stream().map(x -> x.getServerId()).collect(
+                                Collectors.toList()), endpoints.get(0).getPopulation());
+                        BigDecimal aijk = new BigDecimal(central.nparty(endpoints, secretServer));
+                        sumaijk = sumaijk.add(aijk);
+                        prodaijk = prodaijk.multiply(factorial(aijk));
+                    }
+                } else {
+                    //ToDo implement Bins
                 }
                 partial = partial.multiply(
                         (ri1factorial.divide(factorial(sumaijk.add(ri).subtract(BigDecimal.ONE)), ROUNDING,
@@ -114,24 +124,29 @@ public class Network {
         return partial;
     }
 
-    public List<List<Attribute>> determineRequirements(List<Node> nodes) {
-        List<List<Attribute>> requirements = new ArrayList<>();
+    public List<List<AttributeRequirement>> determineRequirements(List<Node> nodes) {
+        List<List<AttributeRequirement>> requirements = new ArrayList<>();
         for (Node node : nodes) {
-            List<List<Attribute>> temp = new ArrayList<>();
-            for (String value : node.getUniquevalues()) {
-                if (requirements.size() == 0) {
-                    List<Attribute> req = new ArrayList<>();
-                    req.add(new Attribute(node.getType(), value, node.getName()));
-                    temp.add(req);
-                } else {
-                    for (List<Attribute> requirement : requirements) {
-                        List<Attribute> req = new ArrayList<>(requirement);
-                        req.add(new Attribute(node.getType(), value, node.getName()));
+            List<List<AttributeRequirement>> temp = new ArrayList<>();
+            if (node.isDiscrete()) {
+                for (String value : node.getUniquevalues()) {
+                    if (requirements.size() == 0) {
+                        List<AttributeRequirement> req = new ArrayList<>();
+                        req.add(new AttributeRequirement(new Attribute(node.getType(), value, node.getName())));
                         temp.add(req);
+                    } else {
+                        for (List<AttributeRequirement> requirement : requirements) {
+                            List<AttributeRequirement> req = new ArrayList<>(requirement);
+                            req.add(new AttributeRequirement(new Attribute(node.getType(), value, node.getName())));
+                            temp.add(req);
+                        }
                     }
                 }
+                requirements = temp;
+            } else {
+                //ToDo implement Bins
             }
-            requirements = temp;
+
         }
         return requirements;
     }

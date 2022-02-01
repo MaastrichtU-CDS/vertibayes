@@ -8,6 +8,7 @@ import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.BayesServer;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
+import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.webservice.domain.WebBayesNetwork;
 import com.florian.vertibayes.webservice.domain.WebNode;
 import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
@@ -244,7 +245,16 @@ public class GenerateData {
                             //no parents, just select a random value
                             y += theta.getP();
                             if (x <= y) {
-                                individual.put(node.getName(), theta.getLocalValue().getValue());
+                                AttributeRequirement local = theta.getLocalRequirement();
+                                if (!local.isRange()) {
+                                    individual.put(node.getName(), local.getValue().getValue());
+                                } else {
+                                    //generate a number from the range
+                                    Double upper = Double.valueOf(local.getUpperLimit().getValue());
+                                    Double lower = Double.valueOf(local.getLowerLimit().getValue());
+                                    Double generated = random.nextDouble() * (upper - lower) + lower;
+                                    individual.put(node.getName(), String.valueOf(generated));
+                                }
                                 break;
                             }
                         } else {
@@ -255,16 +265,31 @@ public class GenerateData {
                                     //not all parents are selected, move on
                                     correctTheta = false;
                                     break;
-                                } else if (individual.get(parent.getName()) != parent.getValue().getValue()) {
-                                    //A parent has the wrong value for this theta, move on
-                                    correctTheta = false;
-                                    break;
+                                } else {
+                                    Attribute a = new Attribute(parent.getRequirement().getValue().getType(),
+                                                                individual.get(parent.getName()), parent.getName());
+                                    if (!parent.getRequirement().checkRequirement(
+                                            a)) {
+                                        //A parent has the wrong value for this theta, move on
+                                        correctTheta = false;
+                                        break;
+                                    }
+
                                 }
                             }
                             if (correctTheta) {
                                 y += theta.getP();
                                 if (x <= y) {
-                                    individual.put(node.getName(), theta.getLocalValue().getValue());
+                                    AttributeRequirement local = theta.getLocalRequirement();
+                                    if (!local.isRange()) {
+                                        individual.put(node.getName(), local.getValue().getValue());
+                                    } else {
+                                        //generate a number from the range
+                                        Double upper = Double.valueOf(local.getUpperLimit().getValue());
+                                        Double lower = Double.valueOf(local.getLowerLimit().getValue());
+                                        Double generated = random.nextDouble() * (upper - lower) + lower;
+                                        individual.put(node.getName(), String.valueOf(generated));
+                                    }
                                     break;
                                 }
                             }

@@ -4,10 +4,7 @@ import com.florian.nscalarproduct.station.CentralStation;
 import com.florian.nscalarproduct.webservice.CentralServer;
 import com.florian.nscalarproduct.webservice.Protocol;
 import com.florian.nscalarproduct.webservice.ServerEndpoint;
-import com.florian.vertibayes.bayes.Network;
-import com.florian.vertibayes.bayes.Node;
-import com.florian.vertibayes.bayes.ParentValue;
-import com.florian.vertibayes.bayes.Theta;
+import com.florian.vertibayes.bayes.*;
 import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.webservice.domain.AttributeRequirementsRequest;
@@ -115,31 +112,61 @@ public class VertiBayesCentralServer extends CentralServer {
     private void initThetas(List<Node> nodes) {
         nodes.stream().forEach(x -> initNode(x));
         for (Node node : nodes) {
-            for (String unique : node.getUniquevalues()) {
-                // generate base thetas
-                Theta t = new Theta();
-                t.setLocalValue(new Attribute(node.getType(), unique, node.getName()));
-                node.getProbabilities().add(t);
+            if (node.isDiscrete()) {
+                for (String unique : node.getUniquevalues()) {
+                    // generate base thetas
+                    Theta t = new Theta();
+                    t.setLocalRequirement(
+                            new AttributeRequirement(new Attribute(node.getType(), unique, node.getName())));
+                    node.getProbabilities().add(t);
+                }
+            } else {
+                for (Bin bin : node.getBins()) {
+                    Theta t = new Theta();
+                    Attribute lowerLimit = new Attribute(node.getType(), bin.getLowerLimit(), node.getName());
+                    Attribute upperLimit = new Attribute(node.getType(), bin.getUpperLimit(), node.getName());
+                    t.setLocalRequirement(new AttributeRequirement(lowerLimit, upperLimit));
+                    node.getProbabilities().add(t);
+                }
             }
             for (Node parent : node.getParents()) {
                 // for each parent
                 List<Theta> copies = new ArrayList<>();
-
-                for (String p : parent.getUniquevalues()) {
-                    // for each parent value
-                    ParentValue v = new ParentValue();
-                    v.setName(parent.getName());
-                    v.setValue(new Attribute(parent.getType(), p, parent.getName()));
-                    v.setRequirement(new AttributeRequirement(new Attribute(parent.getType(), p, parent.getName())));
-                    for (Theta t : node.getProbabilities()) {
-                        //Copy each current child, add the extra new parent
-                        Theta copy = new Theta();
-                        copy.setLocalValue(t.getLocalValue());
-
-                        copy.setParents(new ArrayList<>());
-                        copy.getParents().addAll(t.getParents());
-                        copy.getParents().add(v);
-                        copies.add(copy);
+                if (parent.isDiscrete()) {
+                    for (String p : parent.getUniquevalues()) {
+                        // for each parent value
+                        ParentValue v = new ParentValue();
+                        v.setName(parent.getName());
+                        v.setRequirement(
+                                new AttributeRequirement(new Attribute(parent.getType(), p, parent.getName())));
+                        for (Theta t : node.getProbabilities()) {
+                            //Copy each current child, add the extra new parent
+                            Theta copy = new Theta();
+                            copy.setLocalRequirement(t.getLocalRequirement());
+                            copy.setParents(new ArrayList<>());
+                            copy.getParents().addAll(t.getParents());
+                            copy.getParents().add(v);
+                            copies.add(copy);
+                        }
+                    }
+                } else {
+                    for (Bin bin : parent.getBins()) {
+                        // for each parent value
+                        ParentValue v = new ParentValue();
+                        v.setName(parent.getName());
+                        Attribute lowerLimit = new Attribute(node.getType(), bin.getLowerLimit(), node.getName());
+                        Attribute upperLimit = new Attribute(node.getType(), bin.getUpperLimit(), node.getName());
+                        v.setRequirement(
+                                new AttributeRequirement(lowerLimit, upperLimit));
+                        for (Theta t : node.getProbabilities()) {
+                            //Copy each current child, add the extra new parent
+                            Theta copy = new Theta();
+                            copy.setLocalRequirement(t.getLocalRequirement());
+                            copy.setParents(new ArrayList<>());
+                            copy.getParents().addAll(t.getParents());
+                            copy.getParents().add(v);
+                            copies.add(copy);
+                        }
                     }
                 }
                 // remove old children, put in the new copies
@@ -156,22 +183,34 @@ public class VertiBayesCentralServer extends CentralServer {
     private void determineProb(Theta t) {
         AttributeRequirementsRequest r = new AttributeRequirementsRequest();
         r.setRequirements(new ArrayList<>());
+        r.setRequirements2(new ArrayList<>());
 
         if (t.getParents().size() > 0) {
-            List<Attribute> parents = t.getParents().stream().map(x -> x.getValue()).collect(Collectors.toList());
-            List<Attribute> list = new ArrayList<>();
-            list.addAll(parents);
-            list.add(t.getLocalValue());
-            BigInteger count = countValue(list);
-            BigInteger parentCount = countValue(parents);
+            List<AttributeRequirement> parentsReq = t.getParents().stream().map(x -> x.getRequirement())
+                    .collect(Collectors.toList());
+            List<AttributeRequirement> listReq = new ArrayList<>();
+            listReq.addAll(parentsReq);
+            listReq.add(t.getLocalRequirement());
+            if (listReq.contains(null)) {
+                System.out.println("");
+            }
+            BigInteger count = countValue(listReq);
+            BigInteger parentCount = countValue(parentsReq);
+
+//            List<Attribute> parents = t.getParents().stream().map(x -> x.getValue()).collect(Collectors.toList());
+//            List<Attribute> list = new ArrayList<>();
+//            list.addAll(parents);
+//            list.add(t.getLocalValue());
+//            BigInteger count = countValue(list);
+//            BigInteger parentCount = countValue(parents);
             t.setP(count.doubleValue() / parentCount.doubleValue());
         } else {
-            BigInteger count = countValue(Arrays.asList(t.getLocalValue()));
+            BigInteger count = countValue(Arrays.asList(t.getLocalRequirement()));
             t.setP(count.doubleValue() / (double) endpoints.get(0).getPopulation());
         }
     }
 
-    private BigInteger countValue(List<Attribute> attributes) {
+    private BigInteger countValue(List<AttributeRequirement> attributes) {
         for (ServerEndpoint endpoint : endpoints) {
             ((VertiBayesEndpoint) endpoint).initK2Data(attributes);
         }

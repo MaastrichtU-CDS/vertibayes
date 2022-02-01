@@ -1,6 +1,7 @@
 package com.florian.vertibayes.bayes;
 
 import com.florian.vertibayes.bayes.data.Attribute;
+import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 
 import java.util.*;
 
@@ -77,19 +78,19 @@ public class Node {
 
     public static List<Theta> findSliblings(Theta t, Node node) {
         List<Theta> sliblings = new ArrayList<>();
-        Map<String, String> parentValues = new HashMap<>();
+        Map<String, AttributeRequirement> parentValues = new HashMap<>();
         if (node.getParents().size() == 0) {
             //no parents, so all thetas are sliblings
             sliblings.addAll(node.getProbabilities());
         } else {
             // collect parent values
             for (ParentValue parent : t.getParents()) {
-                parentValues.put(parent.getName(), parent.getValue().getValue());
+                parentValues.put(parent.getName(), parent.getRequirement());
             }
             for (Theta theta : node.getProbabilities()) {
                 boolean correctTheta = true;
                 for (ParentValue p : theta.getParents()) {
-                    if (!parentValues.get(p.getName()).equals(p.getValue().getValue())) {
+                    if (!parentValues.get(p.getName()).equals(p.getRequirement())) {
                         correctTheta = false;
                     }
                 }

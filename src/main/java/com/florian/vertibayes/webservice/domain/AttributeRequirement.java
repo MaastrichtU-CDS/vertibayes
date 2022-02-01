@@ -77,10 +77,26 @@ public class AttributeRequirement {
     }
 
     public String getName() {
-        if (isRange()) {
+        if (!isRange()) {
             return value.getAttributeName();
         } else {
             return lowerLimit.getAttributeName();
+        }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        } else if (!(o instanceof AttributeRequirement)) {
+            return false;
+        }
+        AttributeRequirement attributeReq = (AttributeRequirement) o;
+        if (!this.isRange()) {
+            return this.isRange() == attributeReq.isRange() && this.value.equals(attributeReq.value);
+        } else {
+            return this.isRange() == attributeReq.isRange() && this.upperLimit.equals(
+                    attributeReq.upperLimit) && this.lowerLimit.equals(attributeReq.lowerLimit);
         }
     }
 }

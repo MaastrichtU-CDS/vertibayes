@@ -71,7 +71,8 @@ public final class WebNodeMapper {
             Theta t = new Theta();
             t.setP(theta.getP());
             if (node.isDiscrete()) {
-                t.setLocalValue(new Attribute(node.getType(), theta.getLocalValue().getLocalValue(), node.getName()));
+                t.setLocalRequirement(new AttributeRequirement(
+                        new Attribute(node.getType(), theta.getLocalValue().getLocalValue(), node.getName())));
             }
             t.setLocalRequirement(mapReqFromWebValue(node, theta.getLocalValue()));
             List<ParentValue> parents = new ArrayList<>();
@@ -82,10 +83,6 @@ public final class WebNodeMapper {
                     ParentValue p = new ParentValue();
                     Node parent = nodes.get(key);
                     p.setName(key);
-                    if (parent.isDiscrete()) {
-                        p.setValue(
-                                new Attribute(parent.getType(), webParents.get(key).getLocalValue(), node.getName()));
-                    }
                     p.setRequirement(mapReqFromWebValue(parent, webParents.get(key)));
                     parents.add(p);
                 }
@@ -113,7 +110,7 @@ public final class WebNodeMapper {
                 theta.setP(t.getP());
                 WebValue value = new WebValue();
                 if (n.isDiscrete()) {
-                    value.setLocalValue(t.getLocalValue().getValue());
+                    value.setLocalValue(t.getLocalRequirement().getValue().getValue());
                 } else {
                     value.setLowerLimit(t.getLocalRequirement().getLowerLimit().getValue());
                     value.setUpperLimit(t.getLocalRequirement().getUpperLimit().getValue());

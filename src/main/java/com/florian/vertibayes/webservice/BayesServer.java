@@ -6,6 +6,7 @@ import com.florian.nscalarproduct.webservice.ServerEndpoint;
 import com.florian.vertibayes.bayes.Node;
 import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.bayes.data.Data;
+import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.webservice.domain.AttributeRequirementsRequest;
 import com.florian.vertibayes.webservice.domain.NodesResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -73,8 +74,10 @@ public class BayesServer extends Server {
     public void initK2Data(@RequestBody AttributeRequirementsRequest request) {
         reset();
         readData();
-        List<Attribute> requirements = request.getRequirements() == null ? new ArrayList<>()
-                : request.getRequirements();
+//        List<Attribute> requirements = request.getRequirements() == null ? new ArrayList<>()
+//                : request.getRequirements();
+        List<AttributeRequirement> requirements = request.getRequirements2() == null ? new ArrayList<>()
+                : request.getRequirements2();
         int population = data.getNumberOfIndividuals();
         localData = new BigInteger[population];
         for (int i = 0; i < population; i++) {
@@ -82,13 +85,13 @@ public class BayesServer extends Server {
         }
 
         List<List<Attribute>> values = data.getData();
-        for (Attribute req : requirements) {
-            if (data.getAttributeCollumn(req.getAttributeName()) == null) {
+        for (AttributeRequirement req : requirements) {
+            if (data.getAttributeCollumn(req.getName()) == null) {
                 // attribute not locally available, skip
                 continue;
             }
             for (int i = 0; i < population; i++) {
-                if (!values.get(data.getAttributeCollumn(req.getAttributeName())).get(i).equals(req)) {
+                if (!req.checkRequirement(values.get(data.getAttributeCollumn(req.getName())).get(i))) {
                     localData[i] = BigInteger.ZERO;
                 }
             }
