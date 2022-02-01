@@ -3,8 +3,8 @@ package com.florian.vertibayes.webservice.domain;
 import java.util.Map;
 
 public class WebTheta {
-    private String localValue;
-    private Map<String, String> parentValues;
+    private WebValue localValue;
+    private Map<String, WebValue> parentValues;
     private double p;
 
     public double getP() {
@@ -15,19 +15,19 @@ public class WebTheta {
         this.p = p;
     }
 
-    public String getLocalValue() {
+    public WebValue getLocalValue() {
         return localValue;
     }
 
-    public void setLocalValue(String localValue) {
+    public void setLocalValue(WebValue localValue) {
         this.localValue = localValue;
     }
 
-    public Map<String, String> getParentValues() {
+    public Map<String, WebValue> getParentValues() {
         return parentValues;
     }
 
-    public void setParentValues(Map<String, String> parentValues) {
+    public void setParentValues(Map<String, WebValue> parentValues) {
         this.parentValues = parentValues;
     }
 }

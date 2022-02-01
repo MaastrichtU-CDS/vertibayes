@@ -10,8 +10,26 @@ public class Node {
     private String name;
     private Attribute.AttributeType type;
     private List<Theta> probabilities = new ArrayList<>();
+    private Set<Bin> bins = new HashSet<>();
+    private boolean discrete = true;
 
     public Node() {
+    }
+
+    public Set<Bin> getBins() {
+        return bins;
+    }
+
+    public void setBins(Set<Bin> bins) {
+        this.bins = bins;
+    }
+
+    public boolean isDiscrete() {
+        return discrete;
+    }
+
+    public void setDiscrete(boolean discrete) {
+        this.discrete = discrete;
     }
 
     public List<Theta> getProbabilities() {

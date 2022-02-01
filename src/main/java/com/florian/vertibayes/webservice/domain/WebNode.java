@@ -1,8 +1,10 @@
 package com.florian.vertibayes.webservice.domain;
 
+import com.florian.vertibayes.bayes.Bin;
 import com.florian.vertibayes.bayes.data.Attribute;
 
 import java.util.List;
+import java.util.Set;
 
 public class WebNode {
     //Simplified Class for WebRequests that require communicating about Nodes
@@ -10,6 +12,24 @@ public class WebNode {
     private String name;
     private Attribute.AttributeType type;
     private List<WebTheta> probabilities;
+    private Set<Bin> bins;
+    private boolean isDiscrete = true;
+
+    public boolean isDiscrete() {
+        return isDiscrete;
+    }
+
+    public void setDiscrete(boolean discrete) {
+        isDiscrete = discrete;
+    }
+
+    public Set<Bin> getBins() {
+        return bins;
+    }
+
+    public void setBins(Set<Bin> bins) {
+        this.bins = bins;
+    }
 
     public List<WebTheta> getProbabilities() {
         return probabilities;

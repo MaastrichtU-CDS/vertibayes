@@ -4,8 +4,10 @@ import com.florian.vertibayes.bayes.Node;
 import com.florian.vertibayes.bayes.ParentValue;
 import com.florian.vertibayes.bayes.Theta;
 import com.florian.vertibayes.bayes.data.Attribute;
+import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.webservice.domain.WebNode;
 import com.florian.vertibayes.webservice.domain.WebTheta;
+import com.florian.vertibayes.webservice.domain.WebValue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -26,9 +28,14 @@ public final class WebNodeMapper {
             n.setType(node.getType());
             if (node.getProbabilities() != null) {
                 for (WebTheta theta : node.getProbabilities()) {
-                    n.getUniquevalues().add(theta.getLocalValue());
+                    // if it is a discrete node, copy the local values, otherwise the bins are sufficient here
+                    if (node.isDiscrete()) {
+                        n.getUniquevalues().add(theta.getLocalValue().getLocalValue());
+                    }
                 }
             }
+            n.setDiscrete(node.isDiscrete());
+            n.setBins(node.getBins());
             output.put(n.getName(), n);
 
         }
@@ -45,20 +52,41 @@ public final class WebNodeMapper {
         return output.values().stream().collect(Collectors.toList());
     }
 
+    private static AttributeRequirement mapReqFromWebValue(Node node, WebValue v) {
+        if (node.isDiscrete()) {
+            return new AttributeRequirement(
+                    new Attribute(node.getType(), v.getLocalValue(), node.getName()));
+        } else {
+            Attribute lowerLimit = new Attribute(node.getType(), v.getLowerLimit(),
+                                                 node.getName());
+            Attribute upperLimit = new Attribute(node.getType(), v.getUpperLimit(),
+                                                 node.getName());
+            return new AttributeRequirement(lowerLimit, upperLimit);
+        }
+    }
+
     private static void mapToProbabilities(List<WebTheta> probabilities, Node node, Map<String, Node> nodes) {
         List<Theta> prob = node.getProbabilities();
         for (WebTheta theta : probabilities) {
             Theta t = new Theta();
             t.setP(theta.getP());
-            t.setLocalValue(new Attribute(node.getType(), theta.getLocalValue(), node.getName()));
+            if (node.isDiscrete()) {
+                t.setLocalValue(new Attribute(node.getType(), theta.getLocalValue().getLocalValue(), node.getName()));
+            }
+            t.setLocalRequirement(mapReqFromWebValue(node, theta.getLocalValue()));
             List<ParentValue> parents = new ArrayList<>();
-            Map<String, String> webParents = theta.getParentValues();
+
+            Map<String, WebValue> webParents = theta.getParentValues();
             if (webParents != null) {
                 for (String key : webParents.keySet()) {
                     ParentValue p = new ParentValue();
                     Node parent = nodes.get(key);
                     p.setName(key);
-                    p.setValue(new Attribute(parent.getType(), webParents.get(key), node.getName()));
+                    if (parent.isDiscrete()) {
+                        p.setValue(
+                                new Attribute(parent.getType(), webParents.get(key).getLocalValue(), node.getName()));
+                    }
+                    p.setRequirement(mapReqFromWebValue(parent, webParents.get(key)));
                     parents.add(p);
                 }
                 t.setParents(parents);
@@ -74,6 +102,8 @@ public final class WebNodeMapper {
             n.setName(node.getName());
             n.setType(node.getType());
             n.setParents(new ArrayList<>());
+            n.setDiscrete(node.isDiscrete());
+            n.setBins(node.getBins());
             for (Node parent : node.getParents()) {
                 n.getParents().add(parent.getName());
             }
@@ -81,10 +111,24 @@ public final class WebNodeMapper {
             for (Theta t : node.getProbabilities()) {
                 WebTheta theta = new WebTheta();
                 theta.setP(t.getP());
-                theta.setLocalValue(t.getLocalValue().getValue());
+                WebValue value = new WebValue();
+                if (n.isDiscrete()) {
+                    value.setLocalValue(t.getLocalValue().getValue());
+                } else {
+                    value.setLowerLimit(t.getLocalRequirement().getLowerLimit().getValue());
+                    value.setUpperLimit(t.getLocalRequirement().getUpperLimit().getValue());
+                }
+                theta.setLocalValue(value);
                 theta.setParentValues(new HashMap<>());
                 for (ParentValue parent : t.getParents()) {
-                    theta.getParentValues().put(parent.getName(), parent.getValue().getValue());
+                    value = new WebValue();
+                    if (!parent.getRequirement().isRange()) {
+                        value.setLocalValue(parent.getRequirement().getValue().getValue());
+                    } else {
+                        value.setLowerLimit(parent.getRequirement().getLowerLimit().getValue());
+                        value.setUpperLimit(parent.getRequirement().getUpperLimit().getValue());
+                    }
+                    theta.getParentValues().put(parent.getName(), value);
                 }
                 n.getProbabilities().add(theta);
             }

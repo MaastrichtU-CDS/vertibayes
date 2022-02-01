@@ -9,6 +9,7 @@ import com.florian.vertibayes.bayes.Node;
 import com.florian.vertibayes.bayes.ParentValue;
 import com.florian.vertibayes.bayes.Theta;
 import com.florian.vertibayes.bayes.data.Attribute;
+import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.webservice.domain.AttributeRequirementsRequest;
 import com.florian.vertibayes.webservice.domain.InitCentralServerRequest;
 import com.florian.vertibayes.webservice.domain.WebBayesNetwork;
@@ -129,6 +130,7 @@ public class VertiBayesCentralServer extends CentralServer {
                     ParentValue v = new ParentValue();
                     v.setName(parent.getName());
                     v.setValue(new Attribute(parent.getType(), p, parent.getName()));
+                    v.setRequirement(new AttributeRequirement(new Attribute(parent.getType(), p, parent.getName())));
                     for (Theta t : node.getProbabilities()) {
                         //Copy each current child, add the extra new parent
                         Theta copy = new Theta();
