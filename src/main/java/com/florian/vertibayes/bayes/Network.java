@@ -78,20 +78,25 @@ public class Network {
             if (node.isDiscrete()) {
                 for (String value : node.getUniquevalues()) {
                     List<AttributeRequirement> req = new ArrayList<>();
-
                     req.add(new AttributeRequirement(new Attribute(node.getType(), value, node.getName())));
-
                     //this should be a webservice call
-                    endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initK2Data(req));
-                    secretServer.addSecretStation("start", endpoints.stream().map(x -> x.getServerId()).collect(
-                            Collectors.toList()), endpoints.get(0).getPopulation());
-                    BigDecimal aijk = new BigDecimal(central.nparty(endpoints, secretServer));
+                    BigDecimal aijk = calculateAijk(req);
 
                     sumaijk = sumaijk.add(aijk);
                     prodaijk = prodaijk.multiply(factorial(aijk));
                 }
             } else {
-                //ToDo implement bin
+                for (Bin bin : node.getBins()) {
+                    List<AttributeRequirement> req = new ArrayList<>();
+                    Attribute lowerLimit = new Attribute(node.getType(), bin.getLowerLimit(), node.getName());
+                    Attribute upperLimit = new Attribute(node.getType(), bin.getUpperLimit(), node.getName());
+                    req.add(new AttributeRequirement(lowerLimit, upperLimit));
+                    //this should be a webservice call
+                    BigDecimal aijk = calculateAijk(req);
+
+                    sumaijk = sumaijk.add(aijk);
+                    prodaijk = prodaijk.multiply(factorial(aijk));
+                }
             }
             return (ri1factorial.divide(factorial(sumaijk.add(ri).subtract(BigDecimal.ONE)), ROUNDING,
                                         RoundingMode.HALF_UP))
@@ -105,15 +110,22 @@ public class Network {
                         List<AttributeRequirement> r = new ArrayList<>(req);
                         r.add(new AttributeRequirement(new Attribute(node.getType(), value, node.getName())));
 
-                        endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initK2Data(r));
-                        secretServer.addSecretStation("start", endpoints.stream().map(x -> x.getServerId()).collect(
-                                Collectors.toList()), endpoints.get(0).getPopulation());
-                        BigDecimal aijk = new BigDecimal(central.nparty(endpoints, secretServer));
+                        BigDecimal aijk = calculateAijk(r);
                         sumaijk = sumaijk.add(aijk);
                         prodaijk = prodaijk.multiply(factorial(aijk));
                     }
                 } else {
-                    //ToDo implement Bins
+                    for (Bin bin : node.getBins()) {
+                        List<AttributeRequirement> r = new ArrayList<>(req);
+                        Attribute lowerLimit = new Attribute(node.getType(), bin.getLowerLimit(), node.getName());
+                        Attribute upperLimit = new Attribute(node.getType(), bin.getUpperLimit(), node.getName());
+                        r.add(new AttributeRequirement(lowerLimit, upperLimit));
+                        //this should be a webservice call
+                        BigDecimal aijk = calculateAijk(r);
+
+                        sumaijk = sumaijk.add(aijk);
+                        prodaijk = prodaijk.multiply(factorial(aijk));
+                    }
                 }
                 partial = partial.multiply(
                         (ri1factorial.divide(factorial(sumaijk.add(ri).subtract(BigDecimal.ONE)), ROUNDING,
@@ -122,6 +134,13 @@ public class Network {
             }
         }
         return partial;
+    }
+
+    private BigDecimal calculateAijk(List<AttributeRequirement> req) {
+        endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initK2Data(req));
+        secretServer.addSecretStation("start", endpoints.stream().map(x -> x.getServerId()).collect(
+                Collectors.toList()), endpoints.get(0).getPopulation());
+        return new BigDecimal(central.nparty(endpoints, secretServer));
     }
 
     public List<List<AttributeRequirement>> determineRequirements(List<Node> nodes) {
@@ -144,7 +163,23 @@ public class Network {
                 }
                 requirements = temp;
             } else {
-                //ToDo implement Bins
+                for (Bin bin : node.getBins()) {
+                    if (requirements.size() == 0) {
+                        List<AttributeRequirement> req = new ArrayList<>();
+                        Attribute lowerLimit = new Attribute(node.getType(), bin.getLowerLimit(), node.getName());
+                        Attribute upperLimit = new Attribute(node.getType(), bin.getUpperLimit(), node.getName());
+                        req.add(new AttributeRequirement(lowerLimit, upperLimit));
+                        temp.add(req);
+                    } else {
+                        for (List<AttributeRequirement> requirement : requirements) {
+                            List<AttributeRequirement> req = new ArrayList<>(requirement);
+                            Attribute lowerLimit = new Attribute(node.getType(), bin.getLowerLimit(), node.getName());
+                            Attribute upperLimit = new Attribute(node.getType(), bin.getUpperLimit(), node.getName());
+                            req.add(new AttributeRequirement(lowerLimit, upperLimit));
+                            temp.add(req);
+                        }
+                    }
+                }
             }
 
         }

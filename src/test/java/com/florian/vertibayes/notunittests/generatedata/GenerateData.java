@@ -133,7 +133,7 @@ public class GenerateData {
     }
 
 
-    private List<WebNode> buildIrisNetwork() {
+    public static List<WebNode> buildIrisNetwork() {
         WebNode label = createWebNode("label", Attribute.AttributeType.string, new ArrayList<>());
         WebNode petallength = createWebNode("petallength", Attribute.AttributeType.number,
                                             Arrays.asList(label.getName()));
@@ -179,7 +179,7 @@ public class GenerateData {
         return Arrays.asList(asia, tub, smoke, lung, bronc, either, xray, dysp);
     }
 
-    private WebNode createWebNode(String name, Attribute.AttributeType type, List<String> parents) {
+    private static WebNode createWebNode(String name, Attribute.AttributeType type, List<String> parents) {
         WebNode n = new WebNode();
         n.setType(type);
         n.setName(name);

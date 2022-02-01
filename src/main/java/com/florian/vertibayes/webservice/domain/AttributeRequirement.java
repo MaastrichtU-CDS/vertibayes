@@ -99,4 +99,16 @@ public class AttributeRequirement {
                     attributeReq.upperLimit) && this.lowerLimit.equals(attributeReq.lowerLimit);
         }
     }
+
+    @Override
+    public int hashCode() {
+        int hash = 1;
+        final int prime = 5;
+
+        hash = prime * hash + (value == null ? 0 : value.hashCode());
+        hash = prime * hash + (upperLimit == null ? 0 : upperLimit.hashCode());
+        hash = prime * hash + (lowerLimit == null ? 0 : lowerLimit.hashCode());
+        hash = prime * hash + (((Boolean) range).hashCode());
+        return hash;
+    }
 }

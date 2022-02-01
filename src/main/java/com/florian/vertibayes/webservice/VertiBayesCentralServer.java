@@ -99,7 +99,9 @@ public class VertiBayesCentralServer extends CentralServer {
 
     private void initNodesMaximumLikelyhood(List<Node> nodes) {
         for (Node n : nodes) {
-            initNode(n);
+            if (n.isDiscrete() && n.getUniquevalues().isEmpty()) {
+                initNode(n);
+            }
         }
     }
 
@@ -110,7 +112,6 @@ public class VertiBayesCentralServer extends CentralServer {
     }
 
     private void initThetas(List<Node> nodes) {
-        nodes.stream().forEach(x -> initNode(x));
         for (Node node : nodes) {
             if (node.isDiscrete()) {
                 for (String unique : node.getUniquevalues()) {
@@ -154,8 +155,8 @@ public class VertiBayesCentralServer extends CentralServer {
                         // for each parent value
                         ParentValue v = new ParentValue();
                         v.setName(parent.getName());
-                        Attribute lowerLimit = new Attribute(node.getType(), bin.getLowerLimit(), node.getName());
-                        Attribute upperLimit = new Attribute(node.getType(), bin.getUpperLimit(), node.getName());
+                        Attribute lowerLimit = new Attribute(node.getType(), bin.getLowerLimit(), parent.getName());
+                        Attribute upperLimit = new Attribute(node.getType(), bin.getUpperLimit(), parent.getName());
                         v.setRequirement(
                                 new AttributeRequirement(lowerLimit, upperLimit));
                         for (Theta t : node.getProbabilities()) {
@@ -191,18 +192,9 @@ public class VertiBayesCentralServer extends CentralServer {
             List<AttributeRequirement> listReq = new ArrayList<>();
             listReq.addAll(parentsReq);
             listReq.add(t.getLocalRequirement());
-            if (listReq.contains(null)) {
-                System.out.println("");
-            }
             BigInteger count = countValue(listReq);
             BigInteger parentCount = countValue(parentsReq);
 
-//            List<Attribute> parents = t.getParents().stream().map(x -> x.getValue()).collect(Collectors.toList());
-//            List<Attribute> list = new ArrayList<>();
-//            list.addAll(parents);
-//            list.add(t.getLocalValue());
-//            BigInteger count = countValue(list);
-//            BigInteger parentCount = countValue(parents);
             t.setP(count.doubleValue() / parentCount.doubleValue());
         } else {
             BigInteger count = countValue(Arrays.asList(t.getLocalRequirement()));
