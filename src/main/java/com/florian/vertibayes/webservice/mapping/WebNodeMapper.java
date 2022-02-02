@@ -111,9 +111,11 @@ public final class WebNodeMapper {
                 WebValue value = new WebValue();
                 if (n.isDiscrete()) {
                     value.setLocalValue(t.getLocalRequirement().getValue().getValue());
+                    value.setRange(false);
                 } else {
                     value.setLowerLimit(t.getLocalRequirement().getLowerLimit().getValue());
                     value.setUpperLimit(t.getLocalRequirement().getUpperLimit().getValue());
+                    value.setRange(true);
                 }
                 theta.setLocalValue(value);
                 theta.setParentValues(new HashMap<>());
@@ -121,9 +123,11 @@ public final class WebNodeMapper {
                     value = new WebValue();
                     if (!parent.getRequirement().isRange()) {
                         value.setLocalValue(parent.getRequirement().getValue().getValue());
+                        value.setRange(false);
                     } else {
                         value.setLowerLimit(parent.getRequirement().getLowerLimit().getValue());
                         value.setUpperLimit(parent.getRequirement().getUpperLimit().getValue());
+                        value.setRange(true);
                     }
                     theta.getParentValues().put(parent.getName(), value);
                 }
