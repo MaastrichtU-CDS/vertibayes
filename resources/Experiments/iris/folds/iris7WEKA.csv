@@ -1,0 +1,16 @@
+sepallength,sepalwidth,petallength,petalwidth,label
+4.6,3.1,1.5,0.2,Iris-setosa
+5.4,3.7,1.5,0.2,Iris-setosa
+5.7,4.4,1.5,0.4,Iris-setosa
+5.0,3.0,1.6,0.2,Iris-setosa
+4.8,3.1,1.6,0.2,Iris-setosa
+5.2,4.1,1.5,0.1,Iris-setosa
+5.5,4.2,1.4,0.2,Iris-setosa
+5.0,3.2,1.2,0.2,Iris-setosa
+4.8,3.0,1.4,0.3,Iris-setosa
+4.6,3.2,1.4,0.2,Iris-setosa
+5.3,3.7,1.5,0.2,Iris-setosa
+6.4,3.2,4.5,1.5,Iris-versicolor
+6.0,2.2,4.0,1.0,Iris-versicolor
+5.4,3.0,4.5,1.5,Iris-versicolor
+6.5,3.2,5.1,2.0,Iris-virginica

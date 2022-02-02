@@ -1,0 +1,17 @@
+number,number,number,number,number,string
+ID,sepallength,sepalwidth,petallength,petalwidth,label
+4,4.6,3.1,1.5,0.2,Iris-setosa
+11,5.4,3.7,1.5,0.2,Iris-setosa
+16,5.7,4.4,1.5,0.4,Iris-setosa
+26,5.0,3.0,1.6,0.2,Iris-setosa
+31,4.8,3.1,1.6,0.2,Iris-setosa
+33,5.2,4.1,1.5,0.1,Iris-setosa
+34,5.5,4.2,1.4,0.2,Iris-setosa
+36,5.0,3.2,1.2,0.2,Iris-setosa
+46,4.8,3.0,1.4,0.3,Iris-setosa
+48,4.6,3.2,1.4,0.2,Iris-setosa
+49,5.3,3.7,1.5,0.2,Iris-setosa
+52,6.4,3.2,4.5,1.5,Iris-versicolor
+63,6.0,2.2,4.0,1.0,Iris-versicolor
+85,5.4,3.0,4.5,1.5,Iris-versicolor
+111,6.5,3.2,5.1,2.0,Iris-virginica

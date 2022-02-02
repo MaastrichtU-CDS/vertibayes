@@ -18,57 +18,121 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class GenerateData {
-    private static final String CSV_PATH_IRIS = "resources/Experiments/generated/generatedDataIris.csv";
-    private static final String CSV_PATH_IRIS_COMPLEX = "resources/Experiments/generated/generatedDataIrisComplex.csv";
-    public static final String FIRSTHALF_IRIS = "resources/Experiments/iris/iris_firsthalf.csv";
-    public static final String SECONDHALF_IRIS = "resources/Experiments/iris/iris_secondhalf.csv";
 
-    private static final String CSV_PATH_IRIS_MISSING = "resources/Experiments/generated/generatedDataIrisMissing.csv";
-    private static final String CSV_PATH_IRIS_MISSING_COMPLEX = "resources/Experiments/generated" +
-            "/generatedDataIrisMissing_COMPLEX.csv";
-    public static final String FIRSTHALF_IRIS_MISSING = "resources/Experiments/iris/irisMissingFirstHalf.csv";
-    public static final String SECONDHALF_IRIS_MISSING = "resources/Experiments/iris/irisMissingSecondHalf.csv";
+    public static final String LEFTHALF_IRIS = "resources/Experiments/iris/folds/irisLeftSplit";
+    public static final String RIGHTHALF_IRIS = "resources/Experiments/iris/folds/irisRightSplit";
+    public static final String LEFTHALF_IRIS_MISSING = "resources/Experiments/iris/folds/irismissingLeftSplit";
+    public static final String RIGHTHALF_IRIS_MISSING = "resources/Experiments/iris/folds/irismissingRightSplit";
+    private static final String CSV_PATH_IRIS_GENERATED = "resources/Experiments/generated/generatedDataIris";
 
-    private static final String CSV_PATH_ASIA = "resources/Experiments/generated/generatedDataAsia.csv";
-    public static final String FIRSTHALF_ASIA = "resources/Experiments/asia/Asia10k_firstHalf.csv";
-    public static final String SECONDHALF_ASIA = "resources/Experiments/asia/Asia10k_secondHalf.csv";
+    public static final String LEFTHALF_ASIA = "resources/Experiments/asia/folds/asiaLeftSplit";
+    public static final String RIGHTHALF_ASIA = "resources/Experiments/asia/folds/asiaRightSplit";
+    public static final String LEFTHALF_ASIA_MISSING = "resources/Experiments/asia/folds/asiamissingLeftSplit";
+    public static final String RIGHTHALF_ASIA_MISSING = "resources/Experiments/asia/folds/asiamissingRightSplit";
+    private static final String CSV_PATH_ASIA_GENERATED = "resources/Experiments/generated/generatedDataAsia";
 
-    private static final String CSV_PATH_ASIA_MISSING = "resources/Experiments/generated/generatedDataAsiaMissing.csv";
-    public static final String FIRSTHALF_ASIA_MISSING = "resources/Experiments/asia/asiaMissingFirstHalf.csv";
-    public static final String SECONDHALF_ASIA_MISSING = "resources/Experiments/asia/asiaMissingSecondHalf.csv";
+    public static final String LEFTHALF_ALARM = "resources/Experiments/alarm/folds/alarmLeftSplit";
+    public static final String RIGHTHALF_ALARM = "resources/Experiments/alarm/folds/alarmRightSplit";
+    public static final String LEFTHALF_ALARM_MISSING = "resources/Experiments/alarm/folds/alarmmissingLeftSplit";
+    public static final String RIGHTHALF_ALARM_MISSING = "resources/Experiments/alarm/folds/alarmmissingRightSplit";
+    private static final String CSV_PATH_ALARM_GENERATED = "resources/Experiments/generated/generatedDataAlarm";
 
-
-    private static final String CSV_PATH_ALARM = "resources/Experiments/generated/generatedDataAlarm.csv";
-    public static final String FIRSTHALF_ALARM = "resources/Experiments/alarm/Alarm10k_firsthalf.csv";
-    public static final String SECONDHALF_ALARM = "resources/Experiments/alarm/Alarm10k_secondhalf.csv";
-
-    private static final String CSV_PATH_ALARM_MISSING = "resources/Experiments/generated/generatedDataAlarmMissing" +
-            ".csv";
-    public static final String FIRSTHALF_ALARM_MISSING = "resources/Experiments/alarm/alarmMissingFirstHalf.csv";
-    public static final String SECONDHALF_ALARM_MISSING = "resources/Experiments/alarm/alarmMissingSecondHalf.csv";
-
+    private static final Integer FOLDS = 10;
 
     @Test
     public void generateAllData() {
         //this is not a unittest, this exists purely to be able to generate data without needing to setup an entire
         // vantage6 infra or even several spring boot instances
         // Generating all 3 sets of data takes about 2 minutes with Alarm taking 99% of that time
-        // With missing data it takes considerably longer, especially the "complex" iris network becomes hell
-        // Needs binning
+        // With missing data it takes considerably longer
+        // With folds this becomes even worse given that there are 10 folds.
 
-        generateData(buildIrisNetwork(), CSV_PATH_IRIS, FIRSTHALF_IRIS, SECONDHALF_IRIS, 150);
-        generateData(buildIrisNetworkComplex(), CSV_PATH_IRIS_COMPLEX, FIRSTHALF_IRIS, SECONDHALF_IRIS, 150);
-        generateData(buildAsiaNetwork(), CSV_PATH_ASIA, FIRSTHALF_ASIA, SECONDHALF_ASIA, 10000);
-        generateData(buildAlarmNetwork(), CSV_PATH_ALARM, FIRSTHALF_ALARM, SECONDHALF_ALARM, 10000);
+        List<Integer> folds = new ArrayList<>();
+        for (int i = 0; i < FOLDS; i++) {
+            folds.add(i);
+        }
 
-        generateData(buildIrisNetwork(), CSV_PATH_IRIS_MISSING, FIRSTHALF_IRIS_MISSING, SECONDHALF_IRIS_MISSING, 150);
-        generateData(buildIrisNetworkComplex(), CSV_PATH_IRIS_MISSING_COMPLEX, FIRSTHALF_IRIS_MISSING,
-                     SECONDHALF_IRIS_MISSING, 150);
-        generateData(buildAsiaNetwork(), CSV_PATH_ASIA_MISSING, FIRSTHALF_ASIA_MISSING, SECONDHALF_ASIA_MISSING, 10000);
-        generateData(buildAlarmNetwork(), CSV_PATH_ALARM_MISSING, FIRSTHALF_ALARM_MISSING, SECONDHALF_ALARM_MISSING,
-                     10000);
+        generateIRIS(folds);
+        generateAsia(folds);
+        generateAlarm(folds);
+    }
+
+    private void generateIRIS(List<Integer> folds) {
+        // no missing data
+        for (Integer fold : folds) {
+            List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
+            String ids = otherFolds.stream().sorted().collect(Collectors.toList()).toString().replace("[", "")
+                    .replace("]", "").replace(" ", "").replace(",", "");
+            String left = LEFTHALF_IRIS + ids + ".csv";
+            String right = RIGHTHALF_IRIS + ids + ".csv";
+            String generated = CSV_PATH_IRIS_GENERATED + ids + ".csv";
+            generateData(buildIrisNetwork(), generated, left, right, 150);
+            break;
+        }
+        //missing data
+        for (Integer fold : folds) {
+            List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
+            String ids = otherFolds.stream().sorted().collect(Collectors.toList()).toString().replace("[", "")
+                    .replace("]", "").replace(" ", "").replace(",", "");
+            String left = LEFTHALF_IRIS_MISSING + ids + ".csv";
+            String right = RIGHTHALF_IRIS_MISSING + ids + ".csv";
+            String generated = CSV_PATH_IRIS_GENERATED + ids + "MISSING.csv";
+            generateData(buildIrisNetwork(), generated, left, right, 150);
+            break;
+        }
+    }
+
+    private void generateAlarm(List<Integer> folds) {
+        // no missing data
+        for (Integer fold : folds) {
+            List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
+            String ids = otherFolds.stream().sorted().collect(Collectors.toList()).toString().replace("[", "")
+                    .replace("]", "").replace(" ", "").replace(",", "");
+            String left = LEFTHALF_ALARM + ids + ".csv";
+            String right = RIGHTHALF_ALARM + ids + ".csv";
+            String generated = CSV_PATH_ALARM_GENERATED + ids + ".csv";
+            generateData(buildAlarmNetwork(), generated, left, right, 10000);
+            break;
+        }
+        //missing data
+        for (Integer fold : folds) {
+            List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
+            String ids = otherFolds.stream().sorted().collect(Collectors.toList()).toString().replace("[", "")
+                    .replace("]", "").replace(" ", "").replace(",", "");
+            String left = LEFTHALF_ALARM_MISSING + ids + ".csv";
+            String right = RIGHTHALF_ALARM_MISSING + ids + ".csv";
+            String generated = CSV_PATH_ALARM_GENERATED + ids + "MISSING.csv";
+            generateData(buildAlarmNetwork(), generated, left, right, 1000);
+            break;
+        }
+    }
+
+    private void generateAsia(List<Integer> folds) {
+        // no missing data
+        for (Integer fold : folds) {
+            List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
+            String ids = otherFolds.stream().sorted().collect(Collectors.toList()).toString().replace("[", "")
+                    .replace("]", "").replace(" ", "").replace(",", "");
+            String left = LEFTHALF_ASIA + ids + ".csv";
+            String right = RIGHTHALF_ASIA + ids + ".csv";
+            String generated = CSV_PATH_ASIA_GENERATED + ids + ".csv";
+            generateData(buildAsiaNetwork(), generated, left, right, 1000);
+            break;
+        }
+        //missing data
+        for (Integer fold : folds) {
+            List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
+            String ids = otherFolds.stream().sorted().collect(Collectors.toList()).toString().replace("[", "")
+                    .replace("]", "").replace(" ", "").replace(",", "");
+            String left = LEFTHALF_ASIA_MISSING + ids + ".csv";
+            String right = RIGHTHALF_ASIA_MISSING + ids + ".csv";
+            String generated = CSV_PATH_ASIA_GENERATED + ids + "MISSING.csv";
+            generateData(buildAsiaNetwork(), generated, left, right, 1000);
+            break;
+        }
     }
 
 
