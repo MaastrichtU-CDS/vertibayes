@@ -2,6 +2,7 @@ package com.florian.vertibayes.weka;
 
 import com.florian.vertibayes.bayes.Bin;
 import com.florian.vertibayes.webservice.domain.external.WebNode;
+import com.florian.vertibayes.webservice.domain.external.WebParentValue;
 import com.florian.vertibayes.webservice.domain.external.WebTheta;
 import com.florian.vertibayes.webservice.domain.external.WebValue;
 
@@ -132,9 +133,11 @@ public final class BifMapper {
 
         if (split[1].contains("</GIVEN>")) {
             hasParents = true;
-            split = split[1].split("</GIVEN>");
-            for (int i = 0; i < split.length - 1; i++) {
-                String parentName = split[i].replace("<GIVEN>", "").replace("\n", "");
+            split = split[1].split("<TABLE>");
+            String[] parents = split[0].split("</GIVEN>");
+
+            for (int i = 0; i < parents.length - 1; i++) {
+                String parentName = parents[i].replace("<GIVEN>", "").replace("\n", "");
                 n.getParents().add(parentName);
                 WebNode parent = findNode(parentName, nodes);
                 List<WebTheta> copies = new ArrayList<>();
@@ -144,9 +147,9 @@ public final class BifMapper {
                     for (WebTheta child : n.getProbabilities()) {
                         //Copy each current child, add the extra new parent
                         WebTheta copy = new WebTheta();
-
                         copy.setLocalValue(child.getLocalValue());
-                        copy.getParentValues().put(parentName, t.getLocalValue());
+                        copy.getParentValues().addAll(child.getParentValues());
+                        copy.getParentValues().add(new WebParentValue(parentName, t.getLocalValue()));
                         copies.add(copy);
                     }
                 }
@@ -166,8 +169,9 @@ public final class BifMapper {
             try {
                 n.getProbabilities().get(i).setP(Double.parseDouble(probabilities[i]));
             } catch (Exception e) {
-                System.out.println("qweqwe");
+                System.out.println("");
             }
+
         }
     }
 

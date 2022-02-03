@@ -6,6 +6,7 @@ import com.florian.vertibayes.bayes.Theta;
 import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.webservice.domain.external.WebNode;
+import com.florian.vertibayes.webservice.domain.external.WebParentValue;
 import com.florian.vertibayes.webservice.domain.external.WebTheta;
 import com.florian.vertibayes.webservice.domain.external.WebValue;
 
@@ -77,13 +78,13 @@ public final class WebNodeMapper {
             t.setLocalRequirement(mapReqFromWebValue(node, theta.getLocalValue()));
             List<ParentValue> parents = new ArrayList<>();
 
-            Map<String, WebValue> webParents = theta.getParentValues();
+            List<WebParentValue> webParents = theta.getParentValues();
             if (webParents != null) {
-                for (String key : webParents.keySet()) {
+                for (WebParentValue v : webParents) {
                     ParentValue p = new ParentValue();
-                    Node parent = nodes.get(key);
-                    p.setName(key);
-                    p.setRequirement(mapReqFromWebValue(parent, webParents.get(key)));
+                    Node parent = nodes.get(v.getParent());
+                    p.setName(v.getParent());
+                    p.setRequirement(mapReqFromWebValue(parent, v.getValue()));
                     parents.add(p);
                 }
                 t.setParents(parents);
@@ -118,7 +119,7 @@ public final class WebNodeMapper {
                     value.setRange(true);
                 }
                 theta.setLocalValue(value);
-                theta.setParentValues(new HashMap<>());
+                theta.setParentValues(new ArrayList());
                 for (ParentValue parent : t.getParents()) {
                     value = new WebValue();
                     if (!parent.getRequirement().isRange()) {
@@ -129,7 +130,7 @@ public final class WebNodeMapper {
                         value.setUpperLimit(parent.getRequirement().getUpperLimit().getValue());
                         value.setRange(true);
                     }
-                    theta.getParentValues().put(parent.getName(), value);
+                    theta.getParentValues().add(new WebParentValue(parent.getName(), value));
                 }
                 n.getProbabilities().add(theta);
             }

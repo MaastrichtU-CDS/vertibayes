@@ -85,12 +85,24 @@ public class Node {
         } else {
             // collect parent values
             for (ParentValue parent : t.getParents()) {
-                parentValues.put(parent.getName(), parent.getRequirement());
+                String key = parent.getName();
+                if (parent.getRequirement().isRange()) {
+                    key += parent.getRequirement().getLowerLimit().getValue();
+                } else {
+                    key += parent.getRequirement().getValue().getValue();
+                }
+                parentValues.put(key, parent.getRequirement());
             }
             for (Theta theta : node.getProbabilities()) {
                 boolean correctTheta = true;
                 for (ParentValue p : theta.getParents()) {
-                    if (!parentValues.get(p.getName()).equals(p.getRequirement())) {
+                    String key = p.getName();
+                    if (p.getRequirement().isRange()) {
+                        key += p.getRequirement().getLowerLimit().getValue();
+                    } else {
+                        key += p.getRequirement().getValue().getValue();
+                    }
+                    if (!p.getRequirement().equals(parentValues.get(key))) {
                         correctTheta = false;
                     }
                 }

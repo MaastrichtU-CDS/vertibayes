@@ -77,7 +77,7 @@ public class VertiBayesCentralServer extends CentralServer {
         initNodesMaximumLikelyhood(nodes);
         initThetas(nodes);
 
-        List<WebNode> webNodes = wekaExpectationMaximization(mapWebNodeFromNode(nodes), SAMPLE_SIZE);
+        List<WebNode> webNodes = wekaExpectationMaximization(mapWebNodeFromNode(nodes), SAMPLE_SIZE, req.getTarget());
 
         WebBayesNetwork response = new WebBayesNetwork();
         response.setNodes(webNodes);

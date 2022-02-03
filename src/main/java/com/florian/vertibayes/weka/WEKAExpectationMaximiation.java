@@ -25,7 +25,8 @@ public final class WEKAExpectationMaximiation {
     private WEKAExpectationMaximiation() {
     }
 
-    public static List<WebNode> wekaExpectationMaximization(List<WebNode> nodes, int sampleSize) throws Exception {
+    public static List<WebNode> wekaExpectationMaximization(List<WebNode> nodes, int sampleSize, String target)
+            throws Exception {
 
         generateData(mapWebNodeToNode(nodes), sampleSize);
         printBIF(toBIF(nodes));
@@ -37,7 +38,12 @@ public final class WEKAExpectationMaximiation {
         network.setSearchAlgorithm(search);
         Instances data = new Instances(
                 new BufferedReader(new FileReader(ARFF)));
-        data.setClassIndex(data.numAttributes() - 1);
+        for (int i = 0; i < data.numAttributes(); i++) {
+            if (data.attribute(i).name().equals(target)) {
+                data.setClassIndex(i);
+                break;
+            }
+        }
 
         network.buildClassifier(data);
 
@@ -118,8 +124,14 @@ public final class WEKAExpectationMaximiation {
                                     correctTheta = false;
                                     break;
                                 } else {
-                                    Attribute a = new Attribute(parent.getRequirement().getValue().getType(),
-                                                                individual.get(parent.getName()), parent.getName());
+                                    Attribute a;
+                                    if (parent.getRequirement().isRange()) {
+                                        a = new Attribute(parent.getRequirement().getLowerLimit().getType(),
+                                                          individual.get(parent.getName()), parent.getName());
+                                    } else {
+                                        a = new Attribute(parent.getRequirement().getValue().getType(),
+                                                          individual.get(parent.getName()), parent.getName());
+                                    }
                                     if (!parent.getRequirement().checkRequirement(
                                             a)) {
                                         //A parent has the wrong value for this theta, move on
