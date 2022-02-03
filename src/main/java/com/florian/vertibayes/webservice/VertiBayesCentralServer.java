@@ -29,7 +29,7 @@ import static com.florian.vertibayes.weka.WEKAExpectationMaximiation.wekaExpecta
 @RestController
 public class VertiBayesCentralServer extends CentralServer {
     public static final double ONE = 0.99;
-    public static final int SAMPLE_SIZE = 150;
+    public static final int SAMPLE_SIZE = 10000;
     //inherets endpoints from centralserver
     //overriding endpoints is impossible, use a different endpoint if you want to override
 
