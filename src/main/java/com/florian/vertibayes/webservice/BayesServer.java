@@ -74,8 +74,6 @@ public class BayesServer extends Server {
     public void initK2Data(@RequestBody AttributeRequirementsRequest request) {
         reset();
         readData();
-//        List<Attribute> requirements = request.getRequirements() == null ? new ArrayList<>()
-//                : request.getRequirements();
         List<AttributeRequirement> requirements = request.getRequirements2() == null ? new ArrayList<>()
                 : request.getRequirements2();
         int population = data.getNumberOfIndividuals();

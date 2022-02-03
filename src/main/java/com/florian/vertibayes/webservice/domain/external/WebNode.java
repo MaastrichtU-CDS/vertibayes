@@ -3,16 +3,18 @@ package com.florian.vertibayes.webservice.domain.external;
 import com.florian.vertibayes.bayes.Bin;
 import com.florian.vertibayes.bayes.data.Attribute;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class WebNode {
     //Simplified Class for WebRequests that require communicating about Nodes
-    private List<String> parents;
+    private List<String> parents = new ArrayList<>();
     private String name;
     private Attribute.AttributeType type;
-    private List<WebTheta> probabilities;
-    private Set<Bin> bins;
+    private List<WebTheta> probabilities = new ArrayList<>();
+    private Set<Bin> bins = new HashSet<>();
     private boolean isDiscrete = true;
 
     public boolean isDiscrete() {

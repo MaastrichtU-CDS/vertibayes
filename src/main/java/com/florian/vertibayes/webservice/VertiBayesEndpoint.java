@@ -23,7 +23,6 @@ public class VertiBayesEndpoint extends ServerEndpoint {
 
     public void initK2Data(List<AttributeRequirement> req) {
         AttributeRequirementsRequest request = new AttributeRequirementsRequest();
-//        request.setRequirements(req);
         request.setRequirements2(req);
         if (testing) {
             ((BayesServer) (server)).initK2Data(request);

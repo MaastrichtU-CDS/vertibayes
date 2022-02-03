@@ -7,9 +7,9 @@ import com.florian.nscalarproduct.webservice.ServerEndpoint;
 import com.florian.vertibayes.bayes.*;
 import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.domain.AttributeRequirement;
-import com.florian.vertibayes.webservice.domain.AttributeRequirementsRequest;
 import com.florian.vertibayes.webservice.domain.InitCentralServerRequest;
 import com.florian.vertibayes.webservice.domain.external.WebBayesNetwork;
+import com.florian.vertibayes.webservice.domain.external.WebNode;
 import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,10 +23,13 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.florian.vertibayes.bayes.Node.findSliblings;
+import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNodeFromNode;
+import static com.florian.vertibayes.weka.WEKAExpectationMaximiation.wekaExpectationMaximization;
 
 @RestController
 public class VertiBayesCentralServer extends CentralServer {
     public static final double ONE = 0.99;
+    public static final int SAMPLE_SIZE = 150;
     //inherets endpoints from centralserver
     //overriding endpoints is impossible, use a different endpoint if you want to override
 
@@ -49,7 +52,7 @@ public class VertiBayesCentralServer extends CentralServer {
         network = new Network(endpoints, secretEndpoint, this);
         network.createNetwork();
         WebBayesNetwork response = new WebBayesNetwork();
-        response.setNodes(WebNodeMapper.mapWebNodeFromNode(network.getNodes()));
+        response.setNodes(mapWebNodeFromNode(network.getNodes()));
         return response;
     }
 
@@ -62,7 +65,22 @@ public class VertiBayesCentralServer extends CentralServer {
         initNodesMaximumLikelyhood(nodes);
         initThetas(nodes);
         WebBayesNetwork response = new WebBayesNetwork();
-        response.setNodes(WebNodeMapper.mapWebNodeFromNode(nodes));
+        response.setNodes(mapWebNodeFromNode(nodes));
+        return response;
+    }
+
+    @PostMapping ("ExpectationMaximization")
+    public WebBayesNetwork expectationMaximization(@RequestBody WebBayesNetwork req) throws Exception {
+        initEndpoints();
+        endpoints.stream().forEach(x -> x.initEndpoints());
+        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(req.getNodes());
+        initNodesMaximumLikelyhood(nodes);
+        initThetas(nodes);
+
+        List<WebNode> webNodes = wekaExpectationMaximization(mapWebNodeFromNode(nodes), SAMPLE_SIZE);
+
+        WebBayesNetwork response = new WebBayesNetwork();
+        response.setNodes(webNodes);
         return response;
     }
 
@@ -182,9 +200,6 @@ public class VertiBayesCentralServer extends CentralServer {
     }
 
     private void determineProb(Theta t) {
-        AttributeRequirementsRequest r = new AttributeRequirementsRequest();
-        r.setRequirements(new ArrayList<>());
-        r.setRequirements2(new ArrayList<>());
 
         if (t.getParents().size() > 0) {
             List<AttributeRequirement> parentsReq = t.getParents().stream().map(x -> x.getRequirement())

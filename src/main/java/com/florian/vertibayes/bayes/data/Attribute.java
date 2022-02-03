@@ -17,6 +17,10 @@ public class Attribute implements Comparable<Attribute> {
         this.attributeName = attributeName;
     }
 
+    public boolean isUknown() {
+        return this.value.equals("?");
+    }
+
     public String getId() {
         return id;
     }
@@ -56,8 +60,8 @@ public class Attribute implements Comparable<Attribute> {
             System.out.println("Checkstyle wants there to be stuff");
             //ToDo implement error handling
         }
-        if (value.equals("?") || attribute.getValue().equals("?")) {
-            // ? indicates a missing value. Only equal if both are missing values
+        if (this.isUknown() || attribute.isUknown()) {
+            // Only equal if both are missing values
             return value.equals(attribute.getValue()) ? 0 : 1;
         }
         if (type == AttributeType.bool) {

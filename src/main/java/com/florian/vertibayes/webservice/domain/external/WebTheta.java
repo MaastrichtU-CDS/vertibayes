@@ -1,10 +1,11 @@
 package com.florian.vertibayes.webservice.domain.external;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class WebTheta {
     private WebValue localValue;
-    private Map<String, WebValue> parentValues;
+    private Map<String, WebValue> parentValues = new HashMap<>();
     private double p;
 
     public double getP() {
