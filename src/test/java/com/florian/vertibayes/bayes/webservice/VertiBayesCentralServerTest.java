@@ -51,6 +51,9 @@ public class VertiBayesCentralServerTest {
         Bin one = new Bin();
         one.setLowerLimit("0.5");
         one.setUpperLimit("1.5");
+
+
+        // no unknown bin, as this test does not deal with unknowns
         for (WebNode node : webNodes) {
             node.getBins().add(zero);
             node.getBins().add(one);
@@ -215,17 +218,17 @@ public class VertiBayesCentralServerTest {
 
         //assert there are two sets of sliblings as there is 1 parent with 2 unique values
         //Set 1=2 and set 3=4 are supposed to be equal due to the starting node used
-        sliblings1 = Node.findSliblings(nodes.get(1).getProbabilities().get(0), nodes.get(1));
-        sliblings2 = Node.findSliblings(nodes.get(1).getProbabilities().get(1), nodes.get(1));
-        sliblings3 = Node.findSliblings(nodes.get(1).getProbabilities().get(2), nodes.get(1));
-        sliblings4 = Node.findSliblings(nodes.get(1).getProbabilities().get(3), nodes.get(1));
+        sliblings1 = Node.findSliblings(nodes.get(2).getProbabilities().get(0), nodes.get(2));
+        sliblings2 = Node.findSliblings(nodes.get(2).getProbabilities().get(1), nodes.get(2));
+        sliblings3 = Node.findSliblings(nodes.get(2).getProbabilities().get(2), nodes.get(2));
+        sliblings4 = Node.findSliblings(nodes.get(2).getProbabilities().get(3), nodes.get(2));
         assertTrue(sliblings1.containsAll(sliblings2));
         assertTrue(sliblings2.containsAll(sliblings1));
         assertFalse(sliblings2.containsAll(sliblings3));
         assertTrue(sliblings3.containsAll(sliblings4));
         assertTrue(sliblings4.containsAll(sliblings3));
         sliblings1.addAll(sliblings3);
-        assertTrue(sliblings1.containsAll(nodes.get(1).getProbabilities()));
+        assertTrue(sliblings1.containsAll(nodes.get(2).getProbabilities()));
     }
 
 
@@ -383,17 +386,17 @@ public class VertiBayesCentralServerTest {
 
         //assert there are two sets of sliblings as there is 1 parent with 2 unique values
         //Set 1=2 and set 3=4 are supposed to be equal due to the starting node used
-        sliblings1 = Node.findSliblings(nodes.get(1).getProbabilities().get(0), nodes.get(1));
-        sliblings2 = Node.findSliblings(nodes.get(1).getProbabilities().get(1), nodes.get(1));
-        sliblings3 = Node.findSliblings(nodes.get(1).getProbabilities().get(2), nodes.get(1));
-        sliblings4 = Node.findSliblings(nodes.get(1).getProbabilities().get(3), nodes.get(1));
+        sliblings1 = Node.findSliblings(nodes.get(2).getProbabilities().get(0), nodes.get(2));
+        sliblings2 = Node.findSliblings(nodes.get(2).getProbabilities().get(1), nodes.get(2));
+        sliblings3 = Node.findSliblings(nodes.get(2).getProbabilities().get(2), nodes.get(2));
+        sliblings4 = Node.findSliblings(nodes.get(2).getProbabilities().get(3), nodes.get(2));
         assertTrue(sliblings1.containsAll(sliblings2));
         assertTrue(sliblings2.containsAll(sliblings1));
         assertFalse(sliblings2.containsAll(sliblings3));
         assertTrue(sliblings3.containsAll(sliblings4));
         assertTrue(sliblings4.containsAll(sliblings3));
         sliblings1.addAll(sliblings3);
-        assertTrue(sliblings1.containsAll(nodes.get(1).getProbabilities()));
+        assertTrue(sliblings1.containsAll(nodes.get(2).getProbabilities()));
     }
 
     @Test
@@ -505,10 +508,15 @@ public class VertiBayesCentralServerTest {
         Bin one = new Bin();
         one.setLowerLimit("0.5");
         one.setUpperLimit("1.5");
+
+        Bin unknown = new Bin();
+        unknown.setLowerLimit("?");
+        unknown.setUpperLimit("?");
         for (WebNode node : webNodes) {
             if (!node.getName().equals("x3")) {
                 node.getBins().add(zero);
                 node.getBins().add(one);
+                node.getBins().add(unknown);
                 node.setDiscrete(false);
             }
         }
@@ -700,10 +708,190 @@ public class VertiBayesCentralServerTest {
 
         //assert there are two sets of sliblings as there is 1 parent with 2 unique values
         //Set 1=2 and set 3=4 are supposed to be equal due to the starting node used
-        sliblings1 = Node.findSliblings(nodes.get(1).getProbabilities().get(0), nodes.get(1));
-        sliblings2 = Node.findSliblings(nodes.get(1).getProbabilities().get(1), nodes.get(1));
-        sliblings3 = Node.findSliblings(nodes.get(1).getProbabilities().get(2), nodes.get(1));
-        sliblings4 = Node.findSliblings(nodes.get(1).getProbabilities().get(3), nodes.get(1));
+        sliblings1 = Node.findSliblings(nodes.get(2).getProbabilities().get(0), nodes.get(2));
+        sliblings2 = Node.findSliblings(nodes.get(2).getProbabilities().get(1), nodes.get(2));
+        sliblings3 = Node.findSliblings(nodes.get(2).getProbabilities().get(2), nodes.get(2));
+        sliblings4 = Node.findSliblings(nodes.get(2).getProbabilities().get(3), nodes.get(2));
+        assertTrue(sliblings1.containsAll(sliblings2));
+        assertTrue(sliblings2.containsAll(sliblings1));
+        assertFalse(sliblings2.containsAll(sliblings3));
+        assertTrue(sliblings3.containsAll(sliblings4));
+        assertTrue(sliblings4.containsAll(sliblings3));
+        sliblings1.addAll(sliblings3);
+        assertTrue(sliblings1.containsAll(nodes.get(2).getProbabilities()));
+    }
+
+    @Test
+    public void testExpectationMaximizationhoodBinnedWithUnknownValues() throws Exception {
+        BayesServer station1 = new BayesServer("resources/Experiments/k2/smallK2Example_firsthalfMissing.csv", "1");
+        BayesServer station2 = new BayesServer("resources/Experiments/k2/smallK2Example_secondhalfMissing.csv", "2");
+
+        VertiBayesEndpoint endpoint1 = new VertiBayesEndpoint(station1);
+        VertiBayesEndpoint endpoint2 = new VertiBayesEndpoint(station2);
+        BayesServer secret = new BayesServer("3", Arrays.asList(endpoint1, endpoint2));
+
+        ServerEndpoint secretEnd = new ServerEndpoint(secret);
+
+        List<ServerEndpoint> all = new ArrayList<>();
+        all.add(endpoint1);
+        all.add(endpoint2);
+        all.add(secretEnd);
+        secret.setEndpoints(all);
+        station1.setEndpoints(all);
+        station2.setEndpoints(all);
+
+        VertiBayesCentralServer central = new VertiBayesCentralServer();
+        central.initEndpoints(Arrays.asList(endpoint1, endpoint2), secretEnd);
+        List<WebNode> webNodes = central.buildNetwork().getNodes();
+        //add simple bins"to all nodes expect X3. The bins will essentially just form the binary division again
+        // Since the bins will follow the same distribution we know the expected probabilities
+        Bin zero = new Bin();
+        zero.setLowerLimit("-1");
+        zero.setUpperLimit("0.5");
+
+        Bin one = new Bin();
+        one.setLowerLimit("0.5");
+        one.setUpperLimit("1.5");
+
+        Bin unknown = new Bin();
+        unknown.setLowerLimit("?");
+        unknown.setUpperLimit("?");
+        for (WebNode node : webNodes) {
+            if (!node.getName().equals("x3")) {
+                node.getBins().add(zero);
+                node.getBins().add(one);
+                node.getBins().add(unknown);
+                node.setDiscrete(false);
+            }
+        }
+        WebBayesNetwork req = new WebBayesNetwork();
+        req.setNodes(webNodes);
+        req.setTarget("x3");
+
+        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.expectationMaximization(req).getNodes());
+
+        // check if it matches expected network
+        assertEquals(nodes.size(), 3);
+        assertEquals(nodes.get(0).getParents().size(), 0);
+        assertEquals(nodes.get(1).getParents().size(), 1);
+        assertTrue(nodes.get(1).getParents().contains(nodes.get(0)));
+        assertEquals(nodes.get(2).getParents().size(), 1);
+        assertTrue(nodes.get(2).getParents().contains(nodes.get(1)));
+        //expected network an example are based on the example in "resources/k2_algorithm.pdf"
+
+        // now check the thetas
+        // node 1 has 2 values and no parents, reuslting in 2 values in total
+        assertEquals(nodes.get(0).getProbabilities().size(), 2);
+        // put them in a map to easily find correct probability:
+        HashMap<String, Theta> map = new HashMap<>();
+        //using the -inf and inf values to generate keys given that the other values are suspect to slight randomness.
+        for (Theta t : nodes.get(0).getProbabilities()) {
+            if (t.getLocalRequirement().isRange()) {
+                if (t.getLocalRequirement().getLowerLimit().getValue().equals("-inf")) {
+                    String key = t.getLocalRequirement().getLowerLimit().getValue();
+                    map.put(key, t);
+                } else {
+                    String key = t.getLocalRequirement().getUpperLimit().getValue();
+                    map.put(key, t);
+                }
+            }
+        }
+
+
+        // value 1 which corresponds to the range of the first bin
+        assertEquals(map.get("inf").getP(), 0.6, 0.05);
+        assertEquals(Double.valueOf(map.get("inf").getLocalRequirement().getLowerLimit().getValue()), 0.5, 0.05);
+        assertEquals(map.get("inf").getLocalRequirement().getUpperLimit().getValue(), "inf");
+        assertEquals(map.get("inf").getLocalRequirement().getName(), "x1");
+        assertEquals(map.get("inf").getParents().size(), 0);
+
+        // value 1 which corresponds to the range of the first bin
+        assertEquals(map.get("-inf").getP(), 0.4, 0.05);
+        assertEquals(map.get("-inf").getLocalRequirement().getLowerLimit().getValue(), "-inf");
+        assertEquals(Double.valueOf(map.get("-inf").getLocalRequirement().getUpperLimit().getValue()), 0.5, 0.05);
+        assertEquals(map.get("-inf").getLocalRequirement().getName(), "x1");
+        assertEquals(map.get("-inf").getParents().size(), 0);
+
+        //assert all probabilities are viewed as sliblings as there are no parents
+        List<Theta> sliblings = Node.findSliblings(nodes.get(0).getProbabilities().get(0), nodes.get(0));
+        assertTrue(nodes.get(0).getProbabilities().containsAll(sliblings));
+        assertTrue(sliblings.containsAll(nodes.get(0).getProbabilities()));
+
+        //node 2 has 2 local values and 1 parent with 1 bin resulting in 2 values in total
+        // value 1
+        assertEquals(nodes.get(1).getProbabilities().size(), 4);
+        // put them in a map to easily find correct probability:
+        //using the -inf and inf values to generate keys given that the other values are suspect to slight randomness.
+        map = new HashMap<>();
+        for (Theta t : nodes.get(1).getProbabilities()) {
+            String key = "";
+            if (t.getLocalRequirement().getLowerLimit().getValue().equals("-inf")) {
+                key += t.getLocalRequirement().getLowerLimit().getValue();
+
+            } else {
+                key += t.getLocalRequirement().getUpperLimit().getValue();
+
+            }
+            if (t.getParents().get(0).getRequirement().getLowerLimit().getValue().equals("-inf")) {
+                key += t.getParents().get(0).getRequirement().getLowerLimit().getValue();
+
+            } else {
+                key += t.getParents().get(0).getRequirement().getUpperLimit().getValue();
+
+            }
+            map.put(key, t);
+        }
+
+        //keys: <child range>p<parent range>
+        assertEquals(map.get("-inf-inf").getP(), 0.99, 0.05);
+        assertEquals(map.get("-inf-inf").getLocalRequirement().getLowerLimit().getValue(), "-inf");
+        assertEquals(Double.valueOf(map.get("-inf-inf").getLocalRequirement().getUpperLimit().getValue()), 0.5, 0.05);
+        assertEquals(map.get("-inf-inf").getLocalRequirement().getName(), "x2");
+        assertEquals(map.get("-inf-inf").getParents().size(), 1);
+        assertEquals(map.get("-inf-inf").getParents().get(0).getRequirement().getLowerLimit().getValue(), "-inf");
+        assertEquals(
+                Double.valueOf(map.get("-inf-inf").getParents().get(0).getRequirement().getUpperLimit().getValue()),
+                0.5, 0.05);
+        assertEquals(map.get("-inf-inf").getParents().get(0).getName(), "x1");
+
+        assertEquals(map.get("-infinf").getP(), 0.5, 0.05);
+        assertEquals(map.get("-infinf").getLocalRequirement().getLowerLimit().getValue(), "-inf");
+        assertEquals(Double.valueOf(map.get("-infinf").getLocalRequirement().getUpperLimit().getValue()), 0.5, 0.05);
+        assertEquals(map.get("-infinf").getLocalRequirement().getName(), "x2");
+        assertEquals(map.get("-infinf").getParents().size(), 1);
+        assertEquals(Double.valueOf(map.get("-infinf").getParents().get(0).getRequirement().getLowerLimit().getValue()),
+                     0.5, 0.05);
+        assertEquals(map.get("-infinf").getParents().get(0).getRequirement().getUpperLimit().getValue(), "inf");
+        assertEquals(map.get("-infinf").getParents().get(0).getName(), "x1");
+
+
+        assertEquals(map.get("inf-inf").getP(), 0.01, 0.05);
+        assertEquals(Double.valueOf(map.get("inf-inf").getLocalRequirement().getLowerLimit().getValue()), 0.5, 0.05);
+        assertEquals(map.get("inf-inf").getLocalRequirement().getUpperLimit().getValue(), "inf");
+        assertEquals(map.get("inf-inf").getLocalRequirement().getName(), "x2");
+        assertEquals(map.get("inf-inf").getParents().size(), 1);
+        assertEquals(map.get("inf-inf").getParents().get(0).getRequirement().getLowerLimit().getValue(), "-inf");
+        assertEquals(Double.valueOf(map.get("inf-inf").getParents().get(0).getRequirement().getUpperLimit().getValue()),
+                     0.5, 0.05);
+        assertEquals(map.get("inf-inf").getParents().get(0).getName(), "x1");
+
+        assertEquals(map.get("infinf").getP(), 0.5, 0.05);
+        assertEquals(Double.valueOf(map.get("infinf").getLocalRequirement().getLowerLimit().getValue()), 0.5, 0.05);
+        assertEquals(map.get("infinf").getLocalRequirement().getUpperLimit().getValue(), "inf");
+        assertEquals(map.get("infinf").getLocalRequirement().getName(), "x2");
+        assertEquals(map.get("infinf").getParents().size(), 1);
+        assertEquals(Double.valueOf(map.get("infinf").getParents().get(0).getRequirement().getLowerLimit().getValue()),
+                     0.5, 0.05);
+        assertEquals(map.get("infinf").getParents().get(0).getRequirement().getUpperLimit().getValue(), "inf");
+        assertEquals(map.get("infinf").getParents().get(0).getName(), "x1");
+
+
+        //assert there are two sets of sliblings as there is 1 parent with 2 unique values
+        //Set 1=2 and set 3=4 are supposed to be equal due to the starting node used
+        List<Theta> sliblings1 = Node.findSliblings(nodes.get(1).getProbabilities().get(0), nodes.get(1));
+        List<Theta> sliblings2 = Node.findSliblings(nodes.get(1).getProbabilities().get(1), nodes.get(1));
+        List<Theta> sliblings3 = Node.findSliblings(nodes.get(1).getProbabilities().get(2), nodes.get(1));
+        List<Theta> sliblings4 = Node.findSliblings(nodes.get(1).getProbabilities().get(3), nodes.get(1));
         assertTrue(sliblings1.containsAll(sliblings2));
         assertTrue(sliblings2.containsAll(sliblings1));
         assertFalse(sliblings2.containsAll(sliblings3));
@@ -711,6 +899,70 @@ public class VertiBayesCentralServerTest {
         assertTrue(sliblings4.containsAll(sliblings3));
         sliblings1.addAll(sliblings3);
         assertTrue(sliblings1.containsAll(nodes.get(1).getProbabilities()));
+
+        //node 3 has 2 local values and 1 parent with 2 values resulting in 4 values in total
+        // put them in a map to easily find correct probability:
+        map = new HashMap<>();
+        for (Theta t : nodes.get(2).getProbabilities()) {
+            String key = t.getLocalRequirement().getValue().getValue();
+            if (t.getParents().get(0).getRequirement().getLowerLimit().getValue().equals("-inf")) {
+                key += t.getParents().get(0).getRequirement().getLowerLimit().getValue();
+
+            } else {
+                key += t.getParents().get(0).getRequirement().getUpperLimit().getValue();
+
+            }
+            map.put(key, t);
+        }
+        assertEquals(map.get("0-inf").getP(), 0.4, 0.05);
+        assertEquals(map.get("0-inf").getLocalRequirement().getValue().getValue(), "0");
+        assertEquals(map.get("0-inf").getLocalRequirement().getName(), "x3");
+        assertEquals(map.get("0-inf").getParents().size(), 1);
+        assertEquals(map.get("0-inf").getParents().get(0).getRequirement().getLowerLimit().getValue(), "-inf");
+        assertEquals(Double.valueOf(map.get("0-inf").getParents().get(0).getRequirement().getUpperLimit().getValue()),
+                     0.5, 0.05);
+        assertEquals(map.get("0-inf").getParents().get(0).getName(), "x2");
+
+        assertEquals(map.get("1-inf").getP(), 0.6, 0.05);
+        assertEquals(map.get("1-inf").getLocalRequirement().getValue().getValue(), "1");
+        assertEquals(map.get("1-inf").getLocalRequirement().getName(), "x3");
+        assertEquals(map.get("1-inf").getParents().size(), 1);
+        assertEquals(map.get("1-inf").getParents().get(0).getRequirement().getLowerLimit().getValue(), "-inf");
+        assertEquals(Double.valueOf(map.get("1-inf").getParents().get(0).getRequirement().getUpperLimit().getValue()),
+                     0.5, 0.05);
+        assertEquals(map.get("1-inf").getParents().get(0).getName(), "x2");
+
+        assertEquals(map.get("0inf").getP(), 0.001, 0.05);
+        assertEquals(map.get("0inf").getLocalRequirement().getValue().getValue(), "0");
+        assertEquals(map.get("0inf").getLocalRequirement().getName(), "x3");
+        assertEquals(map.get("0inf").getParents().size(), 1);
+        assertEquals(Double.valueOf(map.get("0inf").getParents().get(0).getRequirement().getLowerLimit().getValue()),
+                     0.5, 0.05);
+        assertEquals(map.get("0inf").getParents().get(0).getRequirement().getUpperLimit().getValue(), "inf");
+        assertEquals(map.get("0inf").getParents().get(0).getName(), "x2");
+
+        assertEquals(map.get("1inf").getP(), 0.999, 0.05);
+        assertEquals(map.get("1inf").getLocalRequirement().getValue().getValue(), "1");
+        assertEquals(map.get("1inf").getLocalRequirement().getName(), "x3");
+        assertEquals(map.get("1inf").getParents().size(), 1);
+        assertEquals(Double.valueOf(map.get("1inf").getParents().get(0).getRequirement().getLowerLimit().getValue()),
+                     0.5, 0.05);
+        assertEquals(map.get("1inf").getParents().get(0).getRequirement().getUpperLimit().getValue(), "inf");
+        assertEquals(map.get("1inf").getParents().get(0).getName(), "x2");
+
+        //assert there are two sets of sliblings as there is 1 parent with 2 unique values
+        //Set 1=2 and set 3=4 are supposed to be equal due to the starting node used
+        sliblings1 = Node.findSliblings(nodes.get(2).getProbabilities().get(0), nodes.get(2));
+        sliblings2 = Node.findSliblings(nodes.get(2).getProbabilities().get(1), nodes.get(2));
+        sliblings3 = Node.findSliblings(nodes.get(2).getProbabilities().get(2), nodes.get(2));
+        sliblings4 = Node.findSliblings(nodes.get(2).getProbabilities().get(3), nodes.get(2));
+        assertTrue(sliblings1.containsAll(sliblings2));
+        assertTrue(sliblings2.containsAll(sliblings1));
+        assertFalse(sliblings2.containsAll(sliblings3));
+        assertTrue(sliblings3.containsAll(sliblings4));
+        assertTrue(sliblings4.containsAll(sliblings3));
+        sliblings1.addAll(sliblings4);
+        assertTrue(sliblings1.containsAll(nodes.get(2).getProbabilities()));
     }
 
 
@@ -869,17 +1121,17 @@ public class VertiBayesCentralServerTest {
 
         //assert there are two sets of sliblings as there is 1 parent with 2 unique values
         //Set 1=2 and set 3=4 are supposed to be equal due to the starting node used
-        sliblings1 = Node.findSliblings(nodes.get(1).getProbabilities().get(0), nodes.get(1));
-        sliblings2 = Node.findSliblings(nodes.get(1).getProbabilities().get(1), nodes.get(1));
-        sliblings3 = Node.findSliblings(nodes.get(1).getProbabilities().get(2), nodes.get(1));
-        sliblings4 = Node.findSliblings(nodes.get(1).getProbabilities().get(3), nodes.get(1));
+        sliblings1 = Node.findSliblings(nodes.get(2).getProbabilities().get(0), nodes.get(2));
+        sliblings2 = Node.findSliblings(nodes.get(2).getProbabilities().get(1), nodes.get(2));
+        sliblings3 = Node.findSliblings(nodes.get(2).getProbabilities().get(2), nodes.get(2));
+        sliblings4 = Node.findSliblings(nodes.get(2).getProbabilities().get(3), nodes.get(2));
         assertTrue(sliblings1.containsAll(sliblings2));
         assertTrue(sliblings2.containsAll(sliblings1));
         assertFalse(sliblings2.containsAll(sliblings3));
         assertTrue(sliblings3.containsAll(sliblings4));
         assertTrue(sliblings4.containsAll(sliblings3));
         sliblings1.addAll(sliblings3);
-        assertTrue(sliblings1.containsAll(nodes.get(1).getProbabilities()));
+        assertTrue(sliblings1.containsAll(nodes.get(2).getProbabilities()));
     }
 
     @Test

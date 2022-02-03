@@ -64,11 +64,14 @@ public final class WEKAExpectationMaximiation {
                 s += "{";
                 int count = 0;
                 for (String unique : n.getUniquevalues()) {
-                    if (count > 0) {
-                        s += ",";
+                    if (!unique.equals("?")) {
+                        //only print valid values here, otherwiseweka will think ? is also valid.
+                        if (count > 0) {
+                            s += ",";
+                        }
+                        count++;
+                        s += unique;
                     }
-                    count++;
-                    s += unique;
                 }
                 s += "}";
             } else {
@@ -107,11 +110,15 @@ public final class WEKAExpectationMaximiation {
                                 if (!local.isRange()) {
                                     individual.put(node.getName(), local.getValue().getValue());
                                 } else {
-                                    //generate a number from the range
-                                    Double upper = Double.valueOf(local.getUpperLimit().getValue());
-                                    Double lower = Double.valueOf(local.getLowerLimit().getValue());
-                                    Double generated = random.nextDouble() * (upper - lower) + lower;
-                                    individual.put(node.getName(), String.valueOf(generated));
+                                    if (local.expectsUnknown()) {
+                                        individual.put(node.getName(), "?");
+                                    } else {
+                                        //generate a number from the range
+                                        Double upper = Double.valueOf(local.getUpperLimit().getValue());
+                                        Double lower = Double.valueOf(local.getLowerLimit().getValue());
+                                        Double generated = random.nextDouble() * (upper - lower) + lower;
+                                        individual.put(node.getName(), String.valueOf(generated));
+                                    }
                                 }
                                 break;
                             }
@@ -149,10 +156,14 @@ public final class WEKAExpectationMaximiation {
                                         individual.put(node.getName(), local.getValue().getValue());
                                     } else {
                                         //generate a number from the range
-                                        Double upper = Double.valueOf(local.getUpperLimit().getValue());
-                                        Double lower = Double.valueOf(local.getLowerLimit().getValue());
-                                        Double generated = random.nextDouble() * (upper - lower) + lower;
-                                        individual.put(node.getName(), String.valueOf(generated));
+                                        if (local.expectsUnknown()) {
+                                            individual.put(node.getName(), "?");
+                                        } else {
+                                            Double upper = Double.valueOf(local.getUpperLimit().getValue());
+                                            Double lower = Double.valueOf(local.getLowerLimit().getValue());
+                                            Double generated = random.nextDouble() * (upper - lower) + lower;
+                                            individual.put(node.getName(), String.valueOf(generated));
+                                        }
                                     }
                                     break;
                                 }

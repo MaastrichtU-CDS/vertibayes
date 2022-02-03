@@ -209,7 +209,10 @@ public final class BifMapper {
                     }
                     bin.setLowerLimit(lower);
                     String upper = "";
-                    if (limits.length == 2) {
+                    if (limits.length == 1) {
+                        //this only happens if it's concluded that all values fall within range
+                        upper = lower;
+                    } else if (limits.length == 2) {
                         upper = limits[1];
                     } else if (limits[2].equals("\n")) {
                         upper += "-" + limits[THREE];

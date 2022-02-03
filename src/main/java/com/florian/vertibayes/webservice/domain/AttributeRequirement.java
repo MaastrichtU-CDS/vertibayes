@@ -28,11 +28,19 @@ public class AttributeRequirement {
 
     public boolean checkRequirement(Attribute attribute) {
         if (attribute.isUknown()) {
-            return value.isUknown();
+            return expectsUnknown();
         } else if (isRange()) {
             return fitsWithinLimits(attribute);
         } else {
             return attribute.equals(value);
+        }
+    }
+
+    public boolean expectsUnknown() {
+        if (isRange()) {
+            return lowerLimit.isUknown();
+        } else {
+            return value.isUknown();
         }
     }
 
