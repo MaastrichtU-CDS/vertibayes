@@ -193,7 +193,6 @@ public class VertiBayesCentralServer extends CentralServer {
                 node.getProbabilities().removeAll(node.getProbabilities());
                 node.getProbabilities().addAll(copies);
             }
-            
             for (Theta t : node.getProbabilities()) {
                 determineProb(t);
             }
