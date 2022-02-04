@@ -57,7 +57,7 @@ public class VertiBayesCentralServerTest {
         for (WebNode node : webNodes) {
             node.getBins().add(zero);
             node.getBins().add(one);
-            node.setDiscrete(false);
+            node.setType(Attribute.AttributeType.real);
         }
         WebBayesNetwork req = new WebBayesNetwork();
         req.setNodes(webNodes);
@@ -517,7 +517,6 @@ public class VertiBayesCentralServerTest {
                 node.getBins().add(zero);
                 node.getBins().add(one);
                 node.getBins().add(unknown);
-                node.setDiscrete(false);
             }
         }
         WebBayesNetwork req = new WebBayesNetwork();
@@ -761,7 +760,6 @@ public class VertiBayesCentralServerTest {
                 node.getBins().add(zero);
                 node.getBins().add(one);
                 node.getBins().add(unknown);
-                node.setDiscrete(false);
             }
         }
         WebBayesNetwork req = new WebBayesNetwork();
@@ -968,7 +966,7 @@ public class VertiBayesCentralServerTest {
 
     @Test
     public void testExpectationMaximization() throws Exception {
-        BayesServer station1 = new BayesServer("resources/Experiments/k2/smallK2Example_firsthalf.csv", "1");
+        BayesServer station1 = new BayesServer("resources/Experiments/k2/smallK2Example_firsthalfString.csv", "1");
         BayesServer station2 = new BayesServer("resources/Experiments/k2/smallK2Example_secondhalf.csv", "2");
 
         VertiBayesEndpoint endpoint1 = new VertiBayesEndpoint(station1);

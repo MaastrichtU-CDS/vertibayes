@@ -60,7 +60,7 @@ public final class WEKAExpectationMaximiation {
             s = "";
             s += "@Attribute";
             s += " " + n.getName() + " ";
-            if (n.isDiscrete()) {
+            if (n.getType() == Attribute.AttributeType.string) {
                 s += "{";
                 int count = 0;
                 for (String unique : n.getUniquevalues()) {
@@ -75,7 +75,7 @@ public final class WEKAExpectationMaximiation {
                 }
                 s += "}";
             } else {
-                s += "REAL";
+                s += n.getType();
             }
             data.add(s);
         }
@@ -114,10 +114,17 @@ public final class WEKAExpectationMaximiation {
                                         individual.put(node.getName(), "?");
                                     } else {
                                         //generate a number from the range
-                                        Double upper = Double.valueOf(local.getUpperLimit().getValue());
-                                        Double lower = Double.valueOf(local.getLowerLimit().getValue());
-                                        Double generated = random.nextDouble() * (upper - lower) + lower;
-                                        individual.put(node.getName(), String.valueOf(generated));
+                                        if (node.getType() == Attribute.AttributeType.real) {
+                                            Double upper = Double.valueOf(local.getUpperLimit().getValue());
+                                            Double lower = Double.valueOf(local.getLowerLimit().getValue());
+                                            Double generated = random.nextDouble() * (upper - lower) + lower;
+                                            individual.put(node.getName(), String.valueOf(generated));
+                                        } else {
+                                            Integer upper = Integer.valueOf(local.getUpperLimit().getValue());
+                                            Integer lower = Integer.valueOf(local.getLowerLimit().getValue());
+                                            Integer generated = random.nextInt(upper - lower) + lower;
+                                            individual.put(node.getName(), String.valueOf(generated));
+                                        }
                                     }
                                 }
                                 break;

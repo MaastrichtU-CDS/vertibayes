@@ -1,7 +1,10 @@
 package com.florian.vertibayes.bayes.data;
 
 public class Attribute implements Comparable<Attribute> {
-    public enum AttributeType { bool, string, number }
+    public enum AttributeType { bool, string, numeric, real }
+
+    private final static String INFINITY = "inf";
+    private final static String MINUS_INFINITY = "-inf";
 
     private AttributeType type;
     private String value;
@@ -68,8 +71,26 @@ public class Attribute implements Comparable<Attribute> {
             return Boolean.parseBoolean(value) == Boolean.parseBoolean(attribute.getValue()) ? 0 : 1;
         } else if (type == AttributeType.string) {
             return value.equals(attribute.getValue()) ? 0 : 1;
-        } else if (type == AttributeType.number) {
-            return Double.compare(Double.parseDouble(value), Double.parseDouble(attribute.getValue()));
+        } else if (type == AttributeType.numeric || type == AttributeType.real) {
+            Double a = 0.0;
+            Double b = 0.0;
+            if (value.equals(INFINITY)) {
+                a = Double.MAX_VALUE;
+            } else if (value.equals(MINUS_INFINITY)) {
+                a = Double.MIN_VALUE;
+            } else {
+                a = Double.parseDouble(value);
+            }
+            if (attribute.getValue().equals(INFINITY)) {
+                b = Double.MAX_VALUE;
+            } else if (attribute.getValue().equals(MINUS_INFINITY)) {
+                b = Double.MIN_VALUE;
+            } else {
+                b = Double.parseDouble(attribute.getValue());
+            }
+            return Double.compare(a, b);
+
+
         }
         //should never come here, but java wants it
         return 0;

@@ -103,7 +103,6 @@ public class WEKAExpectationMaximiationTest {
                 node.getBins().add(zero);
                 node.getBins().add(one);
                 node.getBins().add(unknown);
-                node.setDiscrete(false);
             }
         }
         WebBayesNetwork req = new WebBayesNetwork();

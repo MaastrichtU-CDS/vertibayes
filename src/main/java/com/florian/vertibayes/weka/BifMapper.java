@@ -1,6 +1,7 @@
 package com.florian.vertibayes.weka;
 
 import com.florian.vertibayes.bayes.Bin;
+import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.domain.external.WebNode;
 import com.florian.vertibayes.webservice.domain.external.WebParentValue;
 import com.florian.vertibayes.webservice.domain.external.WebTheta;
@@ -197,7 +198,7 @@ public final class BifMapper {
                 String outcome = outcomes[j].replace("<OUTCOME>", "");
                 if (outcome.contains("&apos;")) {
                     Bin bin = new Bin();
-                    n.setDiscrete(false);
+                    n.setType(Attribute.AttributeType.real);
                     String[] limits = outcome.replace("&apos;", "").replace("(", "").replace(")", "").replace("]", "")
                             .split("-");
                     String lower = "";

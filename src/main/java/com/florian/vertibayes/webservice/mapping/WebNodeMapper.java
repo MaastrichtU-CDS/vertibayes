@@ -35,7 +35,6 @@ public final class WebNodeMapper {
                     }
                 }
             }
-            n.setDiscrete(node.isDiscrete());
             n.setBins(node.getBins());
             output.put(n.getName(), n);
 
@@ -100,7 +99,6 @@ public final class WebNodeMapper {
             n.setName(node.getName());
             n.setType(node.getType());
             n.setParents(new ArrayList<>());
-            n.setDiscrete(node.isDiscrete());
             n.setBins(node.getBins());
             for (Node parent : node.getParents()) {
                 n.getParents().add(parent.getName());

@@ -15,14 +15,9 @@ public class WebNode {
     private Attribute.AttributeType type;
     private List<WebTheta> probabilities = new ArrayList<>();
     private Set<Bin> bins = new HashSet<>();
-    private boolean isDiscrete = true;
 
     public boolean isDiscrete() {
-        return isDiscrete;
-    }
-
-    public void setDiscrete(boolean discrete) {
-        isDiscrete = discrete;
+        return type != Attribute.AttributeType.real;
     }
 
     public Set<Bin> getBins() {

@@ -47,18 +47,18 @@ public class WebNodeMapperTest {
 
         WebNode node1 = webnodes.get(0);
         assertEquals(node1.getName(), "x1");
-        assertEquals(node1.getType(), Attribute.AttributeType.number);
+        assertEquals(node1.getType(), Attribute.AttributeType.numeric);
         assertEquals(node1.getParents().size(), 0);
 
         WebNode node2 = webnodes.get(1);
         assertEquals(node2.getName(), "x2");
-        assertEquals(node2.getType(), Attribute.AttributeType.number);
+        assertEquals(node2.getType(), Attribute.AttributeType.numeric);
         assertEquals(node2.getParents().size(), 1);
         assertEquals(node2.getParents().get(0), "x1");
 
         WebNode node3 = webnodes.get(2);
         assertEquals(node3.getName(), "x3");
-        assertEquals(node3.getType(), Attribute.AttributeType.number);
+        assertEquals(node3.getType(), Attribute.AttributeType.string);
         assertEquals(node3.getParents().size(), 1);
         assertEquals(node3.getParents().get(0), "x2");
 
@@ -128,18 +128,18 @@ public class WebNodeMapperTest {
 
         WebNode node1 = webnodes.get(0);
         assertEquals(node1.getName(), "x1");
-        assertEquals(node1.getType(), Attribute.AttributeType.number);
+        assertEquals(node1.getType(), Attribute.AttributeType.numeric);
         assertEquals(node1.getParents().size(), 0);
 
         WebNode node2 = webnodes.get(1);
         assertEquals(node2.getName(), "x2");
-        assertEquals(node2.getType(), Attribute.AttributeType.number);
+        assertEquals(node2.getType(), Attribute.AttributeType.numeric);
         assertEquals(node2.getParents().size(), 1);
         assertEquals(node2.getParents().get(0), "x1");
 
         WebNode node3 = webnodes.get(2);
         assertEquals(node3.getName(), "x3");
-        assertEquals(node3.getType(), Attribute.AttributeType.number);
+        assertEquals(node3.getType(), Attribute.AttributeType.string);
         assertEquals(node3.getParents().size(), 2);
         assertEquals(node3.getParents().get(0), "x2");
 

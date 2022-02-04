@@ -12,7 +12,6 @@ public class Node {
     private Attribute.AttributeType type;
     private List<Theta> probabilities = new ArrayList<>();
     private Set<Bin> bins = new HashSet<>();
-    private boolean discrete = true;
 
     public Node() {
     }
@@ -21,17 +20,14 @@ public class Node {
         return bins;
     }
 
+    public boolean isDiscrete() {
+        return type != Attribute.AttributeType.real;
+    }
+
     public void setBins(Set<Bin> bins) {
         this.bins = bins;
     }
 
-    public boolean isDiscrete() {
-        return discrete;
-    }
-
-    public void setDiscrete(boolean discrete) {
-        this.discrete = discrete;
-    }
 
     public List<Theta> getProbabilities() {
         return probabilities;

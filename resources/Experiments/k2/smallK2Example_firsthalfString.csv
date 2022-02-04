@@ -1,4 +1,4 @@
-numeric,numeric,numeric
+numeric,string,string
 ID,x1,x2
 1,1,0
 2,1,1
