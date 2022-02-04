@@ -3,8 +3,8 @@ package com.florian.vertibayes.bayes.data;
 public class Attribute implements Comparable<Attribute> {
     public enum AttributeType { bool, string, numeric, real }
 
-    private final static String INFINITY = "inf";
-    private final static String MINUS_INFINITY = "-inf";
+    private static final String INFINITY = "inf";
+    private static final String MINUS_INFINITY = "-inf";
 
     private AttributeType type;
     private String value;

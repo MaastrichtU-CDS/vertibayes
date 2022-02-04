@@ -20,10 +20,6 @@ public class Node {
         return bins;
     }
 
-    public boolean isDiscrete() {
-        return type != Attribute.AttributeType.real;
-    }
-
     public void setBins(Set<Bin> bins) {
         this.bins = bins;
     }

@@ -118,7 +118,7 @@ public class VertiBayesCentralServer extends CentralServer {
 
     private void initNodesMaximumLikelyhood(List<Node> nodes) {
         for (Node n : nodes) {
-            if (n.isDiscrete() && n.getUniquevalues().isEmpty()) {
+            if (n.getType() != Attribute.AttributeType.real && n.getUniquevalues().isEmpty()) {
                 initNode(n);
             }
         }
@@ -132,7 +132,7 @@ public class VertiBayesCentralServer extends CentralServer {
 
     private void initThetas(List<Node> nodes) {
         for (Node node : nodes) {
-            if (node.isDiscrete()) {
+            if (node.getType() != Attribute.AttributeType.real) {
                 for (String unique : node.getUniquevalues()) {
                     // generate base thetas
                     Theta t = new Theta();
@@ -152,7 +152,7 @@ public class VertiBayesCentralServer extends CentralServer {
             for (Node parent : node.getParents()) {
                 // for each parent
                 List<Theta> copies = new ArrayList<>();
-                if (parent.isDiscrete()) {
+                if (parent.getType() != Attribute.AttributeType.real) {
                     for (String p : parent.getUniquevalues()) {
                         // for each parent value
                         ParentValue v = new ParentValue();

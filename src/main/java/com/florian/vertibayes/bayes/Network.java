@@ -75,7 +75,7 @@ public class Network {
         BigDecimal partial = BigDecimal.ONE;
 
         if (requirements.size() == 0) {
-            if (node.isDiscrete()) {
+            if (node.getType() != Attribute.AttributeType.real) {
                 for (String value : node.getUniquevalues()) {
                     List<AttributeRequirement> req = new ArrayList<>();
                     req.add(new AttributeRequirement(new Attribute(node.getType(), value, node.getName())));
@@ -105,7 +105,7 @@ public class Network {
             for (List<AttributeRequirement> req : requirements) {
                 sumaijk = BigDecimal.ZERO;
                 prodaijk = BigDecimal.ONE;
-                if (node.isDiscrete()) {
+                if (node.getType() != Attribute.AttributeType.real) {
                     for (String value : node.getUniquevalues()) {
                         List<AttributeRequirement> r = new ArrayList<>(req);
                         r.add(new AttributeRequirement(new Attribute(node.getType(), value, node.getName())));
@@ -147,7 +147,7 @@ public class Network {
         List<List<AttributeRequirement>> requirements = new ArrayList<>();
         for (Node node : nodes) {
             List<List<AttributeRequirement>> temp = new ArrayList<>();
-            if (node.isDiscrete()) {
+            if (node.getType() != Attribute.AttributeType.real) {
                 for (String value : node.getUniquevalues()) {
                     if (requirements.size() == 0) {
                         List<AttributeRequirement> req = new ArrayList<>();

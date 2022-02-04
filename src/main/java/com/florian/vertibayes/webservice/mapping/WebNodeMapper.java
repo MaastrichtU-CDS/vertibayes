@@ -30,7 +30,7 @@ public final class WebNodeMapper {
             if (node.getProbabilities() != null) {
                 for (WebTheta theta : node.getProbabilities()) {
                     // if it is a discrete node, copy the local values, otherwise the bins are sufficient here
-                    if (node.isDiscrete()) {
+                    if (!theta.getLocalValue().isRange()) {
                         n.getUniquevalues().add(theta.getLocalValue().getLocalValue());
                     }
                 }
@@ -53,7 +53,7 @@ public final class WebNodeMapper {
     }
 
     private static AttributeRequirement mapReqFromWebValue(Node node, WebValue v) {
-        if (node.isDiscrete()) {
+        if (!v.isRange()) {
             return new AttributeRequirement(
                     new Attribute(node.getType(), v.getLocalValue(), node.getName()));
         } else {
@@ -70,7 +70,7 @@ public final class WebNodeMapper {
         for (WebTheta theta : probabilities) {
             Theta t = new Theta();
             t.setP(theta.getP());
-            if (node.isDiscrete()) {
+            if (!theta.getLocalValue().isRange()) {
                 t.setLocalRequirement(new AttributeRequirement(
                         new Attribute(node.getType(), theta.getLocalValue().getLocalValue(), node.getName())));
             }
@@ -108,7 +108,7 @@ public final class WebNodeMapper {
                 WebTheta theta = new WebTheta();
                 theta.setP(t.getP());
                 WebValue value = new WebValue();
-                if (n.isDiscrete()) {
+                if (!t.getLocalRequirement().isRange()) {
                     value.setLocalValue(t.getLocalRequirement().getValue().getValue());
                     value.setRange(false);
                 } else {

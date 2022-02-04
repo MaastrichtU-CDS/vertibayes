@@ -77,7 +77,6 @@ public class WebNodeMapperTest {
             Node mapped = mappedNodesMap.get(n.getName());
             assertEquals(n.getName(), mapped.getName());
             assertEquals(n.getType(), mapped.getType());
-            assertEquals(n.isDiscrete(), mapped.isDiscrete());
             assertEquals(n.getBins(), mapped.getBins());
             assertEquals(n.getProbabilities(), mapped.getProbabilities());
 
@@ -158,7 +157,6 @@ public class WebNodeMapperTest {
             Node mapped = mappedNodesMap.get(n.getName());
             assertEquals(n.getName(), mapped.getName());
             assertEquals(n.getType(), mapped.getType());
-            assertEquals(n.isDiscrete(), mapped.isDiscrete());
             assertEquals(n.getBins(), mapped.getBins());
             assertEquals(n.getProbabilities(), mapped.getProbabilities());
 

@@ -1,6 +1,5 @@
 package com.florian.vertibayes.bayes.webservice;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.florian.nscalarproduct.webservice.ServerEndpoint;
 import com.florian.vertibayes.bayes.Bin;
 import com.florian.vertibayes.bayes.Node;
@@ -524,8 +523,6 @@ public class VertiBayesCentralServerTest {
         req.setNodes(webNodes);
         req.setTarget("x3");
 
-        ObjectMapper mapper = new ObjectMapper();
-        System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(req));
 
         List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.expectationMaximization(req).getNodes());
 
