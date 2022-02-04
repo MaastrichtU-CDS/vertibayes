@@ -193,6 +193,7 @@ public class VertiBayesCentralServer extends CentralServer {
                 node.getProbabilities().removeAll(node.getProbabilities());
                 node.getProbabilities().addAll(copies);
             }
+            
             for (Theta t : node.getProbabilities()) {
                 determineProb(t);
             }
@@ -203,7 +204,7 @@ public class VertiBayesCentralServer extends CentralServer {
     private void determineProb(Theta t) {
 
         if (t.getParents().size() > 0) {
-            List<AttributeRequirement> parentsReq = t.getParents().stream().map(x -> x.getRequirement())
+            List<AttributeRequirement> parentsReq = t.getParents().parallelStream().map(x -> x.getRequirement())
                     .collect(Collectors.toList());
             List<AttributeRequirement> listReq = new ArrayList<>();
             listReq.addAll(parentsReq);

@@ -58,11 +58,6 @@ public class Attribute implements Comparable<Attribute> {
 
     @Override
     public int compareTo(Attribute attribute) {
-        if (type != attribute.type) {
-            //error
-            System.out.println("Checkstyle wants there to be stuff");
-            //ToDo implement error handling
-        }
         if (this.isUknown() || attribute.isUknown()) {
             // Only equal if both are missing values
             return value.equals(attribute.getValue()) ? 0 : 1;
