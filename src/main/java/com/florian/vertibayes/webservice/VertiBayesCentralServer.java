@@ -80,6 +80,7 @@ public class VertiBayesCentralServer extends CentralServer {
         List<WebNode> webNodes = wekaExpectationMaximization(mapWebNodeFromNode(nodes), SAMPLE_SIZE, req.getTarget());
 
         WebBayesNetwork response = new WebBayesNetwork();
+        response.setTarget(req.getTarget());
         response.setNodes(webNodes);
         return response;
     }

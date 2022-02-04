@@ -47,7 +47,25 @@ public final class WEKAExpectationMaximiation {
 
         network.buildClassifier(data);
 
-        return fromBif(network.graph());
+        List<WebNode> wekaNodes = fromBif(network.graph());
+        realignNodes(wekaNodes, nodes);
+        return wekaNodes;
+    }
+
+    private static void realignNodes(List<WebNode> wekaNodes, List<WebNode> originals) {
+        //The BIF conversion loses the distinction between numeric and real so fix this manually
+        for (WebNode weka : wekaNodes) {
+            weka.setType(findOriginal(weka, originals).getType());
+        }
+    }
+
+    private static WebNode findOriginal(WebNode weka, List<WebNode> originals) {
+        for (WebNode node : originals) {
+            if (node.getName().equals(weka.getName())) {
+                return node;
+            }
+        }
+        return null;
     }
 
 
