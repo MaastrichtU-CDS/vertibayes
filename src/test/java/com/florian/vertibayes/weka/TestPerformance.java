@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import static com.florian.vertibayes.notunittests.generatedata.GenerateData.createCentral;
 import static com.florian.vertibayes.notunittests.generatedata.GenerateDataNoFolds.buildIrisNetworkBinned;
@@ -25,22 +26,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestPerformance {
     private int FOLDS = 10;
-    public static final String LEFTHALF_IRIS = "resources/Experiments/iris/generated/irisLeftSplit";
-    public static final String IRIS = "resources/Experiments/iris/generated/iris";
-    public static final String RIGHTHALF_IRIS = "resources/Experiments/iris/generated/irisRightSplit";
-    public static final String LEFTHALF_IRIS_MISSING = "resources/Experiments/iris/generated/irismissingLeftSplit";
-    public static final String RIGHTHALF_IRIS_MISSING = "resources/Experiments/iris/generated/irismissingRightSplit";
+    public static final String FOLD_LEFTHALF_IRIS = "resources/Experiments/iris/folds/irisLeftSplit";
+    public static final String TEST_FOLD_IRIS = "resources/Experiments/iris/folds/iris";
+    public static final String FOLD_RIGHTHALF_IRIS = "resources/Experiments/iris/folds/irisRightSplit";
+    public static final String FOLD_LEFTHALF_IRIS_MISSING = "resources/Experiments/iris/folds/irismissingLeftSplit";
+    public static final String FOLD_RIGHTHALF_IRIS_MISSING = "resources/Experiments/iris/folds/irismissingRightSplit";
 
-    public static final String first = "resources/Experiments/iris/iris_firsthalf.csv";
-    public static final String second = "resources/Experiments/iris/iris_secondhalf.csv";
-    public static final String weka = "resources/Experiments/iris/irisWeka2.arff";
+    public static final String TEST_IRIS_FULL = "resources/Experiments/iris/irisWeka2.arff";
     public static final String FIRSTHALF_IRIS = "resources/Experiments/iris/iris_firsthalf.csv";
     public static final String SECONDHALF_IRIS = "resources/Experiments/iris/iris_secondhalf.csv";
 
     // IMPORTANT TO NOTE; IF THESE TEST BEHAVE WEIRDLY MANUALLY CHECK IN WEKA.
     // ISSUES LIKE MISALIGNED COLLUMNS LEAD TO WEIRD RESULTS
     @Test
-    public void vertiBayesTest() throws Exception {
+    public void testVertiBayesKFold() throws Exception {
         List<Integer> folds = new ArrayList<>();
         for (int i = 0; i < FOLDS; i++) {
             folds.add(i);
@@ -50,8 +49,8 @@ public class TestPerformance {
     }
 
     @Test
-    public void testVertiBayesFullDataSer() throws Exception {
-        double auc = vertiBayesIrisTest(FIRSTHALF_IRIS, SECONDHALF_IRIS, readData("label", weka), "label");
+    public void testVertiBayesFullDataSet() throws Exception {
+        double auc = vertiBayesIrisTest(FIRSTHALF_IRIS, SECONDHALF_IRIS, readData("label", TEST_IRIS_FULL), "label");
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
@@ -61,18 +60,14 @@ public class TestPerformance {
 
     private void test(List<Integer> folds) throws Exception {
         List<Double> auc = new ArrayList<>();
-//        for (Integer fold : folds) {
-//            List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
-//            String ids = otherFolds.stream().sorted().collect(Collectors.toList()).toString().replace("[", "")
-//                    .replace("]", "").replace(" ", "").replace(",", "");
-//            String left = LEFTHALF_IRIS + ids + ".csv";
-//            String right = RIGHTHALF_IRIS + ids + ".csv";
-//            auc.add(vertiBayesIrisTest(left, right, readDataCSV("label", IRIS + fold + "WEKA.csv"), "label"));
-//        }
-
-        auc.add(vertiBayesIrisTest(FIRSTHALF_IRIS, SECONDHALF_IRIS, readData("label", weka), "label"));
-
-
+        for (Integer fold : folds) {
+            List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
+            String ids = otherFolds.stream().sorted().collect(Collectors.toList()).toString().replace("[", "")
+                    .replace("]", "").replace(" ", "").replace(",", "");
+            String left = FOLD_LEFTHALF_IRIS + ids + ".csv";
+            String right = FOLD_RIGHTHALF_IRIS + ids + ".csv";
+            auc.add(vertiBayesIrisTest(left, right, readDataCSV("label", TEST_FOLD_IRIS + fold + "WEKA.csv"), "label"));
+        }
         System.out.println(auc);
     }
 
