@@ -3,3 +3,6 @@
 /*.iml
 /test.arff
 /test.xml
+/resources/Experiments/alarm/folds
+/resources/Experiments/asia/folds
+/resources/Experiments/iris/folds
