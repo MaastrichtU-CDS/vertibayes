@@ -14,12 +14,13 @@ import java.util.stream.Collectors;
 
 import static com.florian.vertibayes.util.DataGeneration.generateDataARRF;
 import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNodeToNode;
+import static com.florian.vertibayes.weka.BifMapper.fromBif;
 import static com.florian.vertibayes.weka.BifMapper.toBIF;
 
 public final class WEKAExpectationMaximiation {
     private static final String BIFF = "test.xml";
     private static final String ARFF = "test.arff";
-    public static final String weka = "resources/Experiments/iris/irisWeka2.csv";
+    private static final int SAMPLE_SIZE = 10000;
 
     private WEKAExpectationMaximiation() {
     }
@@ -28,7 +29,7 @@ public final class WEKAExpectationMaximiation {
                                                                               String target)
             throws Exception {
 
-        generateDataARRF(mapWebNodeToNode(nodes), 150, ARFF);
+        generateDataARRF(mapWebNodeToNode(nodes), SAMPLE_SIZE, ARFF);
         printBIF(toBIF(nodes));
 
 
@@ -53,7 +54,7 @@ public final class WEKAExpectationMaximiation {
 
         ExpectationMaximizationResponse response = new ExpectationMaximizationResponse();
         response.setWeka(network);
-        response.setNodes(nodes);
+        response.setNodes(fromBif(network.graph()));
         return response;
     }
 

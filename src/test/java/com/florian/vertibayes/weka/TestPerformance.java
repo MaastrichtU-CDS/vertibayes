@@ -22,6 +22,7 @@ import java.util.stream.Collectors;
 
 import static com.florian.vertibayes.notunittests.generatedata.GenerateData.createCentral;
 import static com.florian.vertibayes.notunittests.generatedata.GenerateDataNoFolds.buildIrisNetworkBinned;
+import static com.florian.vertibayes.notunittests.generatedata.GenerateDataNoFolds.buildIrisNetworkBinnedMissing;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestPerformance {
@@ -36,8 +37,13 @@ public class TestPerformance {
     public static final String FIRSTHALF_IRIS = "resources/Experiments/iris/iris_firsthalf.csv";
     public static final String SECONDHALF_IRIS = "resources/Experiments/iris/iris_secondhalf.csv";
 
+    public static final String TEST_IRIS_FULL_MISSING = "resources/Experiments/iris/irisMissing.arff";
+    public static final String FIRSTHALF_IRIS_MISSING = "resources/Experiments/iris/irisMissingLeft.csv";
+    public static final String SECONDHALF_IRIS_MISSING = "resources/Experiments/iris/irisMissingRight.csv";
+
     // IMPORTANT TO NOTE; IF THESE TEST BEHAVE WEIRDLY MANUALLY CHECK IN WEKA.
     // ISSUES LIKE MISALIGNED COLLUMNS LEAD TO WEIRD RESULTS
+
     @Test
     public void testVertiBayesKFold() throws Exception {
         List<Integer> folds = new ArrayList<>();
@@ -45,11 +51,23 @@ public class TestPerformance {
             folds.add(i);
         }
         irisTest(folds);
+        irisUnknown(folds);
     }
 
     @Test
     public void testVertiBayesFullDataSet() throws Exception {
         double auc = vertiBayesIrisTest(FIRSTHALF_IRIS, SECONDHALF_IRIS, readData("label", TEST_IRIS_FULL), "label");
+
+        //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
+        //So performance should be high
+        //However, due to the random factors there is some variance possible
+        assertEquals(auc, 0.98, 0.025);
+    }
+
+    @Test
+    public void testVertiBayesFullDataSetMissing() throws Exception {
+        double auc = vertiBayesIrisMissingTest(FIRSTHALF_IRIS_MISSING, SECONDHALF_IRIS_MISSING,
+                                               readData("label", TEST_IRIS_FULL_MISSING), "label");
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
@@ -69,7 +87,30 @@ public class TestPerformance {
             String right = FOLD_RIGHTHALF_IRIS + ids + ".csv";
             auc.add(vertiBayesIrisTest(left, right, readData("label", TEST_FOLD_IRIS + fold + "WEKA.arff"),
                                        "label"));
-            assertEquals(auc.get(auc.size() - 1), 0.96, 0.04);
+            assertEquals(auc.get(auc.size() - 1), 0.96, 0.05);
+            aucSum += auc.get(auc.size() - 1);
+        }
+        double averageAUC = aucSum / folds.size();
+        assertEquals(averageAUC, 0.96, 0.05);
+    }
+
+    private void irisUnknown(List<Integer> folds) throws Exception {
+        List<Double> auc = new ArrayList<>();
+        List<Double> auc2 = new ArrayList<>();
+        double aucSum = 0;
+        //no unknowns
+        for (Integer fold : folds) {
+            List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
+            String ids = otherFolds.stream().sorted().collect(Collectors.toList()).toString().replace("[", "")
+                    .replace("]", "").replace(" ", "").replace(",", "");
+            String left = FOLD_LEFTHALF_IRIS_MISSING + ids + ".csv";
+            String right = FOLD_RIGHTHALF_IRIS_MISSING + ids + ".csv";
+            auc.add(vertiBayesIrisMissingTest(left, right,
+                                              readData("label", TEST_FOLD_IRIS + "missing" + fold + "WEKA.arff"),
+                                              "label"));
+            auc2.add(vertiBayesIrisMissingTest(left, right, readData("label", TEST_FOLD_IRIS + fold + "WEKA.arff"),
+                                               "label"));
+//            assertEquals(auc.get(auc.size() - 1), 0.96, 0.04);
             aucSum += auc.get(auc.size() - 1);
         }
         double averageAUC = aucSum / folds.size();
@@ -78,6 +119,16 @@ public class TestPerformance {
 
     private double vertiBayesIrisTest(String left, String right, Instances testData, String target) throws Exception {
         ExpectationMaximizationResponse response = generateModel(buildIrisNetworkBinned(), left, right, target);
+        BayesNet network = response.getWeka();
+
+        Evaluation eval = new Evaluation(testData);
+        eval.evaluateModel(network, testData);
+        return eval.weightedAreaUnderROC();
+    }
+
+    private double vertiBayesIrisMissingTest(String left, String right, Instances testData, String target)
+            throws Exception {
+        ExpectationMaximizationResponse response = generateModel(buildIrisNetworkBinnedMissing(), left, right, target);
         BayesNet network = response.getWeka();
 
         Evaluation eval = new Evaluation(testData);

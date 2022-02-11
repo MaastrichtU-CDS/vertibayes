@@ -5,8 +5,10 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.List;
 
-public class PrintingPress {
+public final class PrintingPress {
 
+    private PrintingPress() {
+    }
 
     public static void printCSV(List<String> data, String path) {
         File csvOutputFile = new File(path);

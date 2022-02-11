@@ -108,11 +108,11 @@ public class GenerateTestData {
 
             String header = "";
             for (List<Attribute> a : d.getData()) {
-                if (s.length() > 1) {
+                if (s.length() >= 1) {
                     s += ",";
                 }
 
-                if (header.length() > 1) {
+                if (header.length() >= 1) {
                     header += ",";
                 }
                 header += a.get(0).getType();
@@ -150,17 +150,18 @@ public class GenerateTestData {
         for (Integer key : folded.keySet()) {
             List<String> data = new ArrayList<>();
             List<String> dataWeka = new ArrayList<>();
+            List<String> arff = new ArrayList<>();
             String s = "";
             String sWeka = "";
             String header = "";
             for (List<Attribute> a : d.getData()) {
-                if (s.length() > 1) {
+                if (s.length() >= 1) {
                     s += ",";
                 }
-                if (sWeka.length() > 1) {
+                if (sWeka.length() >= 1) {
                     sWeka += ",";
                 }
-                if (header.length() > 1) {
+                if (header.length() >= 1) {
                     header += ",";
                 }
                 header += a.get(0).getType();
@@ -180,7 +181,7 @@ public class GenerateTestData {
                     if (s.length() >= 1) {
                         s += ",";
                     }
-                    if (sWeka.length() > 1) {
+                    if (sWeka.length() >= 1) {
                         sWeka += ",";
                     }
                     if (!attribute.get(0).getAttributeName().equals("ID")) {
@@ -188,16 +189,17 @@ public class GenerateTestData {
                     }
                     s += attribute.get(row).getValue();
                 }
+                arff.add(sWeka);
                 dataWeka.add(sWeka);
                 data.add(s);
             }
             printCSV(data, target + key + ".csv");
             printCSV(dataWeka, target + key + "WEKA.csv");
-            printARRF(d, key, target + key + "WEKA.arff");
+            printARRF(d, arff, key, target + key + "WEKA.arff");
         }
     }
 
-    private void printARRF(Data d, int key, String path) {
+    private void printARRF(Data d, List<String> wekaData, int key, String path) {
         List<String> data = new ArrayList<>();
         String s = "@Relation genericBIFF";
         data.add(s);
@@ -238,19 +240,7 @@ public class GenerateTestData {
         data.add("");
         data.add("@DATA");
 
-        for (int i = 0; i < d.getNumberOfIndividuals(); i++) {
-            s = "";
-            for (List<Attribute> a : d.getData()) {
-                if (a.get(0).getAttributeName().equals("ID")) {
-                    continue;
-                }
-                if (s.length() > 0) {
-                    s += ",";
-                }
-                s += a.get(i).getValue();
-            }
-            data.add(s);
-        }
+        data.addAll(wekaData);
         printARFF(data, path);
     }
 
@@ -273,10 +263,10 @@ public class GenerateTestData {
         String s = "";
         String header = "";
         for (List<Attribute> a : d.getData()) {
-            if (s.length() > 1) {
+            if (s.length() >= 1) {
                 s += ",";
             }
-            if (header.length() > 1) {
+            if (header.length() >= 1) {
                 header += ",";
             }
             header += a.get(0).getType();

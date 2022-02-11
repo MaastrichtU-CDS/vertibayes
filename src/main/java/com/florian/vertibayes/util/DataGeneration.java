@@ -11,7 +11,7 @@ import java.util.*;
 import static com.florian.vertibayes.util.MathUtil.round;
 import static com.florian.vertibayes.util.PrintingPress.printARFF;
 
-public class DataGeneration {
+public final class DataGeneration {
 
     private DataGeneration() {
     }
@@ -75,12 +75,17 @@ public class DataGeneration {
                                 if (!local.isRange()) {
                                     individual.put(node.getName(), local.getValue().getValue());
                                 } else {
-                                    //generate a number from the range
-                                    Double upper = Double.valueOf(local.getUpperLimit().getValue());
-                                    Double lower = Double.valueOf(local.getLowerLimit().getValue());
-                                    Double generated = random.nextDouble() * (upper - lower) + lower;
-                                    individual.put(node.getName(),
-                                                   String.valueOf(round(generated, local.getLowerLimit().getType())));
+                                    if (local.getLowerLimit().isUknown()) {
+                                        individual.put(node.getName(), "?");
+                                    } else {
+                                        //generate a number from the range
+                                        Double upper = Double.valueOf(local.getUpperLimit().getValue());
+                                        Double lower = Double.valueOf(local.getLowerLimit().getValue());
+                                        Double generated = random.nextDouble() * (upper - lower) + lower;
+                                        individual.put(node.getName(),
+                                                       String.valueOf(
+                                                               round(generated, local.getLowerLimit().getType())));
+                                    }
                                 }
                                 break;
                             }
@@ -112,11 +117,15 @@ public class DataGeneration {
                                         individual.put(node.getName(), local.getValue().getValue());
                                     } else {
                                         //generate a number from the range
-                                        Double upper = Double.valueOf(local.getUpperLimit().getValue());
-                                        Double lower = Double.valueOf(local.getLowerLimit().getValue());
-                                        Double generated = random.nextDouble() * (upper - lower) + lower;
-                                        individual.put(node.getName(), String.valueOf(
-                                                round(generated, local.getLowerLimit().getType())));
+                                        if (local.getLowerLimit().isUknown()) {
+                                            individual.put(node.getName(), "?");
+                                        } else {
+                                            Double upper = Double.valueOf(local.getUpperLimit().getValue());
+                                            Double lower = Double.valueOf(local.getLowerLimit().getValue());
+                                            Double generated = random.nextDouble() * (upper - lower) + lower;
+                                            individual.put(node.getName(), String.valueOf(
+                                                    round(generated, local.getLowerLimit().getType())));
+                                        }
                                     }
                                     break;
                                 }
