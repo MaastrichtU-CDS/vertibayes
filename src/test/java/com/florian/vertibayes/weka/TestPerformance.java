@@ -21,6 +21,7 @@ import java.util.Random;
 
 import static com.florian.vertibayes.notunittests.generatedata.GenerateData.createCentral;
 import static com.florian.vertibayes.notunittests.generatedata.GenerateDataNoFolds.buildIrisNetworkBinned;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TestPerformance {
     private int FOLDS = 10;
@@ -36,6 +37,8 @@ public class TestPerformance {
     public static final String FIRSTHALF_IRIS = "resources/Experiments/iris/iris_firsthalf.csv";
     public static final String SECONDHALF_IRIS = "resources/Experiments/iris/iris_secondhalf.csv";
 
+    // IMPORTANT TO NOTE; IF THESE TEST BEHAVE WEIRDLY MANUALLY CHECK IN WEKA.
+    // ISSUES LIKE MISALIGNED COLLUMNS LEAD TO WEIRD RESULTS
     @Test
     public void vertiBayesTest() throws Exception {
         List<Integer> folds = new ArrayList<>();
@@ -44,6 +47,16 @@ public class TestPerformance {
         }
 
         test(folds);
+    }
+
+    @Test
+    public void testVertiBayesFullDataSer() throws Exception {
+        double auc = vertiBayesIrisTest(FIRSTHALF_IRIS, SECONDHALF_IRIS, readData("label", weka), "label");
+
+        //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
+        //So performance should be high
+        //However, due to the random factors there is some variance possible
+        assertEquals(auc, 0.98, 0.025);
     }
 
     private void test(List<Integer> folds) throws Exception {
@@ -67,10 +80,9 @@ public class TestPerformance {
         ExpectationMaximizationResponse response = generateModel(buildIrisNetworkBinned(), left, right, target);
         BayesNet network = response.getWeka();
 
-
         Evaluation eval = new Evaluation(testData);
         eval.evaluateModel(network, testData);
-        return eval.incorrect();
+        return eval.weightedAreaUnderROC();
     }
 
     private ExpectationMaximizationResponse generateModel(List<WebNode> input, String firsthalf, String secondhalf,
