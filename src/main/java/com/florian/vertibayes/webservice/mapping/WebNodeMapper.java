@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public final class WebNodeMapper {
 
@@ -22,6 +21,7 @@ public final class WebNodeMapper {
     }
 
     public static List<Node> mapWebNodeToNode(List<WebNode> input) {
+        List<Node> listOutput = new ArrayList<>();
         Map<String, Node> output = new HashMap<>();
         for (WebNode node : input) {
             Node n = new Node();
@@ -36,6 +36,7 @@ public final class WebNodeMapper {
                 }
             }
             n.setBins(node.getBins());
+            listOutput.add(n);
             output.put(n.getName(), n);
 
         }
@@ -49,7 +50,7 @@ public final class WebNodeMapper {
                 mapToProbabilities(node.getProbabilities(), output.get(node.getName()), output);
             }
         }
-        return output.values().stream().collect(Collectors.toList());
+        return listOutput;
     }
 
     private static AttributeRequirement mapReqFromWebValue(Node node, WebValue v) {

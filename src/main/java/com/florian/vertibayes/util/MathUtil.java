@@ -1,11 +1,14 @@
 package com.florian.vertibayes.util;
 
+import com.florian.vertibayes.bayes.data.Attribute;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 
-public final class Util {
+public final class MathUtil {
 
-    private Util() {
+    private MathUtil() {
     }
 
     public static BigInteger factorial(BigInteger i) {
@@ -23,4 +26,13 @@ public final class Util {
         }
         return res;
     }
+
+    public static double round(double value, Attribute.AttributeType type) {
+        int decimals = type == Attribute.AttributeType.numeric ? 0 : 3;
+        BigDecimal bd = new BigDecimal(Double.toString(value));
+        bd = bd.setScale(decimals, RoundingMode.HALF_UP);
+        return bd.doubleValue();
+    }
+
+
 }

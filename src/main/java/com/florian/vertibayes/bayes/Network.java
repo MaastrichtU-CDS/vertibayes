@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.florian.vertibayes.util.Util.factorial;
+import static com.florian.vertibayes.util.MathUtil.factorial;
 
 
 public class Network {

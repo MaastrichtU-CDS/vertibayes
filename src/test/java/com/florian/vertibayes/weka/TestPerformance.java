@@ -32,7 +32,7 @@ public class TestPerformance {
     public static final String FOLD_LEFTHALF_IRIS_MISSING = "resources/Experiments/iris/folds/irismissingLeftSplit";
     public static final String FOLD_RIGHTHALF_IRIS_MISSING = "resources/Experiments/iris/folds/irismissingRightSplit";
 
-    public static final String TEST_IRIS_FULL = "resources/Experiments/iris/irisWeka2.arff";
+    public static final String TEST_IRIS_FULL = "resources/Experiments/iris/irisWeka.arff";
     public static final String FIRSTHALF_IRIS = "resources/Experiments/iris/iris_firsthalf.csv";
     public static final String SECONDHALF_IRIS = "resources/Experiments/iris/iris_secondhalf.csv";
 
@@ -44,8 +44,7 @@ public class TestPerformance {
         for (int i = 0; i < FOLDS; i++) {
             folds.add(i);
         }
-
-        test(folds);
+        irisTest(folds);
     }
 
     @Test
@@ -58,17 +57,23 @@ public class TestPerformance {
         assertEquals(auc, 0.98, 0.025);
     }
 
-    private void test(List<Integer> folds) throws Exception {
+    private void irisTest(List<Integer> folds) throws Exception {
         List<Double> auc = new ArrayList<>();
+        double aucSum = 0;
+        //no unknowns
         for (Integer fold : folds) {
             List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
             String ids = otherFolds.stream().sorted().collect(Collectors.toList()).toString().replace("[", "")
                     .replace("]", "").replace(" ", "").replace(",", "");
             String left = FOLD_LEFTHALF_IRIS + ids + ".csv";
             String right = FOLD_RIGHTHALF_IRIS + ids + ".csv";
-            auc.add(vertiBayesIrisTest(left, right, readDataCSV("label", TEST_FOLD_IRIS + fold + "WEKA.csv"), "label"));
+            auc.add(vertiBayesIrisTest(left, right, readData("label", TEST_FOLD_IRIS + fold + "WEKA.arff"),
+                                       "label"));
+            assertEquals(auc.get(auc.size() - 1), 0.96, 0.04);
+            aucSum += auc.get(auc.size() - 1);
         }
-        System.out.println(auc);
+        double averageAUC = aucSum / folds.size();
+        assertEquals(averageAUC, 0.96, 0.04);
     }
 
     private double vertiBayesIrisTest(String left, String right, Instances testData, String target) throws Exception {
