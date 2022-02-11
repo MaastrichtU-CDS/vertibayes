@@ -1,4 +1,4 @@
-string,real,real,string
+numeric,real,real,string
 ID,petallength,petalwidth,label
 1,1.4,0.2,Iris-setosa
 2,1.4,0.2,Iris-setosa

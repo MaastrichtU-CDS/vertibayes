@@ -1,4 +1,4 @@
-string,real,real
+numeric,real,real
 ID,sepallength,sepalwidth
 1,5.1,3.5
 2,4.9,3.0

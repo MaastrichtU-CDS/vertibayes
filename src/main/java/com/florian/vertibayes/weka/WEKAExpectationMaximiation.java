@@ -6,11 +6,15 @@ import com.florian.vertibayes.bayes.Theta;
 import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.webservice.domain.external.WebNode;
+import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.BayesNet;
+import weka.classifiers.bayes.net.estimate.SimpleEstimator;
 import weka.classifiers.bayes.net.search.fixed.FromFile;
 import weka.core.Instances;
 
 import java.io.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -21,6 +25,8 @@ import static com.florian.vertibayes.weka.BifMapper.toBIF;
 public final class WEKAExpectationMaximiation {
     private static final String BIFF = "test.xml";
     private static final String ARFF = "test.arff";
+    public static final String weka = "resources/Experiments/iris/irisWeka2.csv";
+    public static final String wekaArff = "resources/Experiments/iris/irisWeka2.arff";
 
     private WEKAExpectationMaximiation() {
     }
@@ -28,8 +34,10 @@ public final class WEKAExpectationMaximiation {
     public static List<WebNode> wekaExpectationMaximization(List<WebNode> nodes, int sampleSize, String target)
             throws Exception {
 
-        generateData(mapWebNodeToNode(nodes), sampleSize);
+        generateData(mapWebNodeToNode(nodes), 150);
+        generateDataCSV("outputOld.csv", 150, mapWebNodeToNode(nodes));
         printBIF(toBIF(nodes));
+
 
         FromFile search = new FromFile();
         search.setBIFFile(BIFF);
@@ -38,6 +46,7 @@ public final class WEKAExpectationMaximiation {
         network.setSearchAlgorithm(search);
         Instances data = new Instances(
                 new BufferedReader(new FileReader(ARFF)));
+
         for (int i = 0; i < data.numAttributes(); i++) {
             if (data.attribute(i).name().equals(target)) {
                 data.setClassIndex(i);
@@ -45,27 +54,139 @@ public final class WEKAExpectationMaximiation {
             }
         }
 
-        network.buildClassifier(data);
+        Instances test = new Instances(
+                new BufferedReader(new FileReader(ARFF)));
 
-        List<WebNode> wekaNodes = fromBif(network.graph());
-        realignNodes(wekaNodes, nodes);
-        return wekaNodes;
-    }
-
-    private static void realignNodes(List<WebNode> wekaNodes, List<WebNode> originals) {
-        //The BIF conversion loses the distinction between numeric and real so fix this manually
-        for (WebNode weka : wekaNodes) {
-            weka.setType(findOriginal(weka, originals).getType());
-        }
-    }
-
-    private static WebNode findOriginal(WebNode weka, List<WebNode> originals) {
-        for (WebNode node : originals) {
-            if (node.getName().equals(weka.getName())) {
-                return node;
+        for (int i = 0; i < test.numAttributes(); i++) {
+            if (test.attribute(i).name().equals(target)) {
+                test.setClassIndex(i);
+                break;
             }
         }
-        return null;
+
+        network.setEstimator(new SimpleEstimator());
+
+        network.buildClassifier(data);
+        Evaluation eval = new Evaluation(test);
+        eval.evaluateModel(network, test);
+        eval.incorrect();
+
+        return fromBif(network.graph());
+    }
+
+    private static void generateDataCSV(String output, int samplesize, List<Node> nodes) {
+        List<String> data = new ArrayList<>();
+
+        String names = "";
+        int j = 0;
+        for (Node node : nodes) {
+            if (j > 0) {
+                names += ",";
+            }
+            j++;
+            names += node.getName();
+        }
+        data.add(names);
+        for (int i = 0; i < samplesize; i++) {
+            data.add(generateIndividualOld(nodes));
+        }
+        printCSV(data, output);
+    }
+
+    private static void printCSV(List<String> data, String path) {
+        File csvOutputFile = new File(path);
+        try (PrintWriter pw = new PrintWriter(csvOutputFile)) {
+            data.stream()
+                    .forEach(pw::println);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private static String generateIndividualOld(List<Node> nodes) {
+        Map<String, String> individual = new HashMap<>();
+        boolean done = false;
+        Random random = new Random();
+        while (!done) {
+            done = true;
+            for (Node node : nodes) {
+                if (individual.get(node.getName()) == null) {
+                    done = false;
+                    //this attribute does not have a value yet
+                    double x = random.nextDouble();
+                    double y = 0;
+                    for (Theta theta : node.getProbabilities()) {
+                        if (node.getParents().size() == 0) {
+                            //no parents, just select a random value
+                            y += theta.getP();
+                            if (x <= y) {
+                                AttributeRequirement local = theta.getLocalRequirement();
+                                if (!local.isRange()) {
+                                    individual.put(node.getName(), local.getValue().getValue());
+                                } else {
+                                    //generate a number from the range
+                                    Double upper = Double.valueOf(local.getUpperLimit().getValue());
+                                    Double lower = Double.valueOf(local.getLowerLimit().getValue());
+                                    Double generated = random.nextDouble() * (upper - lower) + lower;
+                                    individual.put(node.getName(),
+                                                   String.valueOf(round(generated, local.getLowerLimit().getType())));
+                                }
+                                break;
+                            }
+                        } else {
+                            //node has parents, so check if parent values have been selected yet
+                            boolean correctTheta = true;
+                            for (ParentValue parent : theta.getParents()) {
+                                if (individual.get(parent.getName()) == null) {
+                                    //not all parents are selected, move on
+                                    correctTheta = false;
+                                    break;
+                                } else {
+                                    Attribute a = new Attribute(parent.getRequirement().getValue().getType(),
+                                                                individual.get(parent.getName()), parent.getName());
+                                    if (!parent.getRequirement().checkRequirement(
+                                            a)) {
+                                        //A parent has the wrong value for this theta, move on
+                                        correctTheta = false;
+                                        break;
+                                    }
+
+                                }
+                            }
+                            if (correctTheta) {
+                                y += theta.getP();
+                                if (x <= y) {
+                                    AttributeRequirement local = theta.getLocalRequirement();
+                                    if (!local.isRange()) {
+                                        individual.put(node.getName(), local.getValue().getValue());
+                                    } else {
+                                        //generate a number from the range
+                                        Double upper = Double.valueOf(local.getUpperLimit().getValue());
+                                        Double lower = Double.valueOf(local.getLowerLimit().getValue());
+                                        Double generated = random.nextDouble() * (upper - lower) + lower;
+                                        individual.put(node.getName(), String.valueOf(
+                                                round(generated, local.getLowerLimit().getType())));
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        String s = "";
+        int i = 0;
+        for (Node node : nodes) {
+            if (i > 0) {
+                s += ",";
+            }
+            i++;
+            s += individual.get(node.getName());
+        }
+
+        return s;
     }
 
 
@@ -128,22 +249,12 @@ public final class WEKAExpectationMaximiation {
                                 if (!local.isRange()) {
                                     individual.put(node.getName(), local.getValue().getValue());
                                 } else {
-                                    if (local.expectsUnknown()) {
-                                        individual.put(node.getName(), "?");
-                                    } else {
-                                        //generate a number from the range
-                                        if (node.getType() == Attribute.AttributeType.real) {
-                                            Double upper = Double.valueOf(local.getUpperLimit().getValue());
-                                            Double lower = Double.valueOf(local.getLowerLimit().getValue());
-                                            Double generated = random.nextDouble() * (upper - lower) + lower;
-                                            individual.put(node.getName(), String.valueOf(generated));
-                                        } else {
-                                            Integer upper = Integer.valueOf(local.getUpperLimit().getValue());
-                                            Integer lower = Integer.valueOf(local.getLowerLimit().getValue());
-                                            Integer generated = random.nextInt(upper - lower) + lower;
-                                            individual.put(node.getName(), String.valueOf(generated));
-                                        }
-                                    }
+                                    //generate a number from the range
+                                    Double upper = Double.valueOf(local.getUpperLimit().getValue());
+                                    Double lower = Double.valueOf(local.getLowerLimit().getValue());
+                                    Double generated = random.nextDouble() * (upper - lower) + lower;
+                                    individual.put(node.getName(),
+                                                   String.valueOf(round(generated, local.getLowerLimit().getType())));
                                 }
                                 break;
                             }
@@ -156,14 +267,8 @@ public final class WEKAExpectationMaximiation {
                                     correctTheta = false;
                                     break;
                                 } else {
-                                    Attribute a;
-                                    if (parent.getRequirement().isRange()) {
-                                        a = new Attribute(parent.getRequirement().getLowerLimit().getType(),
-                                                          individual.get(parent.getName()), parent.getName());
-                                    } else {
-                                        a = new Attribute(parent.getRequirement().getValue().getType(),
-                                                          individual.get(parent.getName()), parent.getName());
-                                    }
+                                    Attribute a = new Attribute(parent.getRequirement().getValue().getType(),
+                                                                individual.get(parent.getName()), parent.getName());
                                     if (!parent.getRequirement().checkRequirement(
                                             a)) {
                                         //A parent has the wrong value for this theta, move on
@@ -181,14 +286,11 @@ public final class WEKAExpectationMaximiation {
                                         individual.put(node.getName(), local.getValue().getValue());
                                     } else {
                                         //generate a number from the range
-                                        if (local.expectsUnknown()) {
-                                            individual.put(node.getName(), "?");
-                                        } else {
-                                            Double upper = Double.valueOf(local.getUpperLimit().getValue());
-                                            Double lower = Double.valueOf(local.getLowerLimit().getValue());
-                                            Double generated = random.nextDouble() * (upper - lower) + lower;
-                                            individual.put(node.getName(), String.valueOf(generated));
-                                        }
+                                        Double upper = Double.valueOf(local.getUpperLimit().getValue());
+                                        Double lower = Double.valueOf(local.getLowerLimit().getValue());
+                                        Double generated = random.nextDouble() * (upper - lower) + lower;
+                                        individual.put(node.getName(), String.valueOf(
+                                                round(generated, local.getLowerLimit().getType())));
                                     }
                                     break;
                                 }
@@ -231,6 +333,13 @@ public final class WEKAExpectationMaximiation {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    private static double round(double value, Attribute.AttributeType type) {
+        int decimals = type == Attribute.AttributeType.numeric ? 0 : 3;
+        BigDecimal bd = new BigDecimal(Double.toString(value));
+        bd = bd.setScale(decimals, RoundingMode.HALF_UP);
+        return bd.doubleValue();
     }
 
 }
