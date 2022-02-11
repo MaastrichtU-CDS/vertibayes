@@ -8,8 +8,8 @@ import com.florian.vertibayes.bayes.*;
 import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.webservice.domain.InitCentralServerRequest;
+import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationResponse;
 import com.florian.vertibayes.webservice.domain.external.WebBayesNetwork;
-import com.florian.vertibayes.webservice.domain.external.WebNode;
 import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -70,19 +70,14 @@ public class VertiBayesCentralServer extends CentralServer {
     }
 
     @PostMapping ("ExpectationMaximization")
-    public WebBayesNetwork expectationMaximization(@RequestBody WebBayesNetwork req) throws Exception {
+    public ExpectationMaximizationResponse expectationMaximization(@RequestBody WebBayesNetwork req) throws Exception {
         initEndpoints();
         endpoints.stream().forEach(x -> x.initEndpoints());
         List<Node> nodes = WebNodeMapper.mapWebNodeToNode(req.getNodes());
         initNodesMaximumLikelyhood(nodes);
         initThetas(nodes);
 
-        List<WebNode> webNodes = wekaExpectationMaximization(mapWebNodeFromNode(nodes), SAMPLE_SIZE, req.getTarget());
-
-        WebBayesNetwork response = new WebBayesNetwork();
-        response.setTarget(req.getTarget());
-        response.setNodes(webNodes);
-        return response;
+        return wekaExpectationMaximization(mapWebNodeFromNode(nodes), SAMPLE_SIZE, req.getTarget());
     }
 
     @PostMapping ("initCentralServer")

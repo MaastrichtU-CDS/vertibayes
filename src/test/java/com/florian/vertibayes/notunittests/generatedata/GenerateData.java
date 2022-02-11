@@ -375,7 +375,7 @@ public class GenerateData {
         return s;
     }
 
-    private VertiBayesCentralServer createCentral(String firsthalf, String secondhalf) {
+    public static VertiBayesCentralServer createCentral(String firsthalf, String secondhalf) {
         BayesServer station1 = new BayesServer(firsthalf, "1");
         BayesServer station2 = new BayesServer(secondhalf, "2");
 
