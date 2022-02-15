@@ -9,6 +9,7 @@ import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.webservice.domain.InitCentralServerRequest;
 import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationResponse;
+import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationTestResponse;
 import com.florian.vertibayes.webservice.domain.external.WebBayesNetwork;
 import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,12 +37,17 @@ public class VertiBayesCentralServer extends CentralServer {
     private Network network;
     private List<ServerEndpoint> endpoints = new ArrayList<>();
     private ServerEndpoint secretEndpoint;
+    private boolean testing = false;
     private boolean isCentral = false;
 
     private static final double MINIMUM_LIKELYHOOD = 0.001;
 
     public VertiBayesCentralServer() {
 
+    }
+
+    public VertiBayesCentralServer(boolean testing) {
+        this.testing = testing;
     }
 
     @GetMapping ("buildNetwork")
@@ -77,7 +83,14 @@ public class VertiBayesCentralServer extends CentralServer {
         initNodesMaximumLikelyhood(nodes);
         initThetas(nodes);
 
-        return wekaExpectationMaximization(mapWebNodeFromNode(nodes), SAMPLE_SIZE, req.getTarget());
+        ExpectationMaximizationTestResponse res = wekaExpectationMaximization(mapWebNodeFromNode(nodes), SAMPLE_SIZE,
+                                                                              req.getTarget());
+        if (!testing) {
+            ExpectationMaximizationResponse response = new ExpectationMaximizationResponse();
+            response.setNodes(res.getNodes());
+            return response;
+        }
+        return res;
     }
 
     @PostMapping ("initCentralServer")

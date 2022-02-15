@@ -1,6 +1,6 @@
 package com.florian.vertibayes.weka;
 
-import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationResponse;
+import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationTestResponse;
 import com.florian.vertibayes.webservice.domain.external.WebNode;
 import weka.classifiers.bayes.BayesNet;
 import weka.classifiers.bayes.net.estimate.SimpleEstimator;
@@ -25,8 +25,8 @@ public final class WEKAExpectationMaximiation {
     private WEKAExpectationMaximiation() {
     }
 
-    public static ExpectationMaximizationResponse wekaExpectationMaximization(List<WebNode> nodes, int sampleSize,
-                                                                              String target)
+    public static ExpectationMaximizationTestResponse wekaExpectationMaximization(List<WebNode> nodes, int sampleSize,
+                                                                                  String target)
             throws Exception {
 
         generateDataARRF(mapWebNodeToNode(nodes), SAMPLE_SIZE, ARFF);
@@ -52,7 +52,7 @@ public final class WEKAExpectationMaximiation {
 
         network.buildClassifier(data);
 
-        ExpectationMaximizationResponse response = new ExpectationMaximizationResponse();
+        ExpectationMaximizationTestResponse response = new ExpectationMaximizationTestResponse();
         response.setWeka(network);
         response.setNodes(fromBif(network.graph()));
         return response;

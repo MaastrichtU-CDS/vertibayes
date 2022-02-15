@@ -13,6 +13,8 @@ import static com.florian.vertibayes.util.PrintingPress.printARFF;
 
 public final class DataGeneration {
 
+    public static final double MAX_VALUE = 0.99;
+
     private DataGeneration() {
     }
 
@@ -82,6 +84,10 @@ public final class DataGeneration {
                                         Double upper = Double.valueOf(local.getUpperLimit().getValue());
                                         Double lower = Double.valueOf(local.getLowerLimit().getValue());
                                         Double generated = random.nextDouble() * (upper - lower) + lower;
+                                        if (round(generated, local.getLowerLimit().getType()) == upper) {
+                                            // don't generate values equal to upperlimit
+                                            generated = MAX_VALUE * upper;
+                                        }
                                         individual.put(node.getName(),
                                                        String.valueOf(
                                                                round(generated, local.getLowerLimit().getType())));
@@ -98,7 +104,13 @@ public final class DataGeneration {
                                     correctTheta = false;
                                     break;
                                 } else {
-                                    Attribute a = new Attribute(parent.getRequirement().getValue().getType(),
+                                    Attribute.AttributeType type = null;
+                                    if (parent.getRequirement().isRange()) {
+                                        type = parent.getRequirement().getLowerLimit().getType();
+                                    } else {
+                                        type = parent.getRequirement().getValue().getType();
+                                    }
+                                    Attribute a = new Attribute(type,
                                                                 individual.get(parent.getName()), parent.getName());
                                     if (!parent.getRequirement().checkRequirement(
                                             a)) {
@@ -123,6 +135,10 @@ public final class DataGeneration {
                                             Double upper = Double.valueOf(local.getUpperLimit().getValue());
                                             Double lower = Double.valueOf(local.getLowerLimit().getValue());
                                             Double generated = random.nextDouble() * (upper - lower) + lower;
+                                            if (round(generated, local.getLowerLimit().getType()) == upper) {
+                                                // don't generate values equal to upperlimit
+                                                generated = MAX_VALUE * upper;
+                                            }
                                             individual.put(node.getName(), String.valueOf(
                                                     round(generated, local.getLowerLimit().getType())));
                                         }

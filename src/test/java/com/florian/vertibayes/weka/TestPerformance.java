@@ -5,6 +5,7 @@ import com.florian.vertibayes.webservice.BayesServer;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
 import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationResponse;
+import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationTestResponse;
 import com.florian.vertibayes.webservice.domain.external.WebBayesNetwork;
 import com.florian.vertibayes.webservice.domain.external.WebNode;
 import org.junit.jupiter.api.Test;
@@ -352,7 +353,8 @@ public class TestPerformance {
     }
 
     private double vertiBayesAsiaTest(String left, String right, Instances testData, String target) throws Exception {
-        ExpectationMaximizationResponse response = generateModel(buildAsiaNetwork(), left, right, target);
+        ExpectationMaximizationTestResponse response = (ExpectationMaximizationTestResponse) generateModel(
+                buildAsiaNetwork(), left, right, target);
         BayesNet network = response.getWeka();
 
         Evaluation eval = new Evaluation(testData);
@@ -361,7 +363,8 @@ public class TestPerformance {
     }
 
     private double vertiBayesAlarmTest(String left, String right, Instances testData, String target) throws Exception {
-        ExpectationMaximizationResponse response = generateModel(buildAlarmNetwork(), left, right, target);
+        ExpectationMaximizationTestResponse response = (ExpectationMaximizationTestResponse) generateModel(
+                buildAlarmNetwork(), left, right, target);
         BayesNet network = response.getWeka();
 
         Evaluation eval = new Evaluation(testData);
@@ -370,7 +373,8 @@ public class TestPerformance {
     }
 
     private double vertiBayesIrisTest(String left, String right, Instances testData, String target) throws Exception {
-        ExpectationMaximizationResponse response = generateModel(buildIrisNetworkBinned(), left, right, target);
+        ExpectationMaximizationTestResponse response = (ExpectationMaximizationTestResponse) generateModel(
+                buildIrisNetworkBinned(), left, right, target);
         BayesNet network = response.getWeka();
 
         Evaluation eval = new Evaluation(testData);
@@ -380,7 +384,8 @@ public class TestPerformance {
 
     private double vertiBayesIrisMissingTest(String left, String right, Instances testData, String target)
             throws Exception {
-        ExpectationMaximizationResponse response = generateModel(buildIrisNetworkBinnedMissing(), left, right, target);
+        ExpectationMaximizationTestResponse response = (ExpectationMaximizationTestResponse) generateModel(
+                buildIrisNetworkBinnedMissing(), left, right, target);
         BayesNet network = response.getWeka();
 
         Evaluation eval = new Evaluation(testData);
@@ -461,7 +466,7 @@ public class TestPerformance {
         station1.setEndpoints(all);
         station2.setEndpoints(all);
 
-        VertiBayesCentralServer central = new VertiBayesCentralServer();
+        VertiBayesCentralServer central = new VertiBayesCentralServer(true);
         central.initEndpoints(Arrays.asList(endpoint1, endpoint2), secretEnd);
         return central;
     }
