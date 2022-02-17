@@ -84,10 +84,13 @@ public class TestPerformance {
     // TO TEST MANUALLY USE TEST.ARFF THAT IS GENERATED DURING THESE TEST CASES AS THE BASELINE THEN COMPARE TO
     // THE CORRESPONDING TEST FILE
 
-    // ALARM TAKES ABOUT 11 MINUTES TO TRAIN ONCE
-    // IRIS ABOUT 1
-    // ASIA ABOUT 5
-    // MISSING DATA ARE EVEN SLOWER DUE TO THE EXTRA CPD'S THAT NEED TO BE CALCULATED
+    // ALARM TAKES ABOUT 5 MINUTES TO TRAIN ONCE
+    // IRIS ABOUT 1.5
+    // ASIA ABOUT 20 seconds
+    // MISSING DATA ARE EVEN SLOWER DUE TO THE EXTRA CPD'S THAT NEED TO BE CALCULATED (ALARM GOES TO 11)
+    // BOTTLENECK IS POSED BY NUMBER OF VALUES IN CPD WHICH IS DEPENDEND ON THE NUMBER OF UNIQUE ATTRIBUTE VALUES
+    // (OR BINS) AS WELL AS THE AMOUNT OF PARENT-CHILD RELATIONSHIPS (E.G. 1 PARENT WITH 2 VALUES FOR A CHILD WITH 2
+    // VALUES = 4 VALUES IN THE CPD, 2 PARENTS WITH 2 VALUES = 8 VALUES IN THE CPD)
 
     // FULL K-FOLD TESTCASE WILL TAKE HOURS
 
@@ -95,73 +98,125 @@ public class TestPerformance {
     public void testVertiBayesKFold() throws Exception {
         // Federated and non federated variants should have comparable performance
         // Due to the inherent randomness it is possible for the federated setup to outperform the normal setup
+
+        // Full Asia K-fold will take ~6 minutes
+        // Full Iris K-fold will take ~33 minutes
+        // Full ALARM K-fold will take ~3 hours
+        // Do not start IRIS or ALARM unless you want to wait
+
         List<Integer> folds = new ArrayList<>();
         for (int i = 0; i < FOLDS; i++) {
             folds.add(i);
         }
-        double irisFed = iris(folds);
-        double irisUnknownFed = irisUnknown(folds);
-        double iris = wekaTest("label", IRIS_WEKA_BIF, TEST_IRIS_FULL);
-        double irisUnknown = wekaTest("label", IRIS_WEKA_BIF, TEST_IRIS_FULL_MISSING);
+        long start = System.currentTimeMillis();
 
-        assertEquals(iris, irisFed, 0.025);
-        assertEquals(irisUnknown, irisUnknownFed, 0.025);
+        PerformanceTuple asiaFed = asia(folds);
+        PerformanceTuple asiaUnknownFed = asiaUnknown(folds);
+        double asia = wekaTest("lung", ASIA_WEKA_BIF, TEST_ASIA_FULL);
+        double asiaUnknown = wekaTest("lung", ASIA_WEKA_BIF, TEST_ASIA_FULL_MISSING);
 
-        System.out.println("Iris :" + iris);
-        System.out.println("Iris unknown :" + irisUnknown);
+        assertEquals(asia, asiaFed.getRealAuc(), 0.025);
+        assertEquals(asiaUnknown, asiaUnknownFed.getRealAuc(), 0.025);
+        assertEquals(asia, asiaFed.getSyntheticAuc(), 0.025);
+        assertEquals(asiaUnknown, asiaUnknownFed.getSyntheticAuc(), 0.025);
 
+        System.out.println("Asia :" + asia);
+        System.out.println("Asia unknown :" + asiaUnknown);
+        System.out.println("Validating against real data:");
         System.out.println("Federated");
-        System.out.println("Iris :" + irisFed);
-        System.out.println("Iris unknown :" + irisUnknownFed);
+        System.out.println("Asia :" + asiaFed.getRealAuc());
+        System.out.println("Asia unknown :" + asiaUnknownFed.getRealAuc());
 
-        // only turn these bottom two sets on for full testing, they take a long time
+        System.out.println("Validating against synthetic data:");
+        System.out.println("Federated");
+        System.out.println("Asia :" + asiaFed.getSyntheticAuc());
+        System.out.println("Asia unknown :" + asiaUnknownFed.getSyntheticAuc());
 
-//        double asiaFed = asia(folds);
-//        double asiaUnknownFed = asiaUnknown(folds);
-//        double asia = wekaTest("lung", ASIA_WEKA_BIF, TEST_ASIA_FULL);
-//        double asiaUnknown = wekaTest("lung", ASIA_WEKA_BIF, TEST_ASIA_FULL_MISSING);
+        System.out.println("Time: " + (System.currentTimeMillis() - start));
+        start = System.currentTimeMillis();
+
+
+//        PerformanceTuple irisFed = iris(folds);
+//        PerformanceTuple irisUnknownFed = irisUnknown(folds);
+//        double iris = wekaTest("label", IRIS_WEKA_BIF, TEST_IRIS_FULL);
+//        double irisUnknown = wekaTest("label", IRIS_WEKA_BIF, TEST_IRIS_FULL_MISSING);
 //
-//        assertEquals(asia, asiaFed, 0.025);
-//        assertEquals(asiaUnknown, asiaUnknownFed, 0.025);
+//        assertEquals(iris, irisFed.getRealAuc(), 0.025);
+//        assertEquals(irisUnknown, irisUnknownFed.getRealAuc(), 0.025);
+//        assertEquals(iris, irisFed.getSyntheticAuc(), 0.025);
+//        assertEquals(irisUnknown, irisUnknownFed.getSyntheticAuc(), 0.025);
 //
-//        System.out.println("Asia :" + asia);
-//        System.out.println("Asia unknown :" + asiaUnknown);
-//
+//        System.out.println("Iris :" + iris);
+//        System.out.println("Iris unknown :" + irisUnknown);
+//        System.out.println("Validating against real data:");
 //        System.out.println("Federated");
-//        System.out.println("Asia :" + asiaFed);
-//        System.out.println("Asia unknown :" + asiaUnknownFed);
+//        System.out.println("Iris :" + irisFed.getRealAuc());
+//        System.out.println("Iris unknown :" + irisUnknownFed.getRealAuc());
 //
-//        double alarmUnknownFed = alarmUnknown(folds);
+//        System.out.println("Validating against synthetic data:");
+//        System.out.println("Federated");
+//        System.out.println("Iris :" + irisFed.getSyntheticAuc());
+//        System.out.println("Iris unknown :" + irisUnknownFed.getSyntheticAuc());
+//
+//        System.out.println("Time: " + (System.currentTimeMillis() - start));
+//        start = System.currentTimeMillis();
+
+//        PerformanceTuple alarmFed = alarm(folds);
+//        PerformanceTuple alarmUnknownFed = alarmUnknown(folds);
 //        double alarm = wekaTest("BP", ALARM_WEKA_BIF, TEST_ALARM_FULL);
 //        double alarmUnknown = wekaTest("BP", ALARM_WEKA_BIF, TEST_ALARM_FULL_MISSING);
-//        double alarmFed = alarm(folds);
 //
-//        assertEquals(alarm, alarmFed, 0.025);
-//        assertEquals(alarmUnknown, alarmUnknownFed, 0.025);
+//        assertEquals(alarm, alarmFed.getRealAuc(), 0.025);
+//        assertEquals(alarmUnknown, alarmUnknownFed.getRealAuc(), 0.025);
+//        assertEquals(alarm, alarmFed.getSyntheticAuc(), 0.025);
+//        assertEquals(alarmUnknown, alarmUnknownFed.getSyntheticAuc(), 0.025);
 //
 //        System.out.println("Alarm :" + alarm);
 //        System.out.println("Alarm unknown :" + alarmUnknown);
-//
+//        System.out.println("Validating against real data:");
 //        System.out.println("Federated");
-//        System.out.println("Alarm :" + alarmFed);
-//        System.out.println("Alarm unknown :" + alarmUnknownFed);
+//        System.out.println("Alarm :" + alarmFed.getRealAuc());
+//        System.out.println("Alarm unknown :" + alarmUnknownFed.getRealAuc());
+//
+//        System.out.println("Validating against synthetic data:");
+//        System.out.println("Federated");
+//        System.out.println("Alarm :" + alarmFed.getSyntheticAuc());
+//        System.out.println("Alarm unknown :" + alarmUnknownFed.getSyntheticAuc());
+//
+//        System.out.println("Time: " + (System.currentTimeMillis() - start));
     }
 
     @Test
     public void testVertiBayesNoFold() throws Exception {
+        long start = System.currentTimeMillis();
         testVertiBayesFullDataSetIris();
+        System.out.println("Time: " + (System.currentTimeMillis() - start));
+        start = System.currentTimeMillis();
         testVertiBayesFullDataSetMissingIris();
-        //only turn these bottom two sets on for full testing, they take a long time
+        System.out.println("Time: " + (System.currentTimeMillis() - start));
+        start = System.currentTimeMillis();
 
-//        testVertiBayesFullDataSetAsia();
-//        testVertiBayesFullDataSetMissingAsia();
-//
+
+        testVertiBayesFullDataSetAsia();
+        System.out.println("Time: " + (System.currentTimeMillis() - start));
+        start = System.currentTimeMillis();
+        testVertiBayesFullDataSetMissingAsia();
+        System.out.println("Time: " + (System.currentTimeMillis() - start));
+        start = System.currentTimeMillis();
+
+        // do not turn on ALARM unless you have the time to wait
+
 //        testVertiBayesFullDataSetAlarm();
+//        System.out.println("Time: " + (System.currentTimeMillis() - start));
+//        start = System.currentTimeMillis();
 //        testVertiBayesFullDataSetMissingAlarm();
+//        System.out.println("Time: " + (System.currentTimeMillis() - start));
+//        start = System.currentTimeMillis();
     }
 
     private void testVertiBayesFullDataSetIris() throws Exception {
-        double auc = vertiBayesIrisTest(FIRSTHALF_IRIS, SECONDHALF_IRIS, readData("label", TEST_IRIS_FULL), "label");
+        double auc = vertiBayesIrisTest(FIRSTHALF_IRIS, SECONDHALF_IRIS, readData("label", TEST_IRIS_FULL),
+                                        "label").getRealAuc();
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
@@ -171,7 +226,7 @@ public class TestPerformance {
 
     private void testVertiBayesFullDataSetMissingIris() throws Exception {
         double auc = vertiBayesIrisMissingTest(FIRSTHALF_IRIS_MISSING, SECONDHALF_IRIS_MISSING,
-                                               readData("label", TEST_IRIS_FULL_MISSING), "label");
+                                               readData("label", TEST_IRIS_FULL_MISSING), "label").getRealAuc();
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
@@ -181,7 +236,7 @@ public class TestPerformance {
 
     private void testVertiBayesFullDataSetAlarm() throws Exception {
         double auc = vertiBayesAlarmTest(FIRSTHALF_ALARM, SECONDHALF_ALARM, readData("BP", TEST_ALARM_FULL),
-                                         "BP");
+                                         "BP").getRealAuc();
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
@@ -192,7 +247,7 @@ public class TestPerformance {
 
     private void testVertiBayesFullDataSetMissingAlarm() throws Exception {
         double auc = vertiBayesAlarmTest(FIRSTHALF_ALARM_MISSING, SECONDHALF_ALARM_MISSING,
-                                         readData("BP", TEST_ALARM_FULL_MISSING), "BP");
+                                         readData("BP", TEST_ALARM_FULL_MISSING), "BP").getRealAuc();
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
@@ -203,7 +258,7 @@ public class TestPerformance {
 
     private void testVertiBayesFullDataSetAsia() throws Exception {
         double auc = vertiBayesAsiaTest(FIRSTHALF_ASIA, SECONDHALF_ASIA, readData("lung", TEST_ASIA_FULL),
-                                        "lung");
+                                        "lung").getRealAuc();
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
@@ -214,7 +269,7 @@ public class TestPerformance {
 
     private void testVertiBayesFullDataSetMissingAsia() throws Exception {
         double auc = vertiBayesAsiaTest(FIRSTHALF_ASIA_MISSING, SECONDHALF_ASIA_MISSING,
-                                        readData("lung", TEST_ASIA_FULL_MISSING), "lung");
+                                        readData("lung", TEST_ASIA_FULL_MISSING), "lung").getRealAuc();
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
@@ -222,9 +277,9 @@ public class TestPerformance {
         assertEquals(auc, 0.78, 0.025);
     }
 
-    private double asia(List<Integer> folds) throws Exception {
-        List<Double> auc = new ArrayList<>();
+    private PerformanceTuple asia(List<Integer> folds) throws Exception {
         double aucSum = 0;
+        double aucSumSynthetic = 0;
         //no unknowns
         for (Integer fold : folds) {
             List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
@@ -232,19 +287,27 @@ public class TestPerformance {
                     .replace("]", "").replace(" ", "").replace(",", "");
             String left = FOLD_LEFTHALF_ASIA + ids + ".csv";
             String right = FOLD_RIGHTHALF_ASIA + ids + ".csv";
-            auc.add(vertiBayesAsiaTest(left, right, readData("lung", TEST_FOLD_ASIA + fold + "WEKA.arff"),
-                                       "lung"));
-            assertEquals(auc.get(auc.size() - 1), 0.96, 0.05);
-            aucSum += auc.get(auc.size() - 1);
+            PerformanceTuple res = vertiBayesAsiaTest(left, right,
+                                                      readData("lung", TEST_FOLD_ASIA + fold + "WEKA.arff"),
+                                                      "lung");
+            assertEquals(res.getRealAuc(), 0.96, 0.05);
+            assertEquals(res.getSyntheticAuc(), 0.96, 0.05);
+            aucSum += res.getRealAuc();
+            aucSumSynthetic += res.getSyntheticAuc();
         }
         double averageAUC = aucSum / folds.size();
+        double averageAUCSynthetic = aucSumSynthetic / folds.size();
         assertEquals(averageAUC, 0.99, 0.025);
-        return averageAUC;
+        assertEquals(averageAUCSynthetic, 0.99, 0.025);
+        PerformanceTuple tuple = new PerformanceTuple();
+        tuple.setRealAuc(averageAUC);
+        tuple.setSyntheticAuc(averageAUCSynthetic);
+        return tuple;
     }
 
-    private double asiaUnknown(List<Integer> folds) throws Exception {
-        List<Double> auc = new ArrayList<>();
+    private PerformanceTuple asiaUnknown(List<Integer> folds) throws Exception {
         double aucSum = 0;
+        double aucSumSynthetic = 0;
         //unknowns
         for (Integer fold : folds) {
             List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
@@ -252,23 +315,30 @@ public class TestPerformance {
                     .replace("]", "").replace(" ", "").replace(",", "");
             String left = FOLD_LEFTHALF_ASIA_MISSING + ids + ".csv";
             String right = FOLD_RIGHTHALF_ASIA_MISSING + ids + ".csv";
-            auc.add(vertiBayesAsiaTest(left, right,
-                                       readData("lung", TEST_FOLD_ASIA + "missing" + fold + "WEKA.arff"),
-                                       "lung"));
+            PerformanceTuple res = vertiBayesAsiaTest(left, right,
+                                                      readData("lung", TEST_FOLD_ASIA + "missing" + fold + "WEKA.arff"),
+                                                      "lung");
             //the difference between a good and a bad fold can be quite big here dependin on RNG.
             //The average is still going to be quite close to .78 though
-            assertEquals(auc.get(auc.size() - 1), 0.78, 0.04);
-            aucSum += auc.get(auc.size() - 1);
+            assertEquals(res.getRealAuc(), 0.78, 0.04);
+            assertEquals(res.getSyntheticAuc(), 0.78, 0.04);
+            aucSum += res.getRealAuc();
+            aucSumSynthetic += res.getSyntheticAuc();
         }
         double averageAUC = aucSum / folds.size();
+        double averageAUCSynthetic = aucSumSynthetic / folds.size();
         assertEquals(averageAUC, 0.78, 0.04);
-        return averageAUC;
+        assertEquals(averageAUCSynthetic, 0.78, 0.04);
+        PerformanceTuple tuple = new PerformanceTuple();
+        tuple.setRealAuc(averageAUC);
+        tuple.setSyntheticAuc(averageAUCSynthetic);
+        return tuple;
     }
 
 
-    private double alarm(List<Integer> folds) throws Exception {
-        List<Double> auc = new ArrayList<>();
+    private PerformanceTuple alarm(List<Integer> folds) throws Exception {
         double aucSum = 0;
+        double aucSumSynthetic = 0;
         //no unknowns
         for (Integer fold : folds) {
             List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
@@ -276,19 +346,27 @@ public class TestPerformance {
                     .replace("]", "").replace(" ", "").replace(",", "");
             String left = FOLD_LEFTHALF_ALARM + ids + ".csv";
             String right = FOLD_RIGHTHALF_ALARM + ids + ".csv";
-            auc.add(vertiBayesAlarmTest(left, right, readData("BP", TEST_FOLD_ALARM + fold + "WEKA.arff"),
-                                        "BP"));
-            assertEquals(auc.get(auc.size() - 1), 0.91, 0.025);
-            aucSum += auc.get(auc.size() - 1);
+            PerformanceTuple res = vertiBayesAlarmTest(left, right,
+                                                       readData("BP", TEST_FOLD_ALARM + fold + "WEKA.arff"),
+                                                       "BP");
+            assertEquals(res.getRealAuc(), 0.91, 0.025);
+            assertEquals(res.getSyntheticAuc(), 0.91, 0.025);
+            aucSum += res.getRealAuc();
+            aucSumSynthetic += res.getSyntheticAuc();
         }
         double averageAUC = aucSum / folds.size();
+        double averageAUCSynthetic = aucSumSynthetic / folds.size();
         assertEquals(averageAUC, 0.91, 0.025);
-        return averageAUC;
+        assertEquals(averageAUCSynthetic, 0.91, 0.025);
+        PerformanceTuple tuple = new PerformanceTuple();
+        tuple.setRealAuc(averageAUC);
+        tuple.setSyntheticAuc(averageAUCSynthetic);
+        return tuple;
     }
 
-    private double alarmUnknown(List<Integer> folds) throws Exception {
-        List<Double> auc = new ArrayList<>();
+    private PerformanceTuple alarmUnknown(List<Integer> folds) throws Exception {
         double aucSum = 0;
+        double aucSumSynthetic = 0;
         //unknowns
         for (Integer fold : folds) {
             List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
@@ -296,22 +374,30 @@ public class TestPerformance {
                     .replace("]", "").replace(" ", "").replace(",", "");
             String left = FOLD_LEFTHALF_ALARM_MISSING + ids + ".csv";
             String right = FOLD_RIGHTHALF_ALARM_MISSING + ids + ".csv";
-            auc.add(vertiBayesAlarmTest(left, right,
-                                        readData("BP", TEST_FOLD_ALARM + "missing" + fold + "WEKA.arff"),
-                                        "BP"));
+            PerformanceTuple res = vertiBayesAlarmTest(left, right,
+                                                       readData("BP", TEST_FOLD_ALARM + "missing" + fold + "WEKA.arff"),
+                                                       "BP");
             //the difference between a good and a bad fold can be quite big here dependin on RNG.
             //The average is still going to be quite close to .88 though
-            assertEquals(auc.get(auc.size() - 1), 0.88, 0.025);
-            aucSum += auc.get(auc.size() - 1);
+            assertEquals(res.getRealAuc(), 0.88, 0.025);
+            assertEquals(res.getSyntheticAuc(), 0.88, 0.025);
+            aucSum += res.getRealAuc();
+            aucSumSynthetic += res.getSyntheticAuc();
         }
         double averageAUC = aucSum / folds.size();
+        double averageAUCSynthetic = aucSumSynthetic / folds.size();
         assertEquals(averageAUC, 0.88, 0.025);
-        return averageAUC;
+        assertEquals(averageAUCSynthetic, 0.88, 0.025);
+
+        PerformanceTuple tuple = new PerformanceTuple();
+        tuple.setRealAuc(averageAUC);
+        tuple.setSyntheticAuc(averageAUCSynthetic);
+        return tuple;
     }
 
-    private double iris(List<Integer> folds) throws Exception {
-        List<Double> auc = new ArrayList<>();
+    private PerformanceTuple iris(List<Integer> folds) throws Exception {
         double aucSum = 0;
+        double aucSumSynthetic = 0;
         //no unknowns
         for (Integer fold : folds) {
             List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
@@ -319,19 +405,27 @@ public class TestPerformance {
                     .replace("]", "").replace(" ", "").replace(",", "");
             String left = FOLD_LEFTHALF_IRIS + ids + ".csv";
             String right = FOLD_RIGHTHALF_IRIS + ids + ".csv";
-            auc.add(vertiBayesIrisTest(left, right, readData("label", TEST_FOLD_IRIS + fold + "WEKA.arff"),
-                                       "label"));
-            assertEquals(auc.get(auc.size() - 1), 0.96, 0.05);
-            aucSum += auc.get(auc.size() - 1);
+            PerformanceTuple res = vertiBayesIrisTest(left, right,
+                                                      readData("label", TEST_FOLD_IRIS + fold + "WEKA.arff"),
+                                                      "label");
+            assertEquals(res.getRealAuc(), 0.96, 0.05);
+            assertEquals(res.getSyntheticAuc(), 0.96, 0.05);
+            aucSum += res.getRealAuc();
+            aucSumSynthetic += res.getSyntheticAuc();
         }
         double averageAUC = aucSum / folds.size();
+        double averageAUCSynthetic = aucSumSynthetic / folds.size();
         assertEquals(averageAUC, 0.96, 0.05);
-        return averageAUC;
+        assertEquals(averageAUCSynthetic, 0.96, 0.05);
+        PerformanceTuple tuple = new PerformanceTuple();
+        tuple.setRealAuc(averageAUC);
+        tuple.setSyntheticAuc(averageAUCSynthetic);
+        return tuple;
     }
 
-    private double irisUnknown(List<Integer> folds) throws Exception {
-        List<Double> auc = new ArrayList<>();
+    private PerformanceTuple irisUnknown(List<Integer> folds) throws Exception {
         double aucSum = 0;
+        double aucSumSynthetic = 0;
         //unknowns
         for (Integer fold : folds) {
             List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
@@ -339,58 +433,82 @@ public class TestPerformance {
                     .replace("]", "").replace(" ", "").replace(",", "");
             String left = FOLD_LEFTHALF_IRIS_MISSING + ids + ".csv";
             String right = FOLD_RIGHTHALF_IRIS_MISSING + ids + ".csv";
-            auc.add(vertiBayesIrisMissingTest(left, right,
-                                              readData("label", TEST_FOLD_IRIS + "missing" + fold + "WEKA.arff"),
-                                              "label"));
+            PerformanceTuple res = vertiBayesIrisMissingTest(left, right,
+                                                             readData("label",
+                                                                      TEST_FOLD_IRIS + "missing" + fold + "WEKA.arff"),
+                                                             "label");
             //the difference between a good and a bad fold can be quite big here dependin on RNG.
             //The average is still going to be quite close to .96 though
-            assertEquals(auc.get(auc.size() - 1), 0.96, 0.1);
-            aucSum += auc.get(auc.size() - 1);
+            assertEquals(res.getRealAuc(), 0.96, 0.1);
+            assertEquals(res.getSyntheticAuc(), 0.96, 0.1);
+            aucSum += res.getRealAuc();
+            aucSumSynthetic += res.getSyntheticAuc();
         }
         double averageAUC = aucSum / folds.size();
+        double averageAUCSynthetic = aucSumSynthetic / folds.size();
         assertEquals(averageAUC, 0.96, 0.04);
-        return averageAUC;
+        assertEquals(averageAUCSynthetic, 0.96, 0.04);
+
+        PerformanceTuple tuple = new PerformanceTuple();
+        tuple.setRealAuc(averageAUC);
+        tuple.setSyntheticAuc(averageAUCSynthetic);
+        return tuple;
     }
 
-    private double vertiBayesAsiaTest(String left, String right, Instances testData, String target) throws Exception {
+    private PerformanceTuple vertiBayesAsiaTest(String left, String right, Instances testData, String target)
+            throws Exception {
         ExpectationMaximizationTestResponse response = (ExpectationMaximizationTestResponse) generateModel(
                 buildAsiaNetwork(), left, right, target);
         BayesNet network = response.getWeka();
 
         Evaluation eval = new Evaluation(testData);
         eval.evaluateModel(network, testData);
-        return eval.weightedAreaUnderROC();
+        PerformanceTuple res = new PerformanceTuple();
+        res.setSyntheticAuc(response.getSyntheticAuc());
+        res.setRealAuc(eval.weightedAreaUnderROC());
+        return res;
     }
 
-    private double vertiBayesAlarmTest(String left, String right, Instances testData, String target) throws Exception {
+    private PerformanceTuple vertiBayesAlarmTest(String left, String right, Instances testData, String target)
+            throws Exception {
         ExpectationMaximizationTestResponse response = (ExpectationMaximizationTestResponse) generateModel(
                 buildAlarmNetwork(), left, right, target);
         BayesNet network = response.getWeka();
 
         Evaluation eval = new Evaluation(testData);
         eval.evaluateModel(network, testData);
-        return eval.weightedAreaUnderROC();
+        PerformanceTuple res = new PerformanceTuple();
+        res.setSyntheticAuc(response.getSyntheticAuc());
+        res.setRealAuc(eval.weightedAreaUnderROC());
+        return res;
     }
 
-    private double vertiBayesIrisTest(String left, String right, Instances testData, String target) throws Exception {
+    private PerformanceTuple vertiBayesIrisTest(String left, String right, Instances testData, String target)
+            throws Exception {
         ExpectationMaximizationTestResponse response = (ExpectationMaximizationTestResponse) generateModel(
                 buildIrisNetworkBinned(), left, right, target);
         BayesNet network = response.getWeka();
 
         Evaluation eval = new Evaluation(testData);
         eval.evaluateModel(network, testData);
-        return eval.weightedAreaUnderROC();
+        PerformanceTuple res = new PerformanceTuple();
+        res.setSyntheticAuc(response.getSyntheticAuc());
+        res.setRealAuc(eval.weightedAreaUnderROC());
+        return res;
     }
 
-    private double vertiBayesIrisMissingTest(String left, String right, Instances testData, String target)
+    private PerformanceTuple vertiBayesIrisMissingTest(String left, String right, Instances testData, String target)
             throws Exception {
         ExpectationMaximizationTestResponse response = (ExpectationMaximizationTestResponse) generateModel(
                 buildIrisNetworkBinnedMissing(), left, right, target);
         BayesNet network = response.getWeka();
-
         Evaluation eval = new Evaluation(testData);
         eval.evaluateModel(network, testData);
-        return eval.weightedAreaUnderROC();
+
+        PerformanceTuple res = new PerformanceTuple();
+        res.setSyntheticAuc(response.getSyntheticAuc());
+        res.setRealAuc(eval.weightedAreaUnderROC());
+        return res;
     }
 
     private ExpectationMaximizationResponse generateModel(List<WebNode> input, String firsthalf, String secondhalf,

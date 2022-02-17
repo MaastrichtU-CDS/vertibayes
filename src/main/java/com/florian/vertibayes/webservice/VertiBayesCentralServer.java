@@ -84,7 +84,7 @@ public class VertiBayesCentralServer extends CentralServer {
         initThetas(nodes);
 
         ExpectationMaximizationTestResponse res = wekaExpectationMaximization(mapWebNodeFromNode(nodes), SAMPLE_SIZE,
-                                                                              req.getTarget());
+                                                                              req.getTarget(), testing);
         if (!testing) {
             ExpectationMaximizationResponse response = new ExpectationMaximizationResponse();
             response.setNodes(res.getNodes());

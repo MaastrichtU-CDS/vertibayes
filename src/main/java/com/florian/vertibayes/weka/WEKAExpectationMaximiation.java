@@ -2,6 +2,7 @@ package com.florian.vertibayes.weka;
 
 import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationTestResponse;
 import com.florian.vertibayes.webservice.domain.external.WebNode;
+import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.BayesNet;
 import weka.classifiers.bayes.net.estimate.SimpleEstimator;
 import weka.classifiers.bayes.net.search.fixed.FromFile;
@@ -10,6 +11,7 @@ import weka.core.Instances;
 import java.io.*;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 import static com.florian.vertibayes.util.DataGeneration.generateDataARRF;
@@ -21,12 +23,13 @@ public final class WEKAExpectationMaximiation {
     private static final String BIFF = "test.xml";
     private static final String ARFF = "test.arff";
     private static final int SAMPLE_SIZE = 10000;
+    public static final int FOLDS = 10;
 
     private WEKAExpectationMaximiation() {
     }
 
     public static ExpectationMaximizationTestResponse wekaExpectationMaximization(List<WebNode> nodes, int sampleSize,
-                                                                                  String target)
+                                                                                  String target, boolean testing)
             throws Exception {
 
         generateDataARRF(mapWebNodeToNode(nodes), SAMPLE_SIZE, ARFF);
@@ -52,7 +55,13 @@ public final class WEKAExpectationMaximiation {
 
         network.buildClassifier(data);
 
+
         ExpectationMaximizationTestResponse response = new ExpectationMaximizationTestResponse();
+        if (testing) {
+            Evaluation eval = new Evaluation(data);
+            eval.crossValidateModel(network, data, FOLDS, new Random(1));
+            response.setSyntheticAuc(eval.weightedAreaUnderROC());
+        }
         response.setWeka(network);
         response.setNodes(fromBif(network.graph()));
         return response;
