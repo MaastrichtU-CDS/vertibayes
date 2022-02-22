@@ -126,8 +126,10 @@ public class VertiBayesCentralServer extends CentralServer {
 
     private void initNodesMaximumLikelyhood(List<Node> nodes) {
         for (Node n : nodes) {
-            if (n.getType() != Attribute.AttributeType.real && n.getUniquevalues().isEmpty()) {
+            if (n.getType() != Attribute.AttributeType.real && n.getType() != Attribute.AttributeType.numeric) {
                 initNode(n);
+            } else if (n.getBins().isEmpty()) {
+                initNodeBinned(n);
             }
         }
     }
@@ -138,9 +140,15 @@ public class VertiBayesCentralServer extends CentralServer {
         }
     }
 
+    private void initNodeBinned(Node node) {
+        for (ServerEndpoint endpoint : endpoints) {
+            node.getBins().addAll(((VertiBayesEndpoint) endpoint).getBins(node.getName()));
+        }
+    }
+
     private void initThetas(List<Node> nodes) {
         for (Node node : nodes) {
-            if (node.getType() != Attribute.AttributeType.real) {
+            if (node.getType() != Attribute.AttributeType.real && node.getType() != Attribute.AttributeType.numeric) {
                 for (String unique : node.getUniquevalues()) {
                     // generate base thetas
                     Theta t = new Theta();
@@ -160,7 +168,8 @@ public class VertiBayesCentralServer extends CentralServer {
             for (Node parent : node.getParents()) {
                 // for each parent
                 List<Theta> copies = new ArrayList<>();
-                if (parent.getType() != Attribute.AttributeType.real) {
+                if (parent.getType() != Attribute.AttributeType.real &&
+                        parent.getType() != Attribute.AttributeType.numeric) {
                     for (String p : parent.getUniquevalues()) {
                         // for each parent value
                         ParentValue v = new ParentValue();

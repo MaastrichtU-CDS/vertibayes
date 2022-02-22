@@ -61,6 +61,9 @@ public class Attribute implements Comparable<Attribute> {
         if (this.isUknown() || attribute.isUknown()) {
             // Only equal if both are missing values
             return value.equals(attribute.getValue()) ? 0 : 1;
+        } else if (this.isAll() || attribute.isAll()) {
+            //if either is equal to all always return true
+            return 0;
         }
         if (type == AttributeType.bool) {
             return Boolean.parseBoolean(value) == Boolean.parseBoolean(attribute.getValue()) ? 0 : 1;
@@ -89,6 +92,11 @@ public class Attribute implements Comparable<Attribute> {
         }
         //should never come here, but java wants it
         return 0;
+    }
+
+    private boolean isAll() {
+        //check if the attribute represents all posisble values
+        return value.equals("All");
     }
 
     @Override

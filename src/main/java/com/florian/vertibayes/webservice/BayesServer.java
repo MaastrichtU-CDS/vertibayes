@@ -3,6 +3,7 @@ package com.florian.vertibayes.webservice;
 import com.florian.nscalarproduct.station.DataStation;
 import com.florian.nscalarproduct.webservice.Server;
 import com.florian.nscalarproduct.webservice.ServerEndpoint;
+import com.florian.vertibayes.bayes.Bin;
 import com.florian.vertibayes.bayes.Node;
 import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.bayes.data.Data;
@@ -23,9 +24,12 @@ import static com.florian.vertibayes.bayes.data.Parser.parseCsv;
 
 @RestController
 public class BayesServer extends Server {
+    public static final double BIN_UPPER_LIMIT_INCLUDE = 1.01;
     private Data data;
     private Map<String, Set<String>> uniqueValues = new HashMap<>();
     private List<Node> localNodes;
+    private static final int MINCOUNT = 10;
+    private static final double MINPERCENTAGE = 0.1;
 
 
     public BigInteger count() {
@@ -66,9 +70,140 @@ public class BayesServer extends Server {
         if (this.data == null) {
             readData();
         }
-        return new HashSet<>(data.getAttributeValues(attribute).stream().map(x -> x.getValue()).collect(
-                Collectors.toList()));
+        return uniqueValues.get(attribute) == null ? new HashSet<>() : uniqueValues.get(attribute);
     }
+
+    @GetMapping ("getBins")
+    public Set<Bin> getBins(String attribute) {
+        Set<Bin> bins = new HashSet<>();
+        if (this.data == null) {
+            readData();
+        }
+        if (uniqueValues.get(attribute) == null) {
+            // attribute not locally known
+            return bins;
+        }
+        Set<String> unique = uniqueValues.get(attribute) == null ? new HashSet<>() : uniqueValues.get(attribute);
+
+        if (unique.contains("?")) {
+            //create bin for unknown values
+            bins.add(createBin("?", "?"));
+            unique.remove("?");
+        }
+
+        bins.addAll(createBins(unique, attribute));
+        return bins;
+
+    }
+
+    private Set<Bin> createBins(Set<String> unique, String attribute) {
+        Bin currentBin = new Bin();
+        Bin lastBin = currentBin;
+        Set<Bin> bins = new HashSet<>();
+        if (unique.size() == 1) {
+            //only one unique value
+            String value = findSmallest(unique.stream().collect(Collectors.toList()));
+            currentBin.setUpperLimit(value);
+            currentBin.setLowerLimit(value);
+        } else {
+            //set lowest lower limit
+            String lower = findSmallest(unique.stream().collect(Collectors.toList()));
+            unique.remove(lower);
+            currentBin.setLowerLimit(lower);
+            while (unique.size() > 0) {
+                boolean lastBinToosmall = false;
+                //create bins
+                while (!binIsBigEnough(currentBin, attribute)) {
+                    if (unique.size() == 0) {
+                        //ran out of possible candidates for upperLimits before reaching a large enough bin
+                        lastBinToosmall = true;
+                        break;
+                    }
+                    //look for new upperlimit
+                    String upper = findSmallest(unique.stream().collect(Collectors.toList()));
+                    unique.remove(upper);
+                    currentBin.setUpperLimit(upper);
+                }
+                if (!lastBinToosmall) {
+                    //found a upperLimit that makes the bin big enough
+                    bins.add(currentBin);
+                    lastBin = currentBin;
+                    currentBin = new Bin();
+                    //set lower limit to the previous upperLimit
+                    currentBin.setLowerLimit(lastBin.getUpperLimit());
+                } else {
+                    //did not find a large enough bin
+                    //find last upper limit
+                    String lastUpper = "";
+                    if (currentBin.getUpperLimit() != null) {
+                        lastUpper = currentBin.getUpperLimit();
+                    } else {
+                        lastUpper = lastBin.getUpperLimit();
+                    }
+                    //increase the last upper Limit slightly so it is actually included
+                    if (data.getAttributeType(attribute) == Attribute.AttributeType.numeric) {
+                        //attribute is an integer
+                        lastUpper = String.valueOf(Integer.parseInt(lastUpper) + 1);
+                    } else {
+                        //attribute is a double
+                        lastUpper = String.valueOf(Double.parseDouble(lastUpper) * BIN_UPPER_LIMIT_INCLUDE);
+                    }
+                    lastBin.setUpperLimit(lastUpper);
+                    if (bins.size() == 0) {
+                        //if the first bin is already too small, make sure to add it at this point
+                        bins.add(lastBin);
+                    }
+                }
+
+            }
+        }
+        return bins;
+    }
+
+    private boolean binIsBigEnough(Bin currentBin, String attribute) {
+        if (currentBin.getUpperLimit() == null || currentBin.getUpperLimit().length() == 0) {
+            //bin has no upper limit yet
+            return false;
+        } else {
+            Attribute lower = new Attribute(data.getAttributeType(attribute), currentBin.getLowerLimit(), attribute);
+            Attribute upper = new Attribute(data.getAttributeType(attribute), currentBin.getUpperLimit(), attribute);
+
+            AttributeRequirement req = new AttributeRequirement(lower, upper);
+
+            //count the # of individuals that fall within this bin
+            double count = 0;
+            for (Attribute value : data.getAttributeValues(attribute)) {
+                if (req.checkRequirement(value)) {
+                    count++;
+                }
+            }
+            return count >= MINCOUNT && count / ((double) data.getNumberOfIndividuals()) >= MINPERCENTAGE;
+        }
+    }
+
+    private String findSmallest(List<String> unique) {
+        double smallest = Double.parseDouble(unique.get(0));
+        for (int i = 1; i < unique.size(); i++) {
+            double temp = Double.parseDouble(unique.get(i));
+            if (temp < smallest) {
+                smallest = temp;
+            }
+        }
+        if (smallest % 1 == 0) {
+            //manually turn into an int, otherwise java returns adds a .0
+            return String.valueOf(((int) smallest));
+        }
+        return String.valueOf(smallest);
+    }
+
+
+    private Bin createBin(String lower, String upper) {
+        Bin bin = new Bin();
+        bin.setLowerLimit(lower);
+        bin.setUpperLimit(upper);
+        return bin;
+    }
+
 
     @PutMapping ("initK2Data")
     public void initK2Data(@RequestBody AttributeRequirementsRequest request) {
@@ -120,4 +255,5 @@ public class BayesServer extends Server {
         dataStations = new HashMap<>();
         secretStations = new HashMap<>();
     }
+
 }

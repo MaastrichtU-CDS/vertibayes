@@ -55,6 +55,10 @@ public class Data {
         return collumnIds.get(name) == null ? new ArrayList<Attribute>() : data.get(collumnIds.get(name));
     }
 
+    public Attribute.AttributeType getAttributeType(String name) {
+        return data.get(collumnIds.get(name)).get(0).getType();
+    }
+
     public Integer getAttributeCollumn(String name) {
         return collumnIds.get(name);
     }

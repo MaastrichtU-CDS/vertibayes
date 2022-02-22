@@ -3,6 +3,7 @@ package com.florian.vertibayes.webservice;
 
 import com.florian.nscalarproduct.webservice.Server;
 import com.florian.nscalarproduct.webservice.ServerEndpoint;
+import com.florian.vertibayes.bayes.Bin;
 import com.florian.vertibayes.bayes.Node;
 import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.webservice.domain.AttributeRequirementsRequest;
@@ -43,6 +44,14 @@ public class VertiBayesEndpoint extends ServerEndpoint {
             return ((BayesServer) (server)).getUniqueValues(attributeName);
         }
         return REST_TEMPLATE.getForEntity(serverUrl + "/getUniqueValues?attribute=" + attributeName, Set.class)
+                .getBody();
+    }
+
+    public Set<Bin> getBins(String attributeName) {
+        if (testing) {
+            return ((BayesServer) (server)).getBins(attributeName);
+        }
+        return REST_TEMPLATE.getForEntity(serverUrl + "/getBins?attribute=" + attributeName, Set.class)
                 .getBody();
     }
 }

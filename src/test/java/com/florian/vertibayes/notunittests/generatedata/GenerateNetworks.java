@@ -86,7 +86,7 @@ public class GenerateNetworks {
         }
         sepallength.setBins(bins);
         bins = new HashSet<>();
-        for (double i = 2; i < 2.3; i += 0.1) {
+        for (double i = 2; i < 4.3; i += 0.1) {
             Bin bin = new Bin();
             bin.setLowerLimit(String.valueOf(i));
             bin.setUpperLimit(String.valueOf(i + 0.1));
@@ -102,7 +102,7 @@ public class GenerateNetworks {
         }
         petallength.setBins(bins);
         bins = new HashSet<>();
-        for (double i = 0.1; i < 2.5; i += 0.1) {
+        for (double i = 0.1; i < 2.4; i += 0.1) {
             Bin bin = new Bin();
             bin.setLowerLimit(String.valueOf(i));
             bin.setUpperLimit(String.valueOf(i + 0.1));

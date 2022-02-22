@@ -136,27 +136,54 @@ public class TestPerformance {
         start = System.currentTimeMillis();
 
 
-//        PerformanceTuple irisFed = iris(folds);
-//        PerformanceTuple irisUnknownFed = irisUnknown(folds);
-//        double iris = wekaTest("label", IRIS_WEKA_BIF, TEST_IRIS_FULL);
-//        double irisUnknown = wekaTest("label", IRIS_WEKA_BIF, TEST_IRIS_FULL_MISSING);
+        PerformanceTuple irisAutomaticFed = irisAutomatic(folds);
+        PerformanceTuple irisAutomaticUnknownFed = irisUnknown(folds);
+        double irisAutomatic = wekaTest("label", IRIS_WEKA_BIF, TEST_IRIS_FULL);
+        double irisAutomaticUnknown = wekaTest("label", IRIS_WEKA_BIF, TEST_IRIS_FULL_MISSING);
+
+        assertEquals(irisAutomatic, irisAutomaticFed.getRealAuc(), 0.025);
+        assertEquals(irisAutomaticUnknown, irisAutomaticUnknownFed.getRealAuc(), 0.025);
+        assertEquals(irisAutomatic, irisAutomaticFed.getSyntheticAuc(), 0.025);
+        assertEquals(irisAutomaticUnknown, irisAutomaticUnknownFed.getSyntheticAuc(), 0.025);
+
+        System.out.println("IrisAutomatic :" + irisAutomatic);
+        System.out.println("IrisAutomatic unknown :" + irisAutomaticUnknown);
+        System.out.println("Validating against real data:");
+        System.out.println("Federated");
+        System.out.println("IrisAutomatic :" + irisAutomaticFed.getRealAuc());
+        System.out.println("IrisAutomatic unknown :" + irisAutomaticUnknownFed.getRealAuc());
+
+        System.out.println("Validating against synthetic data:");
+        System.out.println("Federated");
+        System.out.println("IrisAutomatic :" + irisAutomaticFed.getSyntheticAuc());
+        System.out.println("IrisAutomatic unknown :" + irisAutomaticUnknownFed.getSyntheticAuc());
+
+        System.out.println("Time: " + (System.currentTimeMillis() - start));
+
+//        start = System.currentTimeMillis();
 //
-//        assertEquals(iris, irisFed.getRealAuc(), 0.025);
-//        assertEquals(irisUnknown, irisUnknownFed.getRealAuc(), 0.025);
-//        assertEquals(iris, irisFed.getSyntheticAuc(), 0.025);
-//        assertEquals(irisUnknown, irisUnknownFed.getSyntheticAuc(), 0.025);
 //
-//        System.out.println("Iris :" + iris);
-//        System.out.println("Iris unknown :" + irisUnknown);
+//        PerformanceTuple irisManualFed = irisManual(folds);
+//        PerformanceTuple irisManualUnknownFed = irisUnknown(folds);
+//        double irisManual = wekaTest("label", IRIS_WEKA_BIF, TEST_IRIS_FULL);
+//        double irisManualUnknown = wekaTest("label", IRIS_WEKA_BIF, TEST_IRIS_FULL_MISSING);
+//
+//        assertEquals(irisManual, irisManualFed.getRealAuc(), 0.025);
+//        assertEquals(irisManualUnknown, irisManualUnknownFed.getRealAuc(), 0.025);
+//        assertEquals(irisManual, irisManualFed.getSyntheticAuc(), 0.025);
+//        assertEquals(irisManualUnknown, irisManualUnknownFed.getSyntheticAuc(), 0.025);
+//
+//        System.out.println("IrisManual :" + irisManual);
+//        System.out.println("IrisManual unknown :" + irisManualUnknown);
 //        System.out.println("Validating against real data:");
 //        System.out.println("Federated");
-//        System.out.println("Iris :" + irisFed.getRealAuc());
-//        System.out.println("Iris unknown :" + irisUnknownFed.getRealAuc());
+//        System.out.println("IrisManual :" + irisManualFed.getRealAuc());
+//        System.out.println("IrisManual unknown :" + irisManualUnknownFed.getRealAuc());
 //
 //        System.out.println("Validating against synthetic data:");
 //        System.out.println("Federated");
-//        System.out.println("Iris :" + irisFed.getSyntheticAuc());
-//        System.out.println("Iris unknown :" + irisUnknownFed.getSyntheticAuc());
+//        System.out.println("IrisManual :" + irisManualFed.getSyntheticAuc());
+//        System.out.println("IrisManual unknown :" + irisManualUnknownFed.getSyntheticAuc());
 //
 //        System.out.println("Time: " + (System.currentTimeMillis() - start));
 //        start = System.currentTimeMillis();
@@ -215,13 +242,19 @@ public class TestPerformance {
     }
 
     private void testVertiBayesFullDataSetIris() throws Exception {
-        double auc = vertiBayesIrisTest(FIRSTHALF_IRIS, SECONDHALF_IRIS, readData("label", TEST_IRIS_FULL),
-                                        "label").getRealAuc();
+        double aucManual = vertiBayesIrisManualBinningTest(FIRSTHALF_IRIS, SECONDHALF_IRIS,
+                                                           readData("label", TEST_IRIS_FULL),
+                                                           "label").getRealAuc();
+
+        double aucAutomatic = vertiBayesIrisAutomaticBinningTest(FIRSTHALF_IRIS, SECONDHALF_IRIS,
+                                                                 readData("label", TEST_IRIS_FULL),
+                                                                 "label").getRealAuc();
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
         //However, due to the random factors there is some variance possible
-        assertEquals(auc, 0.98, 0.025);
+        assertEquals(aucAutomatic, 0.98, 0.025);
+        assertEquals(aucManual, 0.98, 0.025);
     }
 
     private void testVertiBayesFullDataSetMissingIris() throws Exception {
@@ -395,7 +428,7 @@ public class TestPerformance {
         return tuple;
     }
 
-    private PerformanceTuple iris(List<Integer> folds) throws Exception {
+    private PerformanceTuple irisAutomatic(List<Integer> folds) throws Exception {
         double aucSum = 0;
         double aucSumSynthetic = 0;
         //no unknowns
@@ -405,9 +438,39 @@ public class TestPerformance {
                     .replace("]", "").replace(" ", "").replace(",", "");
             String left = FOLD_LEFTHALF_IRIS + ids + ".csv";
             String right = FOLD_RIGHTHALF_IRIS + ids + ".csv";
-            PerformanceTuple res = vertiBayesIrisTest(left, right,
-                                                      readData("label", TEST_FOLD_IRIS + fold + "WEKA.arff"),
-                                                      "label");
+            PerformanceTuple res = vertiBayesIrisAutomaticBinningTest(left, right,
+                                                                      readData("label",
+                                                                               TEST_FOLD_IRIS + fold + "WEKA.arff"),
+                                                                      "label");
+            assertEquals(res.getRealAuc(), 0.96, 0.05);
+            assertEquals(res.getSyntheticAuc(), 0.96, 0.05);
+            aucSum += res.getRealAuc();
+            aucSumSynthetic += res.getSyntheticAuc();
+        }
+        double averageAUC = aucSum / folds.size();
+        double averageAUCSynthetic = aucSumSynthetic / folds.size();
+        assertEquals(averageAUC, 0.96, 0.05);
+        assertEquals(averageAUCSynthetic, 0.96, 0.05);
+        PerformanceTuple tuple = new PerformanceTuple();
+        tuple.setRealAuc(averageAUC);
+        tuple.setSyntheticAuc(averageAUCSynthetic);
+        return tuple;
+    }
+
+    private PerformanceTuple irisManual(List<Integer> folds) throws Exception {
+        double aucSum = 0;
+        double aucSumSynthetic = 0;
+        //no unknowns
+        for (Integer fold : folds) {
+            List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
+            String ids = otherFolds.stream().sorted().collect(Collectors.toList()).toString().replace("[", "")
+                    .replace("]", "").replace(" ", "").replace(",", "");
+            String left = FOLD_LEFTHALF_IRIS + ids + ".csv";
+            String right = FOLD_RIGHTHALF_IRIS + ids + ".csv";
+            PerformanceTuple res = vertiBayesIrisManualBinningTest(left, right,
+                                                                   readData("label",
+                                                                            TEST_FOLD_IRIS + fold + "WEKA.arff"),
+                                                                   "label");
             assertEquals(res.getRealAuc(), 0.96, 0.05);
             assertEquals(res.getSyntheticAuc(), 0.96, 0.05);
             aucSum += res.getRealAuc();
@@ -438,9 +501,10 @@ public class TestPerformance {
                                                                       TEST_FOLD_IRIS + "missing" + fold + "WEKA.arff"),
                                                              "label");
             //the difference between a good and a bad fold can be quite big here dependin on RNG.
+            //Hence the wide range
             //The average is still going to be quite close to .96 though
-            assertEquals(res.getRealAuc(), 0.96, 0.1);
-            assertEquals(res.getSyntheticAuc(), 0.96, 0.1);
+            assertEquals(res.getRealAuc(), 0.90, 0.1);
+            assertEquals(res.getSyntheticAuc(), 0.90, 0.1);
             aucSum += res.getRealAuc();
             aucSumSynthetic += res.getSyntheticAuc();
         }
@@ -483,7 +547,23 @@ public class TestPerformance {
         return res;
     }
 
-    private PerformanceTuple vertiBayesIrisTest(String left, String right, Instances testData, String target)
+    private PerformanceTuple vertiBayesIrisManualBinningTest(String left, String right, Instances testData,
+                                                             String target)
+            throws Exception {
+        ExpectationMaximizationTestResponse response = (ExpectationMaximizationTestResponse) generateModel(
+                buildIrisNetworkBinned(), left, right, target);
+        BayesNet network = response.getWeka();
+
+        Evaluation eval = new Evaluation(testData);
+        eval.evaluateModel(network, testData);
+        PerformanceTuple res = new PerformanceTuple();
+        res.setSyntheticAuc(response.getSyntheticAuc());
+        res.setRealAuc(eval.weightedAreaUnderROC());
+        return res;
+    }
+
+    private PerformanceTuple vertiBayesIrisAutomaticBinningTest(String left, String right, Instances testData,
+                                                                String target)
             throws Exception {
         ExpectationMaximizationTestResponse response = (ExpectationMaximizationTestResponse) generateModel(
                 buildIrisNetworkBinned(), left, right, target);
