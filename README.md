@@ -3,6 +3,23 @@
 This project implements various bayesian network prototols using the n-party scalar project protocol
 library ( https://gitlab.com/fvandaalen/n-scalar-product-protocol )
 
+#### Privacy
+
+This implementation relies on the n-party scalar product protocol mentioned earlier, and as such relies on a trusted
+third party, a different scalar product protocol could work without a trusted third party.
+
+The output of this implementation is a bayesian network. It is important to note that a bayesian network reveals P(
+X=xi|Y=yi) for each of it's attributes. Combined with knowledge about the population size this means that publishing a
+bayesian network can reveal the counts of certain attribute values, as well as the counts of certain combinations. This
+information can potentially be used to reconstruct the original database. Because of this it is important to make sure
+when publishing the bayesian network that the population size is not released to untrusted parties.
+
+It is important to note that repeat attempts to build a network with different predefined bins & different predefined
+network structures can be combined to reveal more information than a single attempt, making it easier to rebuild the
+original data. To protect against this good governance should be used. For example, only allow automatically generated
+structures & bins, ensuring each attempt results in the same network. Or by ensuring that only the best performing
+bayesian network is published, while the other attempts are kept secret.
+
 ## Project setup:
 
 This project uses Spring boot at its basis. The following properties are needed:
@@ -24,6 +41,13 @@ contain ID's. The assumption is that the first collumn contains the recordId's.
 ### Unknown data
 
 It is assumed unknown data has the value of '?'
+
+### Other assumptions:
+
+It is assumed values do not contain spaces, similarly it is assumed that the various keywords in a WEKA bif file are not
+used, as well as those used in a WEKA arff file.
+
+Lastly "All" is a reserved keyword for a bin that contains all possible values for a given attribute.
 
 ## Implemented methods:
 
@@ -95,6 +119,15 @@ The request for Maximum Likelyhood is similar except it does not contain a targe
   "target" : "x3"
 }
 ```
+
+Important to note:
+Bins can be set manually when expert knowledge is available. They can also be determined automatically at which point a
+maximum of 10 bins will be made, and a minimum of 1 bin. Each bin will attempt to pick the smallest unique values that
+contain at least 10 individuals and 10% of the population. If the current bin cannot be made large enough to achieve
+this it will be merged with the last bin.
+
+They will be automatically generated if the attribute in question is a number (real or integer) and the bins were left
+empty in the request.
 
 ### Response example:
 
