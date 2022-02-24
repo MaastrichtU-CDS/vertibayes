@@ -1,9 +1,9 @@
 @Relation genericBIFF
 
-@attribute sepallength numeric
-@attribute sepalwidth numeric
-@attribute petallength numeric
-@attribute petalwidth numeric
+@attribute sepallength real
+@attribute sepalwidth real
+@attribute petallength real
+@attribute petalwidth real
 @Attribute label {Iris-versicolor,Iris-virginica,Iris-setosa}
 
 @data

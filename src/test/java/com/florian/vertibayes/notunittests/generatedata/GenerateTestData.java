@@ -5,10 +5,7 @@ import com.florian.vertibayes.bayes.data.Data;
 import org.apache.commons.collections.map.HashedMap;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.florian.vertibayes.bayes.data.Parser.parseCsv;
@@ -28,7 +25,7 @@ public class GenerateTestData {
     private static final String CSV_PATH_ALARM_MISSING = "resources/Experiments/alarm/ALARM10kMissing.csv";
     private static final String CSV_PATH_ALARM_TARGET = "resources/Experiments/alarm/folds/alarm";
 
-    private static final double TRESHOLD = 0.05;
+    private static final List<Double> TRESHHOLDS = Arrays.asList(0.05, 0.1);
     private static final Integer FOLDS = 10;
 
     @Test
@@ -36,15 +33,23 @@ public class GenerateTestData {
         //IMPORTANT NOTE: GENERATED DATA MAY NOT HAVE THE SAME FORM AS THE FINAL WEKA MODEL
         //CHECK IF ALL ATTRIBUTES ARE IN THE SAME ORDER, IDEM FOR ATTRIBUTE-VALUES IN THE CASE OF NOMINAL ATTRIBUTES
 
-        generateMissingData(CSV_PATH_IRIS_ORIGINAL, CSV_PATH_IRIS_MISSING);
-        generateMissingData(CSV_PATH_ASIA_ORIGINAL, CSV_PATH_ASIA_MISSING);
-        generateMissingData(CSV_PATH_ALARM_ORIGINAL, CSV_PATH_ALARM_MISSING);
-        generateFolds(CSV_PATH_IRIS_MISSING, CSV_PATH_IRIS_TARGET, FOLDS, true);
-        generateFolds(CSV_PATH_ASIA_MISSING, CSV_PATH_ASIA_TARGET, FOLDS, true);
-        generateFolds(CSV_PATH_ALARM_MISSING, CSV_PATH_ALARM_TARGET, FOLDS, true);
-        generateFolds(CSV_PATH_IRIS_ORIGINAL, CSV_PATH_IRIS_TARGET, FOLDS, false);
-        generateFolds(CSV_PATH_ASIA_ORIGINAL, CSV_PATH_ASIA_TARGET, FOLDS, false);
-        generateFolds(CSV_PATH_ALARM_ORIGINAL, CSV_PATH_ALARM_TARGET, FOLDS, false);
+        for (double d : TRESHHOLDS) {
+
+            generateMissingData(CSV_PATH_IRIS_ORIGINAL, CSV_PATH_IRIS_MISSING, d);
+            generateMissingData(CSV_PATH_ASIA_ORIGINAL, CSV_PATH_ASIA_MISSING, d);
+            generateMissingData(CSV_PATH_ALARM_ORIGINAL, CSV_PATH_ALARM_MISSING, d);
+            String t = String.valueOf(d).replace(".", "_");
+            generateFolds(CSV_PATH_IRIS_MISSING.replace(".csv", "Treshold" + t + ".csv"),
+                          CSV_PATH_IRIS_TARGET + "Treshold" + t, FOLDS, true);
+            generateFolds(CSV_PATH_ASIA_MISSING.replace(".csv", "Treshold" + t + ".csv"),
+                          CSV_PATH_ASIA_TARGET + "Treshold" + t, FOLDS, true);
+            generateFolds(CSV_PATH_ALARM_MISSING.replace(".csv", "Treshold" + t + ".csv"),
+                          CSV_PATH_ALARM_TARGET + "Treshold" + t, FOLDS, true);
+//            generateFolds(CSV_PATH_IRIS_ORIGINAL, CSV_PATH_IRIS_TARGET, FOLDS, false);
+//            generateFolds(CSV_PATH_ASIA_ORIGINAL, CSV_PATH_ASIA_TARGET, FOLDS, false);
+//            generateFolds(CSV_PATH_ALARM_ORIGINAL, CSV_PATH_ALARM_TARGET, FOLDS, false);
+        }
+
     }
 
     private void generateFolds(String path, String target, int folds, boolean missing) {
@@ -244,7 +249,9 @@ public class GenerateTestData {
         printARFF(data, path);
     }
 
-    private void generateMissingData(String path, String target) {
+    private void generateMissingData(String path, String target, double treshold) {
+        String t = String.valueOf(treshold).replace(".", "_");
+        target = target.replace(".csv", "Treshold" + t + ".csv");
         Data d = parseCsv(path, 0);
         Random r = new Random();
         for (List<Attribute> attribute : d.getData()) {
@@ -252,7 +259,7 @@ public class GenerateTestData {
                 if (a.getAttributeName().equals("ID")) {
                     break;
                 } else {
-                    if (r.nextDouble() < TRESHOLD) {
+                    if (r.nextDouble() < treshold) {
                         a.setValue("?");
                     }
                 }

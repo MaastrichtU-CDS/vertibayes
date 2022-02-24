@@ -67,6 +67,22 @@ public class GenerateNetworks {
                              vlng, valv, aco2, cchl, hr, co, bp);
     }
 
+    public static List<WebNode> buildIrisNetworkNoBins() {
+        WebNode label = createWebNode("label", Attribute.AttributeType.string, new ArrayList<>());
+        WebNode petallength = createWebNode("petallength", Attribute.AttributeType.real,
+                                            Arrays.asList(label.getName()));
+        WebNode petalwidth = createWebNode("petalwidth", Attribute.AttributeType.real,
+                                           Arrays.asList(label.getName()));
+        WebNode sepallength = createWebNode("sepallength", Attribute.AttributeType.real,
+                                            Arrays.asList(label.getName()));
+        WebNode sepalwidth = createWebNode("sepalwidth", Attribute.AttributeType.real,
+                                           Arrays.asList(label.getName()));
+
+        //list nodes in the order you want the attributes printed
+        return Arrays.asList(sepallength, sepalwidth, petallength, petalwidth, label);
+    }
+
+
     public static List<WebNode> buildIrisNetworkBinned() {
         WebNode label = createWebNode("label", Attribute.AttributeType.string, new ArrayList<>());
         WebNode petallength = createWebNode("petallength", Attribute.AttributeType.real,

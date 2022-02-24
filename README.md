@@ -35,8 +35,8 @@ server=<server id>
 ## Data setup:
 
 The project currently expects data to be presented in a csv. The top row is assumed to contain the typing of the
-attributes (bool, string, number). The second row is assumed to be attribute ID's. We also assume the first collumn to
-contain ID's. The assumption is that the first collumn contains the recordId's.
+attributes (bool, string, numeric, real). The second row is assumed to be attribute ID's. We also assume the first
+collumn to contain ID's. The assumption is that the first collumn contains the recordId's.
 
 ### Unknown data
 

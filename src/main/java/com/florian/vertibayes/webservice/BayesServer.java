@@ -100,14 +100,15 @@ public class BayesServer extends Server {
         Bin currentBin = new Bin();
         Bin lastBin = currentBin;
         Set<Bin> bins = new HashSet<>();
+        Attribute.AttributeType type = data.getAttributeType(attribute);
         if (unique.size() == 1) {
             //only one unique value
-            String value = findSmallest(unique.stream().collect(Collectors.toList()));
+            String value = findSmallest(unique.stream().collect(Collectors.toList()), type);
             currentBin.setUpperLimit(value);
             currentBin.setLowerLimit(value);
         } else {
             //set lowest lower limit
-            String lower = findSmallest(unique.stream().collect(Collectors.toList()));
+            String lower = findSmallest(unique.stream().collect(Collectors.toList()), type);
             unique.remove(lower);
             currentBin.setLowerLimit(lower);
             while (unique.size() > 0) {
@@ -120,7 +121,7 @@ public class BayesServer extends Server {
                         break;
                     }
                     //look for new upperlimit
-                    String upper = findSmallest(unique.stream().collect(Collectors.toList()));
+                    String upper = findSmallest(unique.stream().collect(Collectors.toList()), type);
                     unique.remove(upper);
                     currentBin.setUpperLimit(upper);
                 }
@@ -181,7 +182,7 @@ public class BayesServer extends Server {
         }
     }
 
-    private String findSmallest(List<String> unique) {
+    private String findSmallest(List<String> unique, Attribute.AttributeType type) {
         double smallest = Double.parseDouble(unique.get(0));
         for (int i = 1; i < unique.size(); i++) {
             double temp = Double.parseDouble(unique.get(i));
@@ -189,7 +190,7 @@ public class BayesServer extends Server {
                 smallest = temp;
             }
         }
-        if (smallest % 1 == 0) {
+        if (type == Attribute.AttributeType.numeric) {
             //manually turn into an int, otherwise java returns adds a .0
             return String.valueOf(((int) smallest));
         }
