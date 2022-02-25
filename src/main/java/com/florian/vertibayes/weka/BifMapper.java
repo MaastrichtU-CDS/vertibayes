@@ -230,6 +230,14 @@ public final class BifMapper {
                     t.setLocalValue(v);
                     n.getProbabilities().add(t);
                 } else {
+                    Attribute.AttributeType type = null;
+                    try {
+                        int d = Integer.parseInt(outcome.replace("\n", ""));
+                        type = Attribute.AttributeType.numeric;
+                    } catch (NumberFormatException e) {
+                        type = Attribute.AttributeType.string;
+                    }
+                    n.setType(type);
                     WebValue v = new WebValue();
                     v.setLocalValue(outcome.replace("\n", ""));
                     v.setRange(false);

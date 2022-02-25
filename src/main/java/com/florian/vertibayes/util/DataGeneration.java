@@ -56,7 +56,7 @@ public final class DataGeneration {
         printARFF(data, path);
     }
 
-    private static String generateIndividual(List<Node> nodes) {
+    public static String generateIndividual(List<Node> nodes) {
         Map<String, String> individual = new HashMap<>();
         boolean done = false;
         Random random = new Random();
