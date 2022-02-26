@@ -197,8 +197,15 @@ public final class BifMapper {
             for (int j = 0; j < outcomes.length - 1; j++) {
                 String outcome = outcomes[j].replace("<OUTCOME>", "");
                 if (outcome.contains("&apos;")) {
+                    // attribute is a range
                     Bin bin = new Bin();
-                    n.setType(Attribute.AttributeType.real);
+                    if (outcome.contains(".")) {
+                        //attribute is a double
+                        n.setType(Attribute.AttributeType.real);
+                    } else {
+                        //attribute is an int
+                        n.setType(Attribute.AttributeType.numeric);
+                    }
                     String[] limits = outcome.replace("&apos;", "").replace("(", "").replace(")", "").replace("]", "")
                             .split("-");
                     String lower = "";
@@ -230,14 +237,8 @@ public final class BifMapper {
                     t.setLocalValue(v);
                     n.getProbabilities().add(t);
                 } else {
-                    Attribute.AttributeType type = null;
-                    try {
-                        int d = Integer.parseInt(outcome.replace("\n", ""));
-                        type = Attribute.AttributeType.numeric;
-                    } catch (NumberFormatException e) {
-                        type = Attribute.AttributeType.string;
-                    }
-                    n.setType(type);
+                    //Attribute is a string
+                    n.setType(Attribute.AttributeType.string);
                     WebValue v = new WebValue();
                     v.setLocalValue(outcome.replace("\n", ""));
                     v.setRange(false);
