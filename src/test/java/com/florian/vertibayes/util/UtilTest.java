@@ -1,6 +1,6 @@
 package com.florian.vertibayes.util;
 
-import com.florian.vertibayes.bayes.data.Attribute;
+import com.florian.nscalarproduct.data.Attribute;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;

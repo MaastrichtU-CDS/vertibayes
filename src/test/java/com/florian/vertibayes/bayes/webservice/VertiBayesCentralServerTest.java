@@ -1,11 +1,11 @@
 package com.florian.vertibayes.bayes.webservice;
 
+import com.florian.nscalarproduct.data.Attribute;
 import com.florian.nscalarproduct.webservice.ServerEndpoint;
 import com.florian.vertibayes.bayes.Bin;
 import com.florian.vertibayes.bayes.Node;
 import com.florian.vertibayes.bayes.ParentValue;
 import com.florian.vertibayes.bayes.Theta;
-import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.BayesServer;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;

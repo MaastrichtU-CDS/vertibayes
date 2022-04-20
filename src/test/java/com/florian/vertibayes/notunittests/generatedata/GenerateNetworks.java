@@ -1,7 +1,7 @@
 package com.florian.vertibayes.notunittests.generatedata;
 
+import com.florian.nscalarproduct.data.Attribute;
 import com.florian.vertibayes.bayes.Bin;
-import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.domain.external.WebNode;
 
 import java.util.*;

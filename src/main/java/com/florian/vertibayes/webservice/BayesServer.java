@@ -1,12 +1,12 @@
 package com.florian.vertibayes.webservice;
 
+import com.florian.nscalarproduct.data.Attribute;
+import com.florian.nscalarproduct.data.Data;
 import com.florian.nscalarproduct.station.DataStation;
 import com.florian.nscalarproduct.webservice.Server;
 import com.florian.nscalarproduct.webservice.ServerEndpoint;
 import com.florian.vertibayes.bayes.Bin;
 import com.florian.vertibayes.bayes.Node;
-import com.florian.vertibayes.bayes.data.Attribute;
-import com.florian.vertibayes.bayes.data.Data;
 import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.webservice.domain.AttributeRequirementsRequest;
 import com.florian.vertibayes.webservice.domain.NodesResponse;
@@ -20,14 +20,13 @@ import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.florian.vertibayes.bayes.data.Parser.parseCsv;
+import static com.florian.nscalarproduct.data.Parser.parseCsv;
 
 @RestController
 public class BayesServer extends Server {
     public static final double BIN_UPPER_LIMIT_INCLUDE = 1.01;
     private Data data;
     private Map<String, Set<String>> uniqueValues = new HashMap<>();
-    private List<Node> localNodes;
     private static final int MINCOUNT = 10;
     private static final double MINPERCENTAGE = 0.1;
 

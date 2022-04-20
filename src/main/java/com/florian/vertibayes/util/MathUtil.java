@@ -1,6 +1,6 @@
 package com.florian.vertibayes.util;
 
-import com.florian.vertibayes.bayes.data.Attribute;
+import com.florian.nscalarproduct.data.Attribute;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

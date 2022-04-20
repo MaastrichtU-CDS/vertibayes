@@ -1,6 +1,6 @@
 package com.florian.vertibayes.bayes;
 
-import com.florian.vertibayes.bayes.data.Attribute;
+import com.florian.nscalarproduct.data.Attribute;
 import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 
 import java.util.*;
@@ -8,8 +8,8 @@ import java.util.*;
 public class Node {
     private List<Node> parents = new ArrayList<>();
     private Set<String> uniquevalues = new HashSet<>();
-    private String name;
     private Attribute.AttributeType type;
+    private String name;
     private List<Theta> probabilities = new ArrayList<>();
     private Set<Bin> bins = new HashSet<>();
 

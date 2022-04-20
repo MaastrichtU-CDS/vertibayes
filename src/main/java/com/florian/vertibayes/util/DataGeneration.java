@@ -1,9 +1,9 @@
 package com.florian.vertibayes.util;
 
+import com.florian.nscalarproduct.data.Attribute;
 import com.florian.vertibayes.bayes.Node;
 import com.florian.vertibayes.bayes.ParentValue;
 import com.florian.vertibayes.bayes.Theta;
-import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 
 import java.util.*;

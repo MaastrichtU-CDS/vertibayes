@@ -1,7 +1,7 @@
 package com.florian.vertibayes.weka;
 
+import com.florian.nscalarproduct.data.Attribute;
 import com.florian.vertibayes.bayes.Bin;
-import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.domain.external.WebNode;
 import com.florian.vertibayes.webservice.domain.external.WebParentValue;
 import com.florian.vertibayes.webservice.domain.external.WebTheta;

@@ -1,6 +1,6 @@
 package com.florian.vertibayes.bayes.webservice.mapping.domain;
 
-import com.florian.vertibayes.bayes.data.Attribute;
+import com.florian.nscalarproduct.data.Attribute;
 import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 import org.junit.jupiter.api.Test;
 

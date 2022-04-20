@@ -1,7 +1,7 @@
 package com.florian.vertibayes.webservice.domain.external;
 
+import com.florian.nscalarproduct.data.Attribute;
 import com.florian.vertibayes.bayes.Bin;
-import com.florian.vertibayes.bayes.data.Attribute;
 
 import java.util.ArrayList;
 import java.util.HashSet;

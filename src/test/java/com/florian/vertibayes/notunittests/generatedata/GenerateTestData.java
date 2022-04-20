@@ -1,14 +1,14 @@
 package com.florian.vertibayes.notunittests.generatedata;
 
-import com.florian.vertibayes.bayes.data.Attribute;
-import com.florian.vertibayes.bayes.data.Data;
+import com.florian.nscalarproduct.data.Attribute;
+import com.florian.nscalarproduct.data.Data;
 import org.apache.commons.collections.map.HashedMap;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.florian.vertibayes.bayes.data.Parser.parseCsv;
+import static com.florian.nscalarproduct.data.Parser.parseCsv;
 import static com.florian.vertibayes.util.PrintingPress.printARFF;
 import static com.florian.vertibayes.util.PrintingPress.printCSV;
 

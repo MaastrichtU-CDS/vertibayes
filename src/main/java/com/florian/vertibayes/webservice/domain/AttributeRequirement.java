@@ -1,6 +1,6 @@
 package com.florian.vertibayes.webservice.domain;
 
-import com.florian.vertibayes.bayes.data.Attribute;
+import com.florian.nscalarproduct.data.Attribute;
 
 public class AttributeRequirement {
     // Class used to communicate requirements

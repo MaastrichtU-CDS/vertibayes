@@ -1,11 +1,11 @@
 package com.florian.vertibayes.webservice;
 
+import com.florian.nscalarproduct.data.Attribute;
 import com.florian.nscalarproduct.station.CentralStation;
 import com.florian.nscalarproduct.webservice.CentralServer;
 import com.florian.nscalarproduct.webservice.Protocol;
 import com.florian.nscalarproduct.webservice.ServerEndpoint;
 import com.florian.vertibayes.bayes.*;
-import com.florian.vertibayes.bayes.data.Attribute;
 import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.webservice.domain.InitCentralServerRequest;
 import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationResponse;
