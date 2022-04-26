@@ -1,7 +1,7 @@
 package com.florian.vertibayes.bayes;
 
 import com.florian.nscalarproduct.data.Attribute;
-import com.florian.vertibayes.webservice.domain.AttributeRequirement;
+import com.florian.nscalarproduct.webservice.domain.AttributeRequirement;
 
 import java.util.*;
 

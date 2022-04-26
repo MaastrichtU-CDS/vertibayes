@@ -2,12 +2,12 @@ package com.florian.vertibayes.bayes.webservice;
 
 import com.florian.nscalarproduct.data.Attribute;
 import com.florian.nscalarproduct.webservice.ServerEndpoint;
+import com.florian.nscalarproduct.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.bayes.Network;
 import com.florian.vertibayes.bayes.Node;
 import com.florian.vertibayes.webservice.BayesServer;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
-import com.florian.vertibayes.webservice.domain.AttributeRequirement;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;

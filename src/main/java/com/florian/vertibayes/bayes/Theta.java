@@ -1,6 +1,6 @@
 package com.florian.vertibayes.bayes;
 
-import com.florian.vertibayes.webservice.domain.AttributeRequirement;
+import com.florian.nscalarproduct.webservice.domain.AttributeRequirement;
 
 import java.util.ArrayList;
 import java.util.List;

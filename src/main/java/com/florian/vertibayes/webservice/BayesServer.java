@@ -5,10 +5,10 @@ import com.florian.nscalarproduct.data.Data;
 import com.florian.nscalarproduct.station.DataStation;
 import com.florian.nscalarproduct.webservice.Server;
 import com.florian.nscalarproduct.webservice.ServerEndpoint;
+import com.florian.nscalarproduct.webservice.domain.AttributeRequirement;
+import com.florian.nscalarproduct.webservice.domain.AttributeRequirementsRequest;
 import com.florian.vertibayes.bayes.Bin;
 import com.florian.vertibayes.bayes.Node;
-import com.florian.vertibayes.webservice.domain.AttributeRequirement;
-import com.florian.vertibayes.webservice.domain.AttributeRequirementsRequest;
 import com.florian.vertibayes.webservice.domain.NodesResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -209,8 +209,8 @@ public class BayesServer extends Server {
     public void initK2Data(@RequestBody AttributeRequirementsRequest request) {
         reset();
         readData();
-        List<AttributeRequirement> requirements = request.getRequirements2() == null ? new ArrayList<>()
-                : request.getRequirements2();
+        List<AttributeRequirement> requirements = request.getRequirements() == null ? new ArrayList<>()
+                : request.getRequirements();
         int population = data.getNumberOfIndividuals();
         localData = new BigInteger[population];
         for (int i = 0; i < population; i++) {
