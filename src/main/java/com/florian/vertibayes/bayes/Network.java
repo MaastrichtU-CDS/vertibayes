@@ -28,6 +28,8 @@ public class Network {
         for (ServerEndpoint endpoint : endpoints) {
             nodes.addAll(((VertiBayesEndpoint) endpoint).createNode());
         }
+
+        removeDoubles();
         this.endpoints = endpoints;
         this.secretServer = secretServer;
         this.central = central;
@@ -188,6 +190,23 @@ public class Network {
 
     public List<Node> getNodes() {
         return nodes;
+    }
+
+    private void removeDoubles() {
+        List<Node> copied = new ArrayList<>();
+        for (Node node : nodes) {
+            boolean contained = false;
+            for (Node copy : copied) {
+                if (copy.getName().equals(node.getName())) {
+                    contained = true;
+                    break;
+                }
+            }
+            if (!contained) {
+                copied.add(node);
+            }
+        }
+        nodes = copied;
     }
 
 

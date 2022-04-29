@@ -217,6 +217,7 @@ public class BayesServer extends Server {
             localData[i] = BigInteger.ONE;
         }
 
+
         List<List<Attribute>> values = data.getData();
         for (AttributeRequirement req : requirements) {
             if (data.getAttributeCollumn(req.getName()) == null) {
@@ -229,15 +230,36 @@ public class BayesServer extends Server {
                 }
             }
         }
+
+        checkHorizontalSplit(data, localData);
+
         this.population = localData.length;
         this.dataStations.put("start", new DataStation(this.serverId, this.localData));
+    }
+
+    private void checkHorizontalSplit(Data data) {
+        if (data.hasHorizontalSplit()) {
+            // if a horizontal split is present, check if this record is locally present.
+            // if it is not locally present, treat is as if all local attributes are unknown and set localdata to 1
+            // for this record
+            Attribute localPresence = data.getData().get(data.getLocalPresenceColumn()).get(0);
+            AttributeRequirement checkLocalPresence = new AttributeRequirement();
+            checkLocalPresence.setValue(
+                    new Attribute(Attribute.AttributeType.bool, "true", localPresence.getAttributeName()));
+            List<Attribute> present = data.getData().get(data.getLocalPresenceColumn());
+            for (int i = 0; i < localData.length; i++) {
+                if (!checkLocalPresence.checkRequirement(present.get(i))) {
+                    localData[i] = BigInteger.ONE;
+                }
+            }
+        }
     }
 
     @GetMapping ("createNodes")
     public NodesResponse createNodes() {
         List<Node> nodes = new ArrayList<>();
         for (int i = 0; i < data.getData().size(); i++) {
-            if (i == data.getIdColumn()) {
+            if (i == data.getIdColumn() || i == data.getLocalPresenceColumn()) {
                 continue;
             }
             Attribute attribute = data.getData().get(i).get(0);

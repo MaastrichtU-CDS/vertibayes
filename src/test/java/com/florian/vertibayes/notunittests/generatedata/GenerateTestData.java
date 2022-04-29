@@ -96,8 +96,8 @@ public class GenerateTestData {
                 rightSplit.add(d.getData().get(i));
             }
         }
-        Data leftSplitD = new Data(0, leftSplit);
-        Data rightSplitD = new Data(0, rightSplit);
+        Data leftSplitD = new Data(0, -1, leftSplit);
+        Data rightSplitD = new Data(0, -1, rightSplit);
 
         printCombinedFolds(target + "RightSplit", rightSplitD, folded);
         printCombinedFolds(target + "LeftSplit", leftSplitD, folded);

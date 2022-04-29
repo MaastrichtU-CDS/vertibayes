@@ -21,6 +21,222 @@ import static org.junit.jupiter.api.Assertions.*;
 public class VertiBayesCentralServerTest {
 
     @Test
+    public void testDoubleSplitManuallyBinned() {
+        BayesServer station1 = new BayesServer("resources/Experiments/doublesplit/smallK2Example_firsthalf.csv", "1");
+        BayesServer station2 = new BayesServer("resources/Experiments/doublesplit/smallK2Example_secondhalf.csv", "2");
+        BayesServer station3 = new BayesServer(
+                "resources/Experiments/doublesplit/smallK2Example_secondhalf_morepopulation.csv", "3");
+
+        VertiBayesEndpoint endpoint1 = new VertiBayesEndpoint(station1);
+        VertiBayesEndpoint endpoint2 = new VertiBayesEndpoint(station2);
+        VertiBayesEndpoint endpoint3 = new VertiBayesEndpoint(station3);
+        BayesServer secret = new BayesServer("4", Arrays.asList(endpoint1, endpoint2, endpoint3));
+
+        ServerEndpoint secretEnd = new ServerEndpoint(secret);
+
+        List<ServerEndpoint> all = new ArrayList<>();
+        all.add(endpoint1);
+        all.add(endpoint2);
+        all.add(endpoint3);
+        all.add(secretEnd);
+        secret.setEndpoints(all);
+        station1.setEndpoints(all);
+        station2.setEndpoints(all);
+        station3.setEndpoints(all);
+
+        VertiBayesCentralServer central = new VertiBayesCentralServer();
+        central.initEndpoints(Arrays.asList(endpoint1, endpoint2, endpoint3), secretEnd);
+        List<WebNode> webNodes = central.buildNetwork().getNodes();
+        //add simple bins. The bins will essentially just form the binary division again
+        // Since the bins will follow the same distribution we know the expected probabilities
+        Bin zero = new Bin();
+        zero.setLowerLimit("-1");
+        zero.setUpperLimit("0.5");
+
+        Bin one = new Bin();
+        one.setLowerLimit("0.5");
+        one.setUpperLimit("1.5");
+
+
+        // no unknown bin, as this test does not deal with unknowns
+        for (WebNode node : webNodes) {
+            node.getBins().add(zero);
+            node.getBins().add(one);
+            node.setType(Attribute.AttributeType.real);
+        }
+        WebBayesNetwork req = new WebBayesNetwork();
+        req.setNodes(webNodes);
+
+        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
+
+        // check if it matches expected network
+        assertEquals(nodes.size(), 3);
+        assertEquals(nodes.get(0).getParents().size(), 0);
+        assertEquals(nodes.get(1).getParents().size(), 1);
+        assertTrue(nodes.get(1).getParents().contains(nodes.get(0)));
+        assertEquals(nodes.get(2).getParents().size(), 1);
+        assertTrue(nodes.get(2).getParents().contains(nodes.get(1)));
+        //expected network an example are based on the example in "resources/k2_algorithm.pdf"
+
+        // now check the thetas
+        // node 1 has 2 values and no parents, reuslting in 2 values in total
+        assertEquals(nodes.get(0).getProbabilities().size(), 2);
+        // put them in a map to easily find correct probability:
+        HashMap<String, Theta> map = new HashMap<>();
+        for (Theta t : nodes.get(0).getProbabilities()) {
+            String key = t.getLocalRequirement().getLowerLimit().getValue() + ";" + t.getLocalRequirement()
+                    .getUpperLimit()
+                    .getValue();
+            map.put(key, t);
+        }
+
+        // value 1 key: -1;0.5 which corresponds to the range of the first bin
+        assertEquals(map.get("-1;0.5").getP(), 0.5);
+        assertEquals(map.get("-1;0.5").getLocalRequirement().getLowerLimit().getValue(), "-1");
+        assertEquals(map.get("-1;0.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
+        assertEquals(map.get("-1;0.5").getLocalRequirement().getName(), "x1");
+        assertEquals(map.get("-1;0.5").getParents().size(), 0);
+
+        // value 2 0.5;1.5 which corresponds to the range of the first bin
+        assertEquals(map.get("0.5;1.5").getP(), 0.5);
+        assertEquals(map.get("0.5;1.5").getLocalRequirement().getLowerLimit().getValue(), "0.5");
+        assertEquals(map.get("0.5;1.5").getLocalRequirement().getUpperLimit().getValue(), "1.5");
+        assertEquals(map.get("0.5;1.5").getLocalRequirement().getName(), "x1");
+        assertEquals(map.get("0.5;1.5").getParents().size(), 0);
+
+
+        //assert all probabilities are viewed as sliblings as there are no parents
+        List<Theta> sliblings = Node.findSliblings(nodes.get(0).getProbabilities().get(0), nodes.get(0));
+        assertTrue(nodes.get(0).getProbabilities().containsAll(sliblings));
+        assertTrue(sliblings.containsAll(nodes.get(0).getProbabilities()));
+
+        //node 2 has 2 local values and 1 parent with 2 values resulting in 4 values in total
+        // value 1
+        assertEquals(nodes.get(1).getProbabilities().size(), 4);
+        // put them in a map to easily find correct probability:
+        map = new HashMap<>();
+        for (Theta t : nodes.get(1).getProbabilities()) {
+            String key = t.getLocalRequirement().getLowerLimit().getValue() + ";" + t.getLocalRequirement()
+                    .getUpperLimit().getValue() + "p" + t.getParents().get(0).getRequirement()
+                    .getLowerLimit().getValue() + ";" + t.getParents().get(0).getRequirement().getUpperLimit()
+                    .getValue();
+            map.put(key, t);
+        }
+
+        //keys: <child range>p<parent range>
+        assertEquals(map.get("-1;0.5p-1;0.5").getP(), 0.8);
+        assertEquals(map.get("-1;0.5p-1;0.5").getLocalRequirement().getLowerLimit().getValue(), "-1");
+        assertEquals(map.get("-1;0.5p-1;0.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
+        assertEquals(map.get("-1;0.5p-1;0.5").getLocalRequirement().getName(), "x2");
+        assertEquals(map.get("-1;0.5p-1;0.5").getParents().size(), 1);
+        assertEquals(map.get("-1;0.5p-1;0.5").getParents().get(0).getRequirement().getLowerLimit().getValue(), "-1");
+        assertEquals(map.get("-1;0.5p-1;0.5").getParents().get(0).getRequirement().getUpperLimit().getValue(), "0.5");
+        assertEquals(map.get("-1;0.5p-1;0.5").getParents().get(0).getName(), "x1");
+
+        assertEquals(map.get("0.5;1.5p-1;0.5").getP(), 0.2);
+        assertEquals(map.get("0.5;1.5p-1;0.5").getLocalRequirement().getLowerLimit().getValue(), "0.5");
+        assertEquals(map.get("0.5;1.5p-1;0.5").getLocalRequirement().getUpperLimit().getValue(), "1.5");
+        assertEquals(map.get("0.5;1.5p-1;0.5").getLocalRequirement().getName(), "x2");
+        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().size(), 1);
+        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().get(0).getRequirement().getLowerLimit().getValue(), "-1");
+        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().get(0).getRequirement().getUpperLimit().getValue(), "0.5");
+        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().get(0).getName(), "x1");
+
+        assertEquals(map.get("-1;0.5p0.5;1.5").getP(), 0.2);
+        assertEquals(map.get("-1;0.5p0.5;1.5").getLocalRequirement().getLowerLimit().getValue(), "-1");
+        assertEquals(map.get("-1;0.5p0.5;1.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
+        assertEquals(map.get("-1;0.5p0.5;1.5").getLocalRequirement().getName(), "x2");
+        assertEquals(map.get("-1;0.5p0.5;1.5").getParents().size(), 1);
+        assertEquals(map.get("-1;0.5p0.5;1.5").getParents().get(0).getRequirement().getLowerLimit().getValue(), "0.5");
+        assertEquals(map.get("-1;0.5p0.5;1.5").getParents().get(0).getRequirement().getUpperLimit().getValue(), "1.5");
+        assertEquals(map.get("-1;0.5p0.5;1.5").getParents().get(0).getName(), "x1");
+
+        assertEquals(map.get("0.5;1.5p0.5;1.5").getP(), 0.8);
+        assertEquals(map.get("0.5;1.5p0.5;1.5").getLocalRequirement().getLowerLimit().getValue(), "0.5");
+        assertEquals(map.get("0.5;1.5p0.5;1.5").getLocalRequirement().getUpperLimit().getValue(), "1.5");
+        assertEquals(map.get("0.5;1.5p0.5;1.5").getLocalRequirement().getName(), "x2");
+        assertEquals(map.get("0.5;1.5p0.5;1.5").getParents().size(), 1);
+        assertEquals(map.get("0.5;1.5p0.5;1.5").getParents().get(0).getRequirement().getLowerLimit().getValue(), "0.5");
+        assertEquals(map.get("0.5;1.5p0.5;1.5").getParents().get(0).getRequirement().getUpperLimit().getValue(), "1.5");
+        assertEquals(map.get("0.5;1.5p0.5;1.5").getParents().get(0).getName(), "x1");
+
+
+        //assert there are two sets of sliblings as there is 1 parent with 2 unique values
+        //Set 1=2 and set 3=4 are supposed to be equal due to the starting node used
+        List<Theta> sliblings1 = Node.findSliblings(nodes.get(1).getProbabilities().get(0), nodes.get(1));
+        List<Theta> sliblings2 = Node.findSliblings(nodes.get(1).getProbabilities().get(1), nodes.get(1));
+        List<Theta> sliblings3 = Node.findSliblings(nodes.get(1).getProbabilities().get(2), nodes.get(1));
+        List<Theta> sliblings4 = Node.findSliblings(nodes.get(1).getProbabilities().get(3), nodes.get(1));
+        assertTrue(sliblings1.containsAll(sliblings2));
+        assertTrue(sliblings2.containsAll(sliblings1));
+        assertFalse(sliblings2.containsAll(sliblings3));
+        assertTrue(sliblings3.containsAll(sliblings4));
+        assertTrue(sliblings4.containsAll(sliblings3));
+        sliblings1.addAll(sliblings3);
+        assertTrue(sliblings1.containsAll(nodes.get(1).getProbabilities()));
+
+        //node 3 has 2 local values and 1 parent with 2 values resulting in 4 values in total
+        // put them in a map to easily find correct probability:
+        map = new HashMap<>();
+        for (Theta t : nodes.get(2).getProbabilities()) {
+            String key = t.getLocalRequirement().getLowerLimit().getValue() + ";" + t.getLocalRequirement()
+                    .getUpperLimit().getValue() + "p" + t.getParents().get(0).getRequirement()
+                    .getLowerLimit().getValue() + ";" + t.getParents().get(0).getRequirement().getUpperLimit()
+                    .getValue();
+            map.put(key, t);
+        }
+        assertEquals(map.get("-1;0.5p-1;0.5").getP(), 0.8);
+        assertEquals(map.get("-1;0.5p-1;0.5").getLocalRequirement().getLowerLimit().getValue(), "-1");
+        assertEquals(map.get("-1;0.5p-1;0.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
+        assertEquals(map.get("-1;0.5p-1;0.5").getLocalRequirement().getName(), "x3");
+        assertEquals(map.get("-1;0.5p-1;0.5").getParents().size(), 1);
+        assertEquals(map.get("-1;0.5p-1;0.5").getParents().get(0).getRequirement().getLowerLimit().getValue(), "-1");
+        assertEquals(map.get("-1;0.5p-1;0.5").getParents().get(0).getRequirement().getUpperLimit().getValue(), "0.5");
+        assertEquals(map.get("-1;0.5p-1;0.5").getParents().get(0).getName(), "x2");
+
+        assertEquals(map.get("0.5;1.5p-1;0.5").getP(), 0.2);
+        assertEquals(map.get("0.5;1.5p-1;0.5").getLocalRequirement().getLowerLimit().getValue(), "0.5");
+        assertEquals(map.get("0.5;1.5p-1;0.5").getLocalRequirement().getUpperLimit().getValue(), "1.5");
+        assertEquals(map.get("0.5;1.5p-1;0.5").getLocalRequirement().getName(), "x3");
+        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().size(), 1);
+        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().get(0).getRequirement().getLowerLimit().getValue(), "-1");
+        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().get(0).getRequirement().getUpperLimit().getValue(), "0.5");
+        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().get(0).getName(), "x2");
+
+        assertEquals(map.get("-1;0.5p0.5;1.5").getP(), 0.001);
+        assertEquals(map.get("-1;0.5p0.5;1.5").getLocalRequirement().getLowerLimit().getValue(), "-1");
+        assertEquals(map.get("-1;0.5p0.5;1.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
+        assertEquals(map.get("-1;0.5p0.5;1.5").getLocalRequirement().getName(), "x3");
+        assertEquals(map.get("-1;0.5p0.5;1.5").getParents().size(), 1);
+        assertEquals(map.get("-1;0.5p0.5;1.5").getParents().get(0).getRequirement().getLowerLimit().getValue(), "0.5");
+        assertEquals(map.get("-1;0.5p0.5;1.5").getParents().get(0).getRequirement().getUpperLimit().getValue(), "1.5");
+        assertEquals(map.get("-1;0.5p0.5;1.5").getParents().get(0).getName(), "x2");
+
+        assertEquals(map.get("0.5;1.5p0.5;1.5").getP(), 0.999);
+        assertEquals(map.get("0.5;1.5p0.5;1.5").getLocalRequirement().getLowerLimit().getValue(), "0.5");
+        assertEquals(map.get("0.5;1.5p0.5;1.5").getLocalRequirement().getUpperLimit().getValue(), "1.5");
+        assertEquals(map.get("0.5;1.5p0.5;1.5").getLocalRequirement().getName(), "x3");
+        assertEquals(map.get("0.5;1.5p0.5;1.5").getParents().size(), 1);
+        assertEquals(map.get("0.5;1.5p0.5;1.5").getParents().get(0).getRequirement().getLowerLimit().getValue(), "0.5");
+        assertEquals(map.get("0.5;1.5p0.5;1.5").getParents().get(0).getRequirement().getUpperLimit().getValue(), "1.5");
+        assertEquals(map.get("0.5;1.5p0.5;1.5").getParents().get(0).getName(), "x2");
+
+        //assert there are two sets of sliblings as there is 1 parent with 2 unique values
+        //Set 1=2 and set 3=4 are supposed to be equal due to the starting node used
+        sliblings1 = Node.findSliblings(nodes.get(2).getProbabilities().get(0), nodes.get(2));
+        sliblings2 = Node.findSliblings(nodes.get(2).getProbabilities().get(1), nodes.get(2));
+        sliblings3 = Node.findSliblings(nodes.get(2).getProbabilities().get(2), nodes.get(2));
+        sliblings4 = Node.findSliblings(nodes.get(2).getProbabilities().get(3), nodes.get(2));
+        assertTrue(sliblings1.containsAll(sliblings2));
+        assertTrue(sliblings2.containsAll(sliblings1));
+        assertFalse(sliblings2.containsAll(sliblings3));
+        assertTrue(sliblings3.containsAll(sliblings4));
+        assertTrue(sliblings4.containsAll(sliblings3));
+        sliblings1.addAll(sliblings3);
+        assertTrue(sliblings1.containsAll(nodes.get(2).getProbabilities()));
+    }
+
+    @Test
     public void testMaximumLikelyhoodManuallyBinned() {
         BayesServer station1 = new BayesServer("resources/Experiments/k2/smallK2Example_firsthalf.csv", "1");
         BayesServer station2 = new BayesServer("resources/Experiments/k2/smallK2Example_secondhalf.csv", "2");

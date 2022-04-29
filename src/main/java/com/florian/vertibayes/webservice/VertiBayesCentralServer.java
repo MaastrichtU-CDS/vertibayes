@@ -230,7 +230,7 @@ public class VertiBayesCentralServer extends CentralServer {
 
             t.setP(count.doubleValue() / parentCount.doubleValue());
         } else {
-            BigInteger count = countValue(Arrays.asList(t.getLocalRequirement()));
+            BigInteger count = countValue(new ArrayList<AttributeRequirement>(Arrays.asList(t.getLocalRequirement())));
             t.setP(count.doubleValue() / (double) endpoints.get(0).getPopulation());
         }
     }
