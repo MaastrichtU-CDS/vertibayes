@@ -25,7 +25,11 @@ public class GenerateTestData {
     private static final String CSV_PATH_ALARM_MISSING = "resources/Experiments/alarm/ALARM10kMissing.csv";
     private static final String CSV_PATH_ALARM_TARGET = "resources/Experiments/alarm/folds/alarm";
 
-    private static final List<Double> TRESHHOLDS = Arrays.asList(0.05, 0.1);
+    private static final String CSV_PATH_DIABETES_ORIGINAL = "resources/Experiments/diabetes/DIABETES.csv";
+    private static final String CSV_PATH_DIABETES_MISSING = "resources/Experiments/diabetes/DIABETESMissing.csv";
+    private static final String CSV_PATH_DIABETES_TARGET = "resources/Experiments/diabetes/folds/diabetes";
+
+    private static final List<Double> TRESHHOLDS = Arrays.asList(0.05, 0.1, 0.3);
     private static final Integer FOLDS = 10;
 
     @Test
@@ -34,17 +38,20 @@ public class GenerateTestData {
         //CHECK IF ALL ATTRIBUTES ARE IN THE SAME ORDER, IDEM FOR ATTRIBUTE-VALUES IN THE CASE OF NOMINAL ATTRIBUTES
 
         for (double d : TRESHHOLDS) {
-
-            generateMissingData(CSV_PATH_IRIS_ORIGINAL, CSV_PATH_IRIS_MISSING, d);
-            generateMissingData(CSV_PATH_ASIA_ORIGINAL, CSV_PATH_ASIA_MISSING, d);
-            generateMissingData(CSV_PATH_ALARM_ORIGINAL, CSV_PATH_ALARM_MISSING, d);
+//
+//            generateMissingData(CSV_PATH_IRIS_ORIGINAL, CSV_PATH_IRIS_MISSING, d);
+//            generateMissingData(CSV_PATH_ASIA_ORIGINAL, CSV_PATH_ASIA_MISSING, d);
+//            generateMissingData(CSV_PATH_ALARM_ORIGINAL, CSV_PATH_ALARM_MISSING, d);
+            generateMissingData(CSV_PATH_DIABETES_ORIGINAL, CSV_PATH_DIABETES_MISSING, d);
             String t = String.valueOf(d).replace(".", "_");
-            generateFolds(CSV_PATH_IRIS_MISSING.replace(".csv", "Treshold" + t + ".csv"),
-                          CSV_PATH_IRIS_TARGET + "Treshold" + t, FOLDS, true);
-            generateFolds(CSV_PATH_ASIA_MISSING.replace(".csv", "Treshold" + t + ".csv"),
-                          CSV_PATH_ASIA_TARGET + "Treshold" + t, FOLDS, true);
-            generateFolds(CSV_PATH_ALARM_MISSING.replace(".csv", "Treshold" + t + ".csv"),
-                          CSV_PATH_ALARM_TARGET + "Treshold" + t, FOLDS, true);
+//            generateFolds(CSV_PATH_IRIS_MISSING.replace(".csv", "Treshold" + t + ".csv"),
+//                          CSV_PATH_IRIS_TARGET + "Treshold" + t, FOLDS, true);
+//            generateFolds(CSV_PATH_ASIA_MISSING.replace(".csv", "Treshold" + t + ".csv"),
+//                          CSV_PATH_ASIA_TARGET + "Treshold" + t, FOLDS, true);
+//            generateFolds(CSV_PATH_ALARM_MISSING.replace(".csv", "Treshold" + t + ".csv"),
+//                          CSV_PATH_ALARM_TARGET + "Treshold" + t, FOLDS, true);
+            generateFolds(CSV_PATH_DIABETES_MISSING.replace(".csv", "Treshold" + t + ".csv"),
+                          CSV_PATH_DIABETES_TARGET + "Treshold" + t, FOLDS, true);
 //            generateFolds(CSV_PATH_IRIS_ORIGINAL, CSV_PATH_IRIS_TARGET, FOLDS, false);
 //            generateFolds(CSV_PATH_ASIA_ORIGINAL, CSV_PATH_ASIA_TARGET, FOLDS, false);
 //            generateFolds(CSV_PATH_ALARM_ORIGINAL, CSV_PATH_ALARM_TARGET, FOLDS, false);
@@ -66,7 +73,7 @@ public class GenerateTestData {
 
             while (!done) {
                 int fold = ((int) (r.nextDouble() * 10.0));
-                if (folded.get(fold).size() < ids.size() / folds) {
+                if ((double) folded.get(fold).size() < (double) ids.size() / (double) folds) {
                     folded.get(fold).add(id);
                     done = true;
                 }
