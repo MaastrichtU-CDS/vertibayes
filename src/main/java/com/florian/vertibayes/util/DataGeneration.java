@@ -69,10 +69,10 @@ public final class DataGeneration {
                     double x = random.nextDouble();
                     double y = 0;
                     for (Theta theta : node.getProbabilities()) {
-                        if (node.getParents().size() == 0) {
-                            //no parents, just select a random value
-                            y += theta.getP();
-                            if (x <= y) {
+                        y += theta.getP();
+                        if (x <= y) {
+                            if (node.getParents().size() == 0) {
+                                //no parents, just select a random value
                                 AttributeRequirement local = theta.getLocalRequirement();
                                 if (!local.isRange()) {
                                     individual.put(node.getName(), local.getValue().getValue());
@@ -84,46 +84,40 @@ public final class DataGeneration {
                                         Double upper = Double.valueOf(local.getUpperLimit().getValue());
                                         Double lower = Double.valueOf(local.getLowerLimit().getValue());
                                         Double generated = random.nextDouble() * (upper - lower) + lower;
-                                        if (round(generated, local.getLowerLimit().getType()) == upper) {
-                                            // don't generate values equal to upperlimit
-                                            generated = MAX_VALUE * upper;
-                                        }
+                                        generated = checkMaximum(local, upper, generated);
                                         individual.put(node.getName(),
                                                        String.valueOf(
                                                                round(generated, local.getLowerLimit().getType())));
                                     }
                                 }
                                 break;
-                            }
-                        } else {
-                            //node has parents, so check if parent values have been selected yet
-                            boolean correctTheta = true;
-                            for (ParentValue parent : theta.getParents()) {
-                                if (individual.get(parent.getName()) == null) {
-                                    //not all parents are selected, move on
-                                    correctTheta = false;
-                                    break;
-                                } else {
-                                    Attribute.AttributeType type = null;
-                                    if (parent.getRequirement().isRange()) {
-                                        type = parent.getRequirement().getLowerLimit().getType();
-                                    } else {
-                                        type = parent.getRequirement().getValue().getType();
-                                    }
-                                    Attribute a = new Attribute(type,
-                                                                individual.get(parent.getName()), parent.getName());
-                                    if (!parent.getRequirement().checkRequirement(
-                                            a)) {
-                                        //A parent has the wrong value for this theta, move on
+                            } else {
+                                //node has parents, so check if parent values have been selected yet
+                                boolean correctTheta = true;
+                                for (ParentValue parent : theta.getParents()) {
+                                    if (individual.get(parent.getName()) == null) {
+                                        //not all parents are selected, move on
                                         correctTheta = false;
                                         break;
-                                    }
+                                    } else {
+                                        Attribute.AttributeType type = null;
+                                        if (parent.getRequirement().isRange()) {
+                                            type = parent.getRequirement().getLowerLimit().getType();
+                                        } else {
+                                            type = parent.getRequirement().getValue().getType();
+                                        }
+                                        Attribute a = new Attribute(type,
+                                                                    individual.get(parent.getName()), parent.getName());
+                                        if (!parent.getRequirement().checkRequirement(
+                                                a)) {
+                                            //A parent has the wrong value for this theta, move on
+                                            correctTheta = false;
+                                            break;
+                                        }
 
+                                    }
                                 }
-                            }
-                            if (correctTheta) {
-                                y += theta.getP();
-                                if (x <= y) {
+                                if (correctTheta) {
                                     AttributeRequirement local = theta.getLocalRequirement();
                                     if (!local.isRange()) {
                                         individual.put(node.getName(), local.getValue().getValue());
@@ -135,10 +129,7 @@ public final class DataGeneration {
                                             Double upper = Double.valueOf(local.getUpperLimit().getValue());
                                             Double lower = Double.valueOf(local.getLowerLimit().getValue());
                                             Double generated = random.nextDouble() * (upper - lower) + lower;
-                                            if (round(generated, local.getLowerLimit().getType()) == upper) {
-                                                // don't generate values equal to upperlimit
-                                                generated = MAX_VALUE * upper;
-                                            }
+                                            generated = checkMaximum(local, upper, generated);
                                             individual.put(node.getName(), String.valueOf(
                                                     round(generated, local.getLowerLimit().getType())));
                                         }
@@ -162,5 +153,19 @@ public final class DataGeneration {
         }
 
         return s;
+    }
+
+    private static Double checkMaximum(AttributeRequirement local, Double upper, Double generated) {
+        if (round(generated, local.getLowerLimit().getType()) == upper) {
+            // don't generate values equal to upperlimit
+            if (local.getLowerLimit().getType() == Attribute.AttributeType.numeric) {
+                //Integer
+                generated = upper - 1;
+            } else {
+                //Double
+                generated = MAX_VALUE * upper;
+            }
+        }
+        return generated;
     }
 }
