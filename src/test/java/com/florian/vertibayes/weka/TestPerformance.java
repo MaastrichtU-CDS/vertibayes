@@ -39,6 +39,7 @@ public class TestPerformance {
     public static final String IRIS_WEKA_BIF = "resources/Experiments/iris/irisWekaBif.xml";
     public static final String ALARM_WEKA_BIF = "resources/Experiments/alarm/alarmbif.xml";
     public static final String ASIA_WEKA_BIF = "resources/Experiments/asia/asiabif.xml";
+    public static final String DIABETES_WEKA_BIF = "resources/Experiments/diabetes/diabetesbif.xml";
 
     public static final String FOLD_LEFTHALF_IRIS = "resources/Experiments/iris/folds/irisLeftSplit";
     public static final String TEST_FOLD_IRIS = "resources/Experiments/iris/folds/iris";
@@ -59,6 +60,14 @@ public class TestPerformance {
     public static final String FOLD_LEFTHALF_ASIA_MISSING = "resources/Experiments/asia/folds/asiamissingLeftSplit";
     public static final String FOLD_RIGHTHALF_ASIA_MISSING = "resources/Experiments/asia/folds" +
             "/asiamissingRightSplit";
+
+    public static final String FOLD_LEFTHALF_Diabetes = "resources/Experiments/diabetes/folds/diabetesLeftSplit";
+    public static final String TEST_FOLD_Diabetes = "resources/Experiments/diabetes/folds/diabetes";
+    public static final String FOLD_RIGHTHALF_Diabetes = "resources/Experiments/diabetes/folds/diabetesRightSplit";
+    public static final String FOLD_LEFTHALF_Diabetes_MISSING = "resources/Experiments/diabetes/folds" +
+            "/diabetesmissingLeftSplit";
+    public static final String FOLD_RIGHTHALF_Diabetes_MISSING = "resources/Experiments/diabetes/folds" +
+            "/diabetesmissingRightSplit";
 
     public static final String TEST_IRIS_FULL = "resources/Experiments/iris/irisWeka.arff";
     public static final String FIRSTHALF_IRIS = "resources/Experiments/iris/iris_firsthalf.csv";
@@ -105,6 +114,17 @@ public class TestPerformance {
 
     // IMPORTANT NOTE 2: DUE TO THE RANDOM NATURE OF EM,DATA GENERATION & THE FOLDS IT IS POSSIBLE TO GET THE
     // OCCASIONAL TERRIBLE PERFORMANCE, ESPECIALLY ON INDIVIDUAL FOLDS. RERUN THE TEST AND SEE IF IT HAPPENS AGAIN.
+
+    @Test
+    public void testVertiBayesDiabetes() throws Exception {
+        List<Integer> folds = new ArrayList<>();
+        for (int i = 0; i < FOLDS; i++) {
+            folds.add(i);
+        }
+        long start = System.currentTimeMillis();
+
+        Performance diabetesFed = diabetes(folds);
+    }
 
     @Test
     public void testVertiBayesKFoldKnown() throws Exception {
@@ -517,6 +537,42 @@ public class TestPerformance {
         }
     }
 
+    private Performance diabetes(List<Integer> folds) throws Exception {
+        double aucSum = 0;
+        double aucSumSynthetic = 0;
+        double aucSumFoldSynthetic = 0;
+        //no unknowns
+        for (Integer fold : folds) {
+            List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
+            String ids = otherFolds.stream().sorted().collect(Collectors.toList()).toString().replace("[", "")
+                    .replace("]", "").replace(" ", "").replace(",", "");
+            String left = FOLD_LEFTHALF_Diabetes + ids + ".csv";
+            String right = FOLD_RIGHTHALF_Diabetes + ids + ".csv";
+            String testFoldarrf = TEST_FOLD_Diabetes + fold + "WEKA.arff";
+            String testFoldcsv = TEST_FOLD_Diabetes + fold + ".csv";
+            Performance res = vertiBayesDiabetesTest(left, right,
+                                                     readData("Outcome", testFoldarrf),
+                                                     "Outcome", testFoldcsv);
+//            assertEquals(res.getRealAuc(), 0.96, 0.05);
+//            assertEquals(res.getSyntheticAuc(), 0.96, 0.05);
+//            assertEquals(res.getSyntheticFoldAuc(), 0.96, 0.05);
+            aucSum += res.getRealAuc();
+            aucSumSynthetic += res.getSyntheticAuc();
+            aucSumFoldSynthetic += res.getSyntheticFoldAuc();
+        }
+        double averageAUC = aucSum / folds.size();
+        double averageAUCSynthetic = aucSumSynthetic / folds.size();
+        double averageAUCFoldSynthetic = aucSumFoldSynthetic / folds.size();
+        assertEquals(averageAUC, 0.99, 0.025);
+        assertEquals(averageAUCSynthetic, 0.99, 0.025);
+        assertEquals(averageAUCFoldSynthetic, 0.99, 0.025);
+        Performance tuple = new Performance();
+        tuple.setRealAuc(averageAUC);
+        tuple.setSyntheticAuc(averageAUCSynthetic);
+        tuple.setSyntheticFoldAuc(averageAUCFoldSynthetic);
+        return tuple;
+    }
+
     private Performance asia(List<Integer> folds) throws Exception {
         double aucSum = 0;
         double aucSumSynthetic = 0;
@@ -858,6 +914,24 @@ public class TestPerformance {
         tuple.setSyntheticAuc(averageAUCSynthetic);
         tuple.setSyntheticFoldAuc(averageAUCFoldSynthetic);
         return tuple;
+    }
+
+    private Performance vertiBayesDiabetesTest(String left, String right, Instances testData, String target,
+                                               String test)
+            throws Exception {
+        ExpectationMaximizationTestResponse response = (ExpectationMaximizationTestResponse) generateModel(
+                buildDiabetesNetwork(), left, right, target);
+        BayesNet network = response.getWeka();
+
+        Evaluation eval = new Evaluation(testData);
+        eval.evaluateModel(network, testData);
+        Performance res = new Performance();
+
+        res.setSyntheticFoldAuc(
+                generateSyntheticFold(network, test, response.getNodes(), buildDiabetesNetwork(), target));
+        res.setSyntheticAuc(response.getSyntheticAuc());
+        res.setRealAuc(eval.weightedAreaUnderROC());
+        return res;
     }
 
     private Performance vertiBayesAsiaTest(String left, String right, Instances testData, String target,

@@ -67,6 +67,29 @@ public class GenerateNetworks {
                              vlng, valv, aco2, cchl, hr, co, bp);
     }
 
+    public static List<WebNode> buildDiabetesNetwork() {
+        WebNode outcome = createWebNode("Outcome", Attribute.AttributeType.string, new ArrayList<>());
+        WebNode glucose = createWebNode("Glucose", Attribute.AttributeType.numeric, Arrays.asList(outcome.getName()));
+        WebNode bloodPressure = createWebNode("BloodPressure", Attribute.AttributeType.numeric,
+                                              Arrays.asList(outcome.getName()));
+        WebNode skinThickness = createWebNode("SkinThickness", Attribute.AttributeType.numeric,
+                                              Arrays.asList(outcome.getName()));
+        WebNode diabetesPedigreeFunction = createWebNode("DiabetesPedigreeFunction", Attribute.AttributeType.real,
+                                                         Arrays.asList(outcome.getName()));
+        WebNode insulin = createWebNode("Insulin", Attribute.AttributeType.numeric,
+                                        Arrays.asList(outcome.getName(), glucose.getName()));
+        WebNode pregnancies = createWebNode("Pregnancies", Attribute.AttributeType.numeric,
+                                            Arrays.asList(outcome.getName()));
+        WebNode bmi = createWebNode("BMI", Attribute.AttributeType.real,
+                                    Arrays.asList(outcome.getName(), insulin.getName()));
+        WebNode age = createWebNode("Age", Attribute.AttributeType.numeric,
+                                    Arrays.asList(outcome.getName(), insulin.getName(), pregnancies.getName()));
+
+        //list nodes in the order you want the attributes printed
+        return Arrays.asList(pregnancies, glucose, bloodPressure, skinThickness, insulin, bmi, diabetesPedigreeFunction,
+                             age, outcome);
+    }
+
     public static List<WebNode> buildIrisNetworkNoBins() {
         WebNode label = createWebNode("label", Attribute.AttributeType.string, new ArrayList<>());
         WebNode petallength = createWebNode("petallength", Attribute.AttributeType.real,

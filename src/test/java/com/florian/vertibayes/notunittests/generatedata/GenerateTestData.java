@@ -55,6 +55,7 @@ public class GenerateTestData {
 //            generateFolds(CSV_PATH_IRIS_ORIGINAL, CSV_PATH_IRIS_TARGET, FOLDS, false);
 //            generateFolds(CSV_PATH_ASIA_ORIGINAL, CSV_PATH_ASIA_TARGET, FOLDS, false);
 //            generateFolds(CSV_PATH_ALARM_ORIGINAL, CSV_PATH_ALARM_TARGET, FOLDS, false);
+            generateFolds(CSV_PATH_DIABETES_ORIGINAL, CSV_PATH_DIABETES_TARGET, FOLDS, false);
         }
 
     }
