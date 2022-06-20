@@ -69,10 +69,10 @@ public final class DataGeneration {
                     double x = random.nextDouble();
                     double y = 0;
                     for (Theta theta : node.getProbabilities()) {
-                        y += theta.getP();
-                        if (x <= y) {
-                            if (node.getParents().size() == 0) {
-                                //no parents, just select a random value
+                        if (node.getParents().size() == 0) {
+                            //no parents, just select a random value
+                            y += theta.getP();
+                            if (x <= y) {
                                 AttributeRequirement local = theta.getLocalRequirement();
                                 if (!local.isRange()) {
                                     individual.put(node.getName(), local.getValue().getValue());
@@ -91,33 +91,36 @@ public final class DataGeneration {
                                     }
                                 }
                                 break;
-                            } else {
-                                //node has parents, so check if parent values have been selected yet
-                                boolean correctTheta = true;
-                                for (ParentValue parent : theta.getParents()) {
-                                    if (individual.get(parent.getName()) == null) {
-                                        //not all parents are selected, move on
+                            }
+                        } else {
+                            //node has parents, so check if parent values have been selected yet
+                            boolean correctTheta = true;
+                            for (ParentValue parent : theta.getParents()) {
+                                if (individual.get(parent.getName()) == null) {
+                                    //not all parents are selected, move on
+                                    correctTheta = false;
+                                    break;
+                                } else {
+                                    Attribute.AttributeType type = null;
+                                    if (parent.getRequirement().isRange()) {
+                                        type = parent.getRequirement().getLowerLimit().getType();
+                                    } else {
+                                        type = parent.getRequirement().getValue().getType();
+                                    }
+                                    Attribute a = new Attribute(type,
+                                                                individual.get(parent.getName()), parent.getName());
+                                    if (!parent.getRequirement().checkRequirement(
+                                            a)) {
+                                        //A parent has the wrong value for this theta, move on
                                         correctTheta = false;
                                         break;
-                                    } else {
-                                        Attribute.AttributeType type = null;
-                                        if (parent.getRequirement().isRange()) {
-                                            type = parent.getRequirement().getLowerLimit().getType();
-                                        } else {
-                                            type = parent.getRequirement().getValue().getType();
-                                        }
-                                        Attribute a = new Attribute(type,
-                                                                    individual.get(parent.getName()), parent.getName());
-                                        if (!parent.getRequirement().checkRequirement(
-                                                a)) {
-                                            //A parent has the wrong value for this theta, move on
-                                            correctTheta = false;
-                                            break;
-                                        }
-
                                     }
+
                                 }
-                                if (correctTheta) {
+                            }
+                            if (correctTheta) {
+                                y += theta.getP();
+                                if (x <= y) {
                                     AttributeRequirement local = theta.getLocalRequirement();
                                     if (!local.isRange()) {
                                         individual.put(node.getName(), local.getValue().getValue());

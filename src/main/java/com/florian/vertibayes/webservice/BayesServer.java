@@ -108,7 +108,7 @@ public class BayesServer extends Server {
         } else {
             //set lowest lower limit
             String lower = findSmallest(unique.stream().collect(Collectors.toList()), type);
-            unique.remove(lower);
+            removeValue(unique, lower);
             currentBin.setLowerLimit(lower);
             while (unique.size() > 0) {
                 boolean lastBinToosmall = false;
@@ -121,7 +121,7 @@ public class BayesServer extends Server {
                     }
                     //look for new upperlimit
                     String upper = findSmallest(unique.stream().collect(Collectors.toList()), type);
-                    unique.remove(upper);
+                    removeValue(unique, upper);
                     currentBin.setUpperLimit(upper);
                 }
                 if (!lastBinToosmall) {
@@ -158,6 +158,15 @@ public class BayesServer extends Server {
             }
         }
         return bins;
+    }
+
+    private void removeValue(Set<String> unique, String value) {
+        //remove both the double and int variant of this value
+        //doubles are automaticly translated into x.0 by java
+        //if the original data simply contained x it'll get stuck in an endless loop
+        unique.remove(value);
+        unique.remove(String.valueOf((int) Double.parseDouble(value)));
+
     }
 
     private boolean binIsBigEnough(Bin currentBin, String attribute) {
