@@ -81,6 +81,10 @@ public class TestPerformance {
     public static final String FIRSTHALF_ASIA = "resources/Experiments/asia/Asia10k_firsthalf.csv";
     public static final String SECONDHALF_ASIA = "resources/Experiments/asia/Asia10k_secondhalf.csv";
 
+    public static final String TEST_DIABETES_FULL = "resources/Experiments/diabetes/diabetesWEKA.arff";
+    public static final String FIRSTHALF_DIABETES = "resources/Experiments/diabetes/diabetes_firsthalf.csv";
+    public static final String SECONDHALF_DIABETES = "resources/Experiments/diabetes/diabetes_secondhalf.csv";
+
     public static final String TEST_IRIS_FULL_MISSING = "resources/Experiments/iris/irisMissing.arff";
     public static final String FIRSTHALF_IRIS_MISSING = "resources/Experiments/iris/irisMissingLeft.csv";
     public static final String SECONDHALF_IRIS_MISSING = "resources/Experiments/iris/irisMissingRight.csv";
@@ -92,6 +96,10 @@ public class TestPerformance {
     public static final String TEST_ASIA_FULL_MISSING = "resources/Experiments/asia/asia10kMissing.arff";
     public static final String FIRSTHALF_ASIA_MISSING = "resources/Experiments/asia/asia10kMissingLeft.csv";
     public static final String SECONDHALF_ASIA_MISSING = "resources/Experiments/asia/asia10kMissingRight.csv";
+
+    public static final String TEST_DIABETES_FULL_MISSING = "resources/Experiments/diabetes/diabetesMissing.arff";
+    public static final String FIRSTHALF_DIABETES_MISSING = "resources/Experiments/diabetes/diabetesMissingLeft.csv";
+    public static final String SECONDHALF_DIABETES_MISSING = "resources/Experiments/diabetes/diabetesMissingRight.csv";
 
     private static final List<Double> TRESHHOLDS = Arrays.asList(0.05, 0.1);
     private static final boolean SMALL_TEST = true;
@@ -117,6 +125,12 @@ public class TestPerformance {
 
     @Test
     public void testVertiBayesDiabetes() throws Exception {
+        testVertiBayesFullDataSetDiabetes();
+        TRESHHOLDS.add(0.3);
+        for (double d : TRESHHOLDS) {
+            testVertiBayesFullDataSetMissingDiabetes(d);
+        }
+
         List<Integer> folds = new ArrayList<>();
         for (int i = 0; i < FOLDS; i++) {
             folds.add(i);
@@ -164,6 +178,29 @@ public class TestPerformance {
 
         System.out.println("Time: " + (System.currentTimeMillis() - start));
         if (!SMALL_TEST) {
+            start = System.currentTimeMillis();
+
+            double diabetesWeka = wekaTest("Outcome", DIABETES_WEKA_BIF, TEST_DIABETES_FULL_MISSING);
+            Performance diabetesFed = diabetes(folds);
+            assertEquals(diabetesWeka, diabetesFed.getRealAuc(), 0.025);
+            assertEquals(diabetesWeka, diabetesFed.getSyntheticAuc(), 0.025);
+            assertEquals(diabetesWeka, diabetesFed.getSyntheticFoldAuc(), 0.025);
+
+            System.out.println("diabetes :" + diabetesWeka);
+            System.out.println("Validating against real data:");
+            System.out.println("Federated");
+            System.out.println("diabetes :" + diabetesFed.getRealAuc());
+
+            System.out.println("Validating against full synthetic data:");
+            System.out.println("Federated");
+            System.out.println("diabetes :" + diabetesFed.getSyntheticAuc());
+
+            System.out.println("Validating against fold synthetic data:");
+            System.out.println("Federated");
+            System.out.println("diabetes :" + diabetesFed.getSyntheticFoldAuc());
+
+            System.out.println("Time: " + (System.currentTimeMillis() - start));
+
             start = System.currentTimeMillis();
 
 
@@ -299,6 +336,37 @@ public class TestPerformance {
             if (!SMALL_TEST) {
                 start = System.currentTimeMillis();
 
+                Performance diabetesUnknownFed = diabetesUnknown(folds, treshold);
+                double diabetesUnknown = wekaTest("Outcome",
+                                                  DIABETES_WEKA_BIF.replace("Missing",
+                                                                            "MissingTreshold" + String.valueOf(
+                                                                                            treshold)
+                                                                                    .replace(".", "_"))
+                        , TEST_DIABETES_FULL_MISSING.replace("Missing",
+                                                             "MissingTreshold" + String.valueOf(treshold)
+                                                                     .replace(".", "_")));
+
+                assertEquals(diabetesUnknown, diabetesUnknownFed.getRealAuc(), 0.025);
+                assertEquals(diabetesUnknown, diabetesUnknownFed.getSyntheticAuc(), 0.025);
+                assertEquals(diabetesUnknown, diabetesUnknownFed.getSyntheticFoldAuc(), 0.025);
+
+                System.out.println("Diabetes unknown :" + diabetesUnknown);
+                System.out.println("Validating against real data:");
+                System.out.println("Federated");
+                System.out.println("Diabetes unknown :" + diabetesUnknownFed.getRealAuc());
+
+                System.out.println("Validating against full synthetic data:");
+                System.out.println("Federated");
+                System.out.println("Diabetes unknown :" + diabetesUnknownFed.getSyntheticAuc());
+
+                System.out.println("Validating against fold synthetic data:");
+                System.out.println("Federated");
+                System.out.println("Diabetes :" + diabetesUnknownFed.getSyntheticFoldAuc());
+
+                System.out.println("Time: " + (System.currentTimeMillis() - start));
+
+                start = System.currentTimeMillis();
+
                 Performance irisAutomaticUnknownFed = irisUnknown(folds, treshold, true);
                 double irisAutomaticUnknown = wekaTest("label",
                                                        IRIS_WEKA_BIF.replace("Missing",
@@ -408,6 +476,10 @@ public class TestPerformance {
         // do not turn on ALARM unless you have the time to wait
         if (!SMALL_TEST) {
             start = System.currentTimeMillis();
+            testVertiBayesFullDataSetDiabetes();
+            System.out.println("Time: " + (System.currentTimeMillis() - start));
+
+            start = System.currentTimeMillis();
             testVertiBayesFullDataSetAlarm();
             System.out.println("Time: " + (System.currentTimeMillis() - start));
         }
@@ -416,8 +488,13 @@ public class TestPerformance {
             testVertiBayesFullDataSetMissingAsia(d);
             System.out.println("Time: " + (System.currentTimeMillis() - start));
 
+
             if (!SMALL_TEST) {
                 // do not turn on unless you have the time to wait
+                start = System.currentTimeMillis();
+                testVertiBayesFullDataSetMissingDiabetes(d);
+                System.out.println("Time: " + (System.currentTimeMillis() - start));
+
                 start = System.currentTimeMillis();
                 testVertiBayesFullDataSetMissingIris(d);
                 System.out.println("Time: " + (System.currentTimeMillis() - start));
@@ -504,6 +581,18 @@ public class TestPerformance {
         }
     }
 
+    private void testVertiBayesFullDataSetDiabetes() throws Exception {
+        double auc = vertiBayesDiabetesTest(FIRSTHALF_DIABETES, SECONDHALF_DIABETES,
+                                            readData("Outcome", TEST_DIABETES_FULL),
+                                            "Outcome", TEST_DIABETES_FULL.replace("WEKA.arff", ".csv")).getRealAuc();
+
+
+        //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
+        //So performance should be high
+        //However, due to the random factors there is some variance possible
+        assertEquals(auc, 0.85, 0.025);
+    }
+
 
     private void testVertiBayesFullDataSetAsia() throws Exception {
         double auc = vertiBayesAsiaTest(FIRSTHALF_ASIA, SECONDHALF_ASIA, readData("lung", TEST_ASIA_FULL),
@@ -537,6 +626,28 @@ public class TestPerformance {
         }
     }
 
+    private void testVertiBayesFullDataSetMissingDiabetes(double treshold) throws Exception {
+        String first = FIRSTHALF_DIABETES_MISSING.replace("Missing", "MissingTreshold" + String.valueOf(treshold)
+                .replace(".", "_"));
+        String second = SECONDHALF_DIABETES_MISSING.replace("Missing", "MissingTreshold" + String.valueOf(treshold)
+                .replace(".", "_"));
+        String full = TEST_DIABETES_FULL_MISSING.replace("Missing", "MissingTreshold" + String.valueOf(treshold)
+                .replace(".", "_"));
+        double auc = vertiBayesDiabetesTest(first, second, readData("lung", full), "lung",
+                                            full.replace(".arff", ".csv")).getRealAuc();
+
+        //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
+        //So performance should be high
+        //However, due to the random factors there is some variance possible
+        if (treshold == 0.05) {
+            assertEquals(auc, 0.78, 0.025);
+        } else if (treshold == 0.1) {
+            assertEquals(auc, 0.70, 0.025);
+        } else if (treshold == 0.3) {
+            assertEquals(auc, 0.70, 0.025);
+        }
+    }
+
     private Performance diabetes(List<Integer> folds) throws Exception {
         double aucSum = 0;
         double aucSumSynthetic = 0;
@@ -553,9 +664,11 @@ public class TestPerformance {
             Performance res = vertiBayesDiabetesTest(left, right,
                                                      readData("Outcome", testFoldarrf),
                                                      "Outcome", testFoldcsv);
-//            assertEquals(res.getRealAuc(), 0.96, 0.05);
-//            assertEquals(res.getSyntheticAuc(), 0.96, 0.05);
-//            assertEquals(res.getSyntheticFoldAuc(), 0.96, 0.05);
+            System.out.println(fold);
+            //Quite a lot of variance between folds
+            assertEquals(res.getRealAuc(), 0.79, 0.2);
+            assertEquals(res.getSyntheticAuc(), 0.79, 0.2);
+            assertEquals(res.getSyntheticFoldAuc(), 0.79, 0.2);
             aucSum += res.getRealAuc();
             aucSumSynthetic += res.getSyntheticAuc();
             aucSumFoldSynthetic += res.getSyntheticFoldAuc();
@@ -563,9 +676,9 @@ public class TestPerformance {
         double averageAUC = aucSum / folds.size();
         double averageAUCSynthetic = aucSumSynthetic / folds.size();
         double averageAUCFoldSynthetic = aucSumFoldSynthetic / folds.size();
-        assertEquals(averageAUC, 0.99, 0.025);
-        assertEquals(averageAUCSynthetic, 0.99, 0.025);
-        assertEquals(averageAUCFoldSynthetic, 0.99, 0.025);
+        assertEquals(averageAUC, 0.79, 0.025);
+        assertEquals(averageAUCSynthetic, 0.99, 0.1);
+        assertEquals(averageAUCFoldSynthetic, 0.79, 0.2);
         Performance tuple = new Performance();
         tuple.setRealAuc(averageAUC);
         tuple.setSyntheticAuc(averageAUCSynthetic);
@@ -695,6 +808,65 @@ public class TestPerformance {
         assertEquals(averageAUC, 0.91, 0.025);
         assertEquals(averageAUCSynthetic, 0.91, 0.025);
         assertEquals(averageAUCFoldSynthetic, 0.91, 0.025);
+        Performance tuple = new Performance();
+        tuple.setRealAuc(averageAUC);
+        tuple.setSyntheticAuc(averageAUCSynthetic);
+        tuple.setSyntheticFoldAuc(averageAUCFoldSynthetic);
+        return tuple;
+    }
+
+    private Performance diabetesUnknown(List<Integer> folds, double treshold) throws Exception {
+        double aucSum = 0;
+        double aucSumSynthetic = 0;
+        double aucSumFoldSynthetic = 0;
+        //unknowns
+        for (Integer fold : folds) {
+            List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
+            String ids = otherFolds.stream().sorted().collect(Collectors.toList()).toString().replace("[", "")
+                    .replace("]", "").replace(" ", "").replace(",", "");
+            String left = FOLD_LEFTHALF_Diabetes_MISSING.replace("missing",
+                                                                 "Treshold" + String.valueOf(treshold)
+                                                                         .replace(".", "_") + "missing") + ids + ".csv";
+            String right = FOLD_RIGHTHALF_Diabetes_MISSING.replace("missing",
+                                                                   "Treshold" + String.valueOf(treshold)
+                                                                           .replace(".",
+                                                                                    "_") + "missing") + ids + ".csv";
+
+            String testFoldarff = TEST_FOLD_Diabetes + "Treshold" + String.valueOf(treshold)
+                    .replace(".",
+                             "_") + "missing" + fold + "WEKA.arff";
+            String testFoldCsv = testFoldarff.replace("WEKA.arff", ".csv");
+            Performance res = vertiBayesAlarmTest(left, right,
+                                                  readData("Outcome", testFoldarff),
+                                                  "Outcome", testFoldCsv);
+            //the difference between a good and a bad fold can be quite big here dependin on RNG.
+            //The average is still going to be quite close to .88 though
+            if (treshold == 0.05) {
+                assertEquals(res.getRealAuc(), 0.86, 0.1);
+                assertEquals(res.getSyntheticAuc(), 0.86, 0.1);
+                assertEquals(res.getSyntheticFoldAuc(), 0.86, 0.1);
+            } else if (treshold == 0.1) {
+                assertEquals(res.getRealAuc(), 0.80, 0.1);
+                assertEquals(res.getSyntheticAuc(), 0.80, 0.1);
+                assertEquals(res.getSyntheticFoldAuc(), 0.80, 0.1);
+            }
+            aucSum += res.getRealAuc();
+            aucSumSynthetic += res.getSyntheticAuc();
+            aucSumFoldSynthetic += res.getSyntheticFoldAuc();
+        }
+        double averageAUC = aucSum / folds.size();
+        double averageAUCSynthetic = aucSumSynthetic / folds.size();
+        double averageAUCFoldSynthetic = aucSumFoldSynthetic / folds.size();
+        if (treshold == 0.05) {
+            assertEquals(averageAUC, 0.88, 0.05);
+            assertEquals(averageAUCSynthetic, 0.88, 0.05);
+            assertEquals(averageAUCFoldSynthetic, 0.88, 0.05);
+        } else if (treshold == 0.1) {
+            assertEquals(averageAUC, 0.80, 0.1);
+            assertEquals(averageAUCSynthetic, 0.80, 0.1);
+            assertEquals(averageAUCFoldSynthetic, 0.80, 0.1);
+        }
+
         Performance tuple = new Performance();
         tuple.setRealAuc(averageAUC);
         tuple.setSyntheticAuc(averageAUCSynthetic);

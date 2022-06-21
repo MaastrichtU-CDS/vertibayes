@@ -19,4 +19,25 @@ public class Bin {
     public void setLowerLimit(String lowerLimit) {
         this.lowerLimit = lowerLimit;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this) {
+            return true;
+        } else if (((Bin) o).getUpperLimit().equals(upperLimit) && ((Bin) o).getLowerLimit().equals(lowerLimit)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 1;
+        final int prime = 5;
+
+        hash = prime * hash + (upperLimit == null ? 0 : upperLimit.hashCode());
+        hash = prime * hash + (lowerLimit == null ? 0 : lowerLimit.hashCode());
+        return hash;
+    }
 }
