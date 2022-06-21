@@ -125,8 +125,10 @@ public class TestPerformance {
 
     @Test
     public void testVertiBayesDiabetes() throws Exception {
-        testVertiBayesFullDataSetDiabetes();
-        TRESHHOLDS.add(0.3);
+//        testVertiBayesFullDataSetDiabetes();
+        List<Double> treshholds = new ArrayList<>();
+        treshholds.addAll(TRESHHOLDS);
+        treshholds.add(0.3);
         for (double d : TRESHHOLDS) {
             testVertiBayesFullDataSetMissingDiabetes(d);
         }
@@ -633,18 +635,18 @@ public class TestPerformance {
                 .replace(".", "_"));
         String full = TEST_DIABETES_FULL_MISSING.replace("Missing", "MissingTreshold" + String.valueOf(treshold)
                 .replace(".", "_"));
-        double auc = vertiBayesDiabetesTest(first, second, readData("lung", full), "lung",
+        double auc = vertiBayesDiabetesTest(first, second, readData("Outcome", full), "Outcome",
                                             full.replace(".arff", ".csv")).getRealAuc();
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
         //However, due to the random factors there is some variance possible
         if (treshold == 0.05) {
-            assertEquals(auc, 0.78, 0.025);
+            assertEquals(auc, 0.84, 0.025);
         } else if (treshold == 0.1) {
-            assertEquals(auc, 0.70, 0.025);
+            assertEquals(auc, 0.80, 0.025);
         } else if (treshold == 0.3) {
-            assertEquals(auc, 0.70, 0.025);
+            assertEquals(auc, 0.75, 0.025);
         }
     }
 
@@ -664,7 +666,6 @@ public class TestPerformance {
             Performance res = vertiBayesDiabetesTest(left, right,
                                                      readData("Outcome", testFoldarrf),
                                                      "Outcome", testFoldcsv);
-            System.out.println(fold);
             //Quite a lot of variance between folds
             assertEquals(res.getRealAuc(), 0.79, 0.2);
             assertEquals(res.getSyntheticAuc(), 0.79, 0.2);
