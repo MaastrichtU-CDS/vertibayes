@@ -1,4 +1,4 @@
-package com.florian.vertibayes.weka;
+package com.florian.vertibayes.weka.performance;
 
 public class Performance {
     private double realAuc;

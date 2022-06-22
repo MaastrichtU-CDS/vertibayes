@@ -24,10 +24,8 @@ public class Bin {
     public boolean equals(Object o) {
         if (o == this) {
             return true;
-        } else if (((Bin) o).getUpperLimit().equals(upperLimit) && ((Bin) o).getLowerLimit().equals(lowerLimit)) {
-            return true;
         } else {
-            return false;
+            return ((Bin) o).getUpperLimit().equals(upperLimit) && ((Bin) o).getLowerLimit().equals(lowerLimit);
         }
     }
 

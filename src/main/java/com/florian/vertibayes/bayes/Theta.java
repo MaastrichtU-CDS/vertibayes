@@ -9,8 +9,18 @@ public class Theta {
     private AttributeRequirement localRequirement;
     private List<ParentValue> parents = new ArrayList<>();
     private double p;
+    private boolean calculated; //help variable to speed things up
 
     public Theta() {
+        calculated = false;
+    }
+
+    public void calculated() {
+        calculated = true;
+    }
+
+    public boolean isCalculated() {
+        return calculated;
     }
 
     public AttributeRequirement getLocalRequirement() {

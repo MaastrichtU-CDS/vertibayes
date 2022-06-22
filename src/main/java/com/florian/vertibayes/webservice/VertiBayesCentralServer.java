@@ -211,13 +211,15 @@ public class VertiBayesCentralServer extends CentralServer {
                 node.getProbabilities().addAll(copies);
             }
             for (Theta t : node.getProbabilities()) {
-                determineProb(t);
+                determineProb(t, node);
+                //set calculated to true
+                t.calculated();
             }
             alignSliblings(node);
         }
     }
 
-    private void determineProb(Theta t) {
+    private void determineProb(Theta t, Node n) {
 
         if (t.getParents().size() > 0) {
             List<AttributeRequirement> parentsReq = t.getParents().parallelStream().map(x -> x.getRequirement())
@@ -230,9 +232,34 @@ public class VertiBayesCentralServer extends CentralServer {
 
             t.setP(count.doubleValue() / parentCount.doubleValue());
         } else {
-            BigInteger count = countValue(new ArrayList<AttributeRequirement>(Arrays.asList(t.getLocalRequirement())));
-            t.setP(count.doubleValue() / (double) endpoints.get(0).getPopulation());
+            List<Theta> sliblings = findSliblings(t, n);
+            //Check if all sliblings already have an assigned value, if so this theta will just be 1-p
+            //Otherwise calculate theta properly
+            if (sliblingsHaveTheta(sliblings)) {
+                double p = 0;
+                for (Theta slibling : sliblings) {
+                    p += slibling.getP();
+                }
+                t.setP(1 - p);
+            } else {
+                BigInteger count = countValue(
+                        new ArrayList<AttributeRequirement>(Arrays.asList(t.getLocalRequirement())));
+                t.setP(count.doubleValue() / (double) endpoints.get(0).getPopulation());
+            }
         }
+    }
+
+    private boolean sliblingsHaveTheta(List<Theta> sliblings) {
+        int count = 0;
+        for (Theta t : sliblings) {
+            if (!t.isCalculated()) {
+                count++;
+            }
+            if (count > 1) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private BigInteger countValue(List<AttributeRequirement> attributes) {
