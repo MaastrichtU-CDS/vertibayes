@@ -1,8 +1,9 @@
-package com.florian.vertibayes.weka.performance.tests;
+package com.florian.vertibayes.weka.performance.tests.base;
 
 import com.florian.vertibayes.webservice.domain.external.WebNode;
 import com.florian.vertibayes.weka.performance.Performance;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,6 +18,9 @@ public class PerformanceTestBase {
     private final String LABEL;
     private final List<WebNode> NODES;
 
+    private int FOLDS = 10;
+    private static List<Integer> folds;
+
     public PerformanceTestBase(String left, String right, String test, String label, List<WebNode> nodes) {
 
         this.FOLD_LEFTHALF = left;
@@ -24,9 +28,14 @@ public class PerformanceTestBase {
         this.TEST_FOLD = test;
         this.LABEL = label;
         this.NODES = nodes;
+
+        folds = new ArrayList<>();
+        for (int i = 0; i < FOLDS; i++) {
+            folds.add(i);
+        }
     }
 
-    public Performance kFoldTest(List<Integer> folds)
+    public Performance kFoldTest()
             throws Exception {
         double aucSum = 0;
         double aucSumSynthetic = 0;

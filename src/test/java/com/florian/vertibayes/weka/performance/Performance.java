@@ -4,6 +4,7 @@ public class Performance {
     private double realAuc;
     private double syntheticAuc;
     private double syntheticFoldAuc;
+    private double wekaAuc;
 
     public double getSyntheticFoldAuc() {
         return syntheticFoldAuc;
@@ -27,5 +28,13 @@ public class Performance {
 
     public void setSyntheticAuc(double syntheticAuc) {
         this.syntheticAuc = syntheticAuc;
+    }
+
+    public double getWekaAuc() {
+        return wekaAuc;
+    }
+
+    public void setWekaAuc(double wekaAuc) {
+        this.wekaAuc = wekaAuc;
     }
 }
