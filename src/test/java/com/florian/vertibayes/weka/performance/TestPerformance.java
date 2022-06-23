@@ -103,32 +103,32 @@ public class TestPerformance {
     // IMPORTANT NOTE 2: DUE TO THE RANDOM NATURE OF EM,DATA GENERATION & THE FOLDS IT IS POSSIBLE TO GET THE
     // OCCASIONAL TERRIBLE PERFORMANCE, ESPECIALLY ON INDIVIDUAL FOLDS. RERUN THE TEST AND SEE IF IT HAPPENS AGAIN.
 
+    @Test
+    public void testVertiBayesDiabetes() throws Exception {
+        List<Integer> folds = new ArrayList<>();
+        for (int i = 0; i < FOLDS; i++) {
+            folds.add(i);
+        }
 
-//    public void testVertiBayesDiabetes() throws Exception {
-//        List<Integer> folds = new ArrayList<>();
-//        for (int i = 0; i < FOLDS; i++) {
-//            folds.add(i);
-//        }
-//
-//        List<Double> tresh = new ArrayList<>();
-//        tresh.addAll(TRESHHOLDS);
-//        tresh.add(0.3);
-//        for (double treshold : tresh) {
-//            Performance diabetesUnknownFed = diabetesUnknown(folds, treshold);
-//            double diabetesUnknown = wekaTest("Outcome",
-//                                              DIABETES_WEKA_BIF.replace("Missing",
-//                                                                        "MissingTreshold" + String.valueOf(
-//                                                                                        treshold)
-//                                                                                .replace(".", "_"))
-//                    , TEST_DIABETES_FULL_MISSING.replace("Missing",
-//                                                         "MissingTreshold" + String.valueOf(treshold)
-//                                                                 .replace(".", "_")));
-//
-//            assertEquals(diabetesUnknown, diabetesUnknownFed.getRealAuc(), 0.025);
-//            assertEquals(diabetesUnknown, diabetesUnknownFed.getSyntheticAuc(), 0.11);
-//            assertEquals(diabetesUnknown, diabetesUnknownFed.getSyntheticFoldAuc(), 0.025);
-//        }
-//    }
+        List<Double> tresh = new ArrayList<>();
+        tresh.addAll(TRESHHOLDS);
+        tresh.add(0.3);
+        for (double treshold : tresh) {
+            Performance diabetesUnknownFed = diabetesUnknown(folds, treshold);
+            double diabetesUnknown = wekaTest("Outcome",
+                                              DIABETES_WEKA_BIF.replace("Missing",
+                                                                        "MissingTreshold" + String.valueOf(
+                                                                                        treshold)
+                                                                                .replace(".", "_"))
+                    , TEST_DIABETES_FULL_MISSING.replace("Missing",
+                                                         "MissingTreshold" + String.valueOf(treshold)
+                                                                 .replace(".", "_")));
+
+            assertEquals(diabetesUnknown, diabetesUnknownFed.getRealAuc(), 0.025);
+            assertEquals(diabetesUnknown, diabetesUnknownFed.getSyntheticAuc(), 0.11);
+            assertEquals(diabetesUnknown, diabetesUnknownFed.getSyntheticFoldAuc(), 0.025);
+        }
+    }
 
     @Test
     public void testVertiBayesKFoldKnown() throws Exception {
@@ -844,19 +844,18 @@ public class TestPerformance {
                                                readData("Outcome", testFoldarff),
                                                "Outcome", testFoldCsv, buildDiabetesNetwork());
             //the difference between a good and a bad fold can be quite big here dependin on RNG.
-            //The average is still going to be quite close to .88 though
             if (treshold == 0.05) {
-                assertEquals(res.getRealAuc(), 0.86, 0.1);
-                assertEquals(res.getSyntheticAuc(), 0.86, 0.1);
-                assertEquals(res.getSyntheticFoldAuc(), 0.86, 0.1);
+                assertEquals(res.getRealAuc(), 0.76, 0.1);
+                assertEquals(res.getSyntheticAuc(), 0.76, 0.15);
+                assertEquals(res.getSyntheticFoldAuc(), 0.76, 0.11);
             } else if (treshold == 0.1) {
-                assertEquals(res.getRealAuc(), 0.80, 0.1);
-                assertEquals(res.getSyntheticAuc(), 0.80, 0.1);
-                assertEquals(res.getSyntheticFoldAuc(), 0.80, 0.1);
+                assertEquals(res.getRealAuc(), 0.74, 0.1);
+                assertEquals(res.getSyntheticAuc(), 0.74, 0.15);
+                assertEquals(res.getSyntheticFoldAuc(), 0.74, 0.11);
             } else if (treshold == 0.3) {
-                assertEquals(res.getRealAuc(), 0.75, 0.1);
-                assertEquals(res.getSyntheticAuc(), 0.75, 0.1);
-                assertEquals(res.getSyntheticFoldAuc(), 0.75, 0.1);
+                assertEquals(res.getRealAuc(), 0.73, 0.1);
+                assertEquals(res.getSyntheticAuc(), 0.73, 0.15);
+                assertEquals(res.getSyntheticFoldAuc(), 0.73, 0.11);
             }
             aucSum += res.getRealAuc();
             aucSumSynthetic += res.getSyntheticAuc();
@@ -866,17 +865,17 @@ public class TestPerformance {
         double averageAUCSynthetic = aucSumSynthetic / folds.size();
         double averageAUCFoldSynthetic = aucSumFoldSynthetic / folds.size();
         if (treshold == 0.05) {
-            assertEquals(averageAUC, 0.88, 0.05);
+            assertEquals(averageAUC, 0.78, 0.05);
             assertEquals(averageAUCSynthetic, 0.88, 0.05);
-            assertEquals(averageAUCFoldSynthetic, 0.88, 0.05);
+            assertEquals(averageAUCFoldSynthetic, 0.78, 0.05);
         } else if (treshold == 0.1) {
-            assertEquals(averageAUC, 0.80, 0.1);
-            assertEquals(averageAUCSynthetic, 0.80, 0.1);
-            assertEquals(averageAUCFoldSynthetic, 0.80, 0.1);
+            assertEquals(averageAUC, 0.74, 0.05);
+            assertEquals(averageAUCSynthetic, 0.84, 0.05);
+            assertEquals(averageAUCFoldSynthetic, 0.74, 0.05);
         } else if (treshold == 0.3) {
-            assertEquals(averageAUC, 0.75, 0.1);
-            assertEquals(averageAUCSynthetic, 0.75, 0.1);
-            assertEquals(averageAUCFoldSynthetic, 0.75, 0.1);
+            assertEquals(averageAUC, 0.73, 0.05);
+            assertEquals(averageAUCSynthetic, 0.83, 0.05);
+            assertEquals(averageAUCFoldSynthetic, 0.73, 0.05);
         }
 
         Performance tuple = new Performance();

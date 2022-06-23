@@ -238,7 +238,8 @@ public class VertiBayesCentralServer extends CentralServer {
             if (sliblingsHaveTheta(sliblings)) {
                 double p = 0;
                 for (Theta slibling : sliblings) {
-                    p += slibling.getP();
+                    //add 0 when encountering NaN
+                    p += Double.isNaN(slibling.getP()) ? 0 : slibling.getP();
                 }
                 t.setP(1 - p);
             } else {

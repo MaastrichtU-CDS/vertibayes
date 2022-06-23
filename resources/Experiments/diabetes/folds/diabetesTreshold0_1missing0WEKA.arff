@@ -7,7 +7,7 @@
 @Attribute BMI real
 @Attribute DiabetesPedigreeFunction real
 @Attribute Age numeric
-@Attribute Outcome {1,0}
+@Attribute Outcome {0,1}
 
 @DATA
 3,78,50,?,88,31,0.248,26,1
