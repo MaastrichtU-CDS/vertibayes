@@ -1,5 +1,7 @@
 package com.florian.vertibayes.weka.performance;
 
+import com.florian.vertibayes.weka.performance.tests.AsiaTest;
+import com.florian.vertibayes.weka.performance.tests.IrisTest;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -37,9 +39,6 @@ public class TestPerformance {
     public static final String FOLD_LEFTHALF_ASIA = "resources/Experiments/asia/folds/asiaLeftSplit";
     public static final String TEST_FOLD_ASIA = "resources/Experiments/asia/folds/asia";
     public static final String FOLD_RIGHTHALF_ASIA = "resources/Experiments/asia/folds/asiaRightSplit";
-    public static final String FOLD_LEFTHALF_ASIA_MISSING = "resources/Experiments/asia/folds/asiamissingLeftSplit";
-    public static final String FOLD_RIGHTHALF_ASIA_MISSING = "resources/Experiments/asia/folds" +
-            "/asiamissingRightSplit";
 
     public static final String FOLD_LEFTHALF_Diabetes = "resources/Experiments/diabetes/folds/diabetesLeftSplit";
     public static final String TEST_FOLD_Diabetes = "resources/Experiments/diabetes/folds/diabetes";
@@ -146,29 +145,22 @@ public class TestPerformance {
             folds.add(i);
         }
         long start = System.currentTimeMillis();
+        AsiaTest asia = new AsiaTest();
 
-        Performance asiaFed = asia(folds);
-        double asia = wekaTest("lung", ASIA_WEKA_BIF, TEST_ASIA_FULL);
+        Performance asiaFed = asia.kFold();
+        double asiaWeka = asia.weka();
 
-        assertEquals(asia, asiaFed.getRealAuc(), 0.025);
-        assertEquals(asia, asiaFed.getSyntheticAuc(), 0.025);
-        assertEquals(asia, asiaFed.getSyntheticFoldAuc(), 0.025);
+        assertEquals(asiaFed.getRealAuc(), 0.99, 0.025);
+        assertEquals(asiaFed.getSyntheticAuc(), 0.99, 0.025);
+        assertEquals(asiaFed.getSyntheticFoldAuc(), 0.99, 0.025);
+
+        assertEquals(asiaWeka, asiaFed.getRealAuc(), 0.025);
+        assertEquals(asiaWeka, asiaFed.getSyntheticAuc(), 0.025);
+        assertEquals(asiaWeka, asiaFed.getSyntheticFoldAuc(), 0.025);
 
 
-        System.out.println("Asia :" + asia);
-        System.out.println("Validating against real data:");
-        System.out.println("Federated");
-        System.out.println("Asia :" + asiaFed.getRealAuc());
+        printResults(start, asiaWeka, asiaFed, "Asia :", 0);
 
-        System.out.println("Validating against full synthetic data:");
-        System.out.println("Federated");
-        System.out.println("Asia :" + asiaFed.getSyntheticAuc());
-
-        System.out.println("Validating against fold synthetic data:");
-        System.out.println("Federated");
-        System.out.println("Asia :" + asiaFed.getSyntheticFoldAuc());
-
-        System.out.println("Time: " + (System.currentTimeMillis() - start));
         if (!SMALL_TEST) {
             start = System.currentTimeMillis();
 
@@ -180,20 +172,7 @@ public class TestPerformance {
             assertEquals(diabetesWeka, diabetesFed.getSyntheticAuc(), 0.11);
             assertEquals(diabetesWeka, diabetesFed.getSyntheticFoldAuc(), 0.025);
 
-            System.out.println("diabetes :" + diabetesWeka);
-            System.out.println("Validating against real data:");
-            System.out.println("Federated");
-            System.out.println("diabetes :" + diabetesFed.getRealAuc());
-
-            System.out.println("Validating against full synthetic data:");
-            System.out.println("Federated");
-            System.out.println("diabetes :" + diabetesFed.getSyntheticAuc());
-
-            System.out.println("Validating against fold synthetic data:");
-            System.out.println("Federated");
-            System.out.println("diabetes :" + diabetesFed.getSyntheticFoldAuc());
-
-            System.out.println("Time: " + (System.currentTimeMillis() - start));
+            printResults(start, diabetesWeka, diabetesFed, "diabetes :", 0);
 
             start = System.currentTimeMillis();
 
@@ -207,20 +186,7 @@ public class TestPerformance {
             // So ignore it
             // assertEquals(irisAutomatic, irisAutomaticFed.getSyntheticFoldAuc(), 0.025);
 
-            System.out.println("IrisAutomatic :" + irisAutomatic);
-            System.out.println("Validating against real data:");
-            System.out.println("Federated");
-            System.out.println("IrisAutomatic :" + irisAutomaticFed.getRealAuc());
-
-            System.out.println("Validating against full synthetic data:");
-            System.out.println("Federated");
-            System.out.println("IrisAutomatic :" + irisAutomaticFed.getSyntheticAuc());
-
-            System.out.println("Validating against fold synthetic data:");
-            System.out.println("Federated");
-            System.out.println("IrisAutomatic :" + irisAutomaticFed.getSyntheticFoldAuc());
-
-            System.out.println("Time: " + (System.currentTimeMillis() - start));
+            printResults(start, irisAutomatic, irisAutomaticFed, "IrisAutomatic :", 0);
 
             start = System.currentTimeMillis();
 
@@ -234,20 +200,7 @@ public class TestPerformance {
             // So ignore it
             // assertEquals(irisManual, irisManualFed.getSyntheticFoldAuc(), 0.025);
 
-            System.out.println("IrisManual :" + irisManual);
-            System.out.println("Validating against real data:");
-            System.out.println("Federated");
-            System.out.println("IrisManual :" + irisManualFed.getRealAuc());
-
-            System.out.println("Validating against full synthetic data:");
-            System.out.println("Federated");
-            System.out.println("IrisManual :" + irisManualFed.getSyntheticAuc());
-
-            System.out.println("Validating against fold synthetic data:");
-            System.out.println("Federated");
-            System.out.println("IrisManual :" + irisManualFed.getSyntheticFoldAuc());
-
-            System.out.println("Time: " + (System.currentTimeMillis() - start));
+            printResults(start, irisManual, irisManualFed, "IrisManual :", 0);
             start = System.currentTimeMillis();
 
             Performance alarmFed = alarm(folds);
@@ -257,20 +210,7 @@ public class TestPerformance {
             assertEquals(alarm, alarmFed.getSyntheticAuc(), 0.025);
             assertEquals(alarm, alarmFed.getSyntheticFoldAuc(), 0.025);
 
-            System.out.println("Alarm :" + alarm);
-            System.out.println("Validating against real data:");
-            System.out.println("Federated");
-            System.out.println("Alarm :" + alarmFed.getRealAuc());
-
-            System.out.println("Validating against full synthetic data:");
-            System.out.println("Federated");
-            System.out.println("Alarm :" + alarmFed.getSyntheticAuc());
-
-            System.out.println("Validating against fold synthetic data:");
-            System.out.println("Federated");
-            System.out.println("Alarm :" + alarmFed.getSyntheticFoldAuc());
-
-            System.out.println("Time: " + (System.currentTimeMillis() - start));
+            printResults(start, alarm, alarmFed, "Alarm :", 0);
         }
     }
 
@@ -300,33 +240,29 @@ public class TestPerformance {
             System.out.println("Treshold: " + treshold);
             long start = System.currentTimeMillis();
 
-            Performance asiaUnknownFed = asiaUnknown(folds, treshold);
-            double asiaUnknown = wekaTest("lung",
-                                          ASIA_WEKA_BIF.replace("Missing",
-                                                                "Treshold" + String.valueOf(treshold)
-                                                                        .replace(".", "_")),
-                                          TEST_ASIA_FULL_MISSING.replace("Missing",
-                                                                         "MissingTreshold" + String.valueOf(treshold)
-                                                                                 .replace(".", "_")));
-
+            AsiaTest asia = new AsiaTest();
+            Performance asiaUnknownFed = asia.kFoldUnknown(treshold);
+            double asiaUnknown = asia.weka(treshold);
             assertEquals(asiaUnknown, asiaUnknownFed.getRealAuc(), 0.025);
             assertEquals(asiaUnknown, asiaUnknownFed.getSyntheticAuc(), 0.025);
             assertEquals(asiaUnknown, asiaUnknownFed.getSyntheticFoldAuc(), 0.025);
 
-            System.out.println("Asia unknown :" + asiaUnknown);
-            System.out.println("Validating against real data:");
-            System.out.println("Federated");
-            System.out.println("Asia unknown :" + asiaUnknownFed.getRealAuc());
+            //validate performance
+            if (treshold == 0.05) {
+                assertEquals(asiaUnknownFed.getRealAuc(), 0.78, 0.025);
+                assertEquals(asiaUnknownFed.getSyntheticAuc(), 0.78, 0.025);
+                assertEquals(asiaUnknownFed.getSyntheticFoldAuc(), 0.78, 0.025);
+            } else if (treshold == 0.01) {
+                assertEquals(asiaUnknownFed.getRealAuc(), 0.7, 0.025);
+                assertEquals(asiaUnknownFed.getSyntheticAuc(), 0.7, 0.025);
+                assertEquals(asiaUnknownFed.getSyntheticFoldAuc(), 0.7, 0.025);
+            }
+            //validate federated performance against weka performance
+            assertEquals(asiaUnknown, asiaUnknownFed.getRealAuc(), 0.025);
+            assertEquals(asiaUnknown, asiaUnknownFed.getSyntheticAuc(), 0.025);
+            assertEquals(asiaUnknown, asiaUnknownFed.getSyntheticFoldAuc(), 0.025);
 
-            System.out.println("Validating against full synthetic data:");
-            System.out.println("Federated");
-            System.out.println("Asia unknown :" + asiaUnknownFed.getSyntheticAuc());
-
-            System.out.println("Validating against fold synthetic data:");
-            System.out.println("Federated");
-            System.out.println("Asia :" + asiaUnknownFed.getSyntheticFoldAuc());
-
-            System.out.println("Time: " + (System.currentTimeMillis() - start));
+            printResults(start, asiaUnknown, asiaUnknownFed, "Asia :", treshold);
 
             if (!SMALL_TEST) {
                 start = System.currentTimeMillis();
@@ -347,32 +283,26 @@ public class TestPerformance {
                 assertEquals(diabetesUnknown, diabetesUnknownFed.getSyntheticAuc(), 0.11);
                 assertEquals(diabetesUnknown, diabetesUnknownFed.getSyntheticFoldAuc(), 0.025);
 
-                System.out.println("Diabetes unknown :" + diabetesUnknown);
-                System.out.println("Validating against real data:");
-                System.out.println("Federated");
-                System.out.println("Diabetes unknown :" + diabetesUnknownFed.getRealAuc());
-
-                System.out.println("Validating against full synthetic data:");
-                System.out.println("Federated");
-                System.out.println("Diabetes unknown :" + diabetesUnknownFed.getSyntheticAuc());
-
-                System.out.println("Validating against fold synthetic data:");
-                System.out.println("Federated");
-                System.out.println("Diabetes :" + diabetesUnknownFed.getSyntheticFoldAuc());
-
-                System.out.println("Time: " + (System.currentTimeMillis() - start));
+                printResults(start, diabetesUnknown, diabetesUnknownFed, "Diabetes :", treshold);
 
                 start = System.currentTimeMillis();
+                IrisTest iris = new IrisTest();
+                Performance irisAutomaticUnknownFed = iris.kFoldUnknown(true, treshold);
+                double irisAutomaticUnknown = iris.weka(treshold);
 
-                Performance irisAutomaticUnknownFed = irisUnknown(folds, treshold, true);
-                double irisAutomaticUnknown = wekaTest("label",
-                                                       IRIS_WEKA_BIF.replace("Missing",
-                                                                             "MissingTreshold" + String.valueOf(
-                                                                                             treshold)
-                                                                                     .replace(".", "_"))
-                        , TEST_IRIS_FULL_MISSING.replace("Missing",
-                                                         "MissingTreshold" + String.valueOf(treshold)
-                                                                 .replace(".", "_")));
+                if (treshold == 0.05) {
+                    assertEquals(irisAutomaticUnknownFed.getRealAuc(), 0.96, 0.04);
+                    assertEquals(irisAutomaticUnknownFed.getSyntheticAuc(), 0.96, 0.04);
+                    // Synthetic fold AUC for iris is all over the place due to the small folds
+                    // So ignore it
+                    // assertEquals(res.getSyntheticFoldAuc(), 0.90, 0.1);
+                } else if (treshold == 0.1) {
+                    assertEquals(irisAutomaticUnknownFed.getRealAuc(), 0.96, 0.04);
+                    assertEquals(irisAutomaticUnknownFed.getSyntheticAuc(), 0.96, 0.04);
+                    // Synthetic fold AUC for iris is all over the place due to the small folds
+                    // So ignore it
+                    // assertEquals(res.getSyntheticFoldAuc(), 0.90, 0.1);
+                }
 
                 assertEquals(irisAutomaticUnknown, irisAutomaticUnknownFed.getRealAuc(), 0.025);
                 assertEquals(irisAutomaticUnknown, irisAutomaticUnknownFed.getSyntheticAuc(), 0.025);
@@ -380,31 +310,26 @@ public class TestPerformance {
                 // So ignore it
                 // assertEquals(irisAutomaticUnknown, irisAutomaticUnknownFed.getSyntheticFoldAuc(), 0.025);
 
-                System.out.println("IrisAutomatic unknown :" + irisAutomaticUnknown);
-                System.out.println("Validating against real data:");
-                System.out.println("Federated");
-                System.out.println("IrisAutomatic unknown :" + irisAutomaticUnknownFed.getRealAuc());
-
-                System.out.println("Validating against full synthetic data:");
-                System.out.println("Federated");
-                System.out.println("IrisAutomatic unknown :" + irisAutomaticUnknownFed.getSyntheticAuc());
-
-                System.out.println("Validating against fold synthetic data:");
-                System.out.println("Federated");
-                System.out.println("IrisAutomatic :" + irisAutomaticUnknownFed.getSyntheticFoldAuc());
-
-                System.out.println("Time: " + (System.currentTimeMillis() - start));
+                printResults(start, irisAutomaticUnknown, irisAutomaticUnknownFed, "IrisAutomatic", treshold);
 
                 start = System.currentTimeMillis();
 
-                Performance irisManualUnknownFed = irisUnknown(folds, treshold, false);
-                double irisManualUnknown = wekaTest("label",
-                                                    IRIS_WEKA_BIF.replace("Missing",
-                                                                          "MissingTreshold" + String.valueOf(treshold)
-                                                                                  .replace(".", "_")),
-                                                    TEST_IRIS_FULL_MISSING.replace(
-                                                            "Missing", "MissingTreshold" + String.valueOf(treshold)
-                                                                    .replace(".", "_")));
+                Performance irisManualUnknownFed = iris.kFoldUnknown(false, treshold);
+                double irisManualUnknown = iris.weka(treshold);
+
+                if (treshold == 0.05) {
+                    assertEquals(irisManualUnknownFed.getRealAuc(), 0.96, 0.04);
+                    assertEquals(irisManualUnknownFed.getSyntheticAuc(), 0.96, 0.04);
+                    // Synthetic fold AUC for iris is all over the place due to the small folds
+                    // So ignore it
+                    // assertEquals(res.getSyntheticFoldAuc(), 0.90, 0.1);
+                } else if (treshold == 0.1) {
+                    assertEquals(irisManualUnknownFed.getRealAuc(), 0.96, 0.04);
+                    assertEquals(irisManualUnknownFed.getSyntheticAuc(), 0.96, 0.04);
+                    // Synthetic fold AUC for iris is all over the place due to the small folds
+                    // So ignore it
+                    // assertEquals(res.getSyntheticFoldAuc(), 0.90, 0.1);
+                }
 
                 assertEquals(irisManualUnknown, irisManualUnknownFed.getRealAuc(), 0.05);
                 assertEquals(irisManualUnknown, irisManualUnknownFed.getSyntheticAuc(), 0.05);
@@ -412,20 +337,7 @@ public class TestPerformance {
                 // So ignore it
                 // assertEquals(irisManualUnknown, irisManualUnknownFed.getSyntheticFoldAuc(), 0.025);
 
-                System.out.println("IrisManual unknown :" + irisManualUnknown);
-                System.out.println("Validating against real data:");
-                System.out.println("Federated");
-                System.out.println("IrisManual unknown :" + irisManualUnknownFed.getRealAuc());
-
-                System.out.println("Validating against full synthetic data:");
-                System.out.println("Federated");
-                System.out.println("IrisManual unknown :" + irisManualUnknownFed.getSyntheticAuc());
-
-                System.out.println("Validating against fold synthetic data:");
-                System.out.println("Federated");
-                System.out.println("IrisManual :" + irisManualUnknownFed.getSyntheticFoldAuc());
-
-                System.out.println("Time: " + (System.currentTimeMillis() - start));
+                printResults(start, irisManualUnknown, irisManualUnknownFed, "IrisManual", treshold);
                 start = System.currentTimeMillis();
 
                 Performance alarmUnknownFed = alarmUnknown(folds, treshold);
@@ -441,22 +353,24 @@ public class TestPerformance {
                 assertEquals(alarmUnknown, alarmUnknownFed.getSyntheticAuc(), 0.05);
                 assertEquals(alarmUnknown, alarmUnknownFed.getSyntheticFoldAuc(), 0.05);
 
-                System.out.println("Alarm unknown :" + alarmUnknown);
-                System.out.println("Validating against real data:");
-                System.out.println("Federated");
-                System.out.println("Alarm unknown :" + alarmUnknownFed.getRealAuc());
-
-                System.out.println("Validating against full synthetic data:");
-                System.out.println("Federated");
-                System.out.println("Alarm unknown :" + alarmUnknownFed.getSyntheticAuc());
-
-                System.out.println("Validating against fold synthetic data:");
-                System.out.println("Federated");
-                System.out.println("Alarm :" + alarmUnknownFed.getSyntheticFoldAuc());
-
-                System.out.println("Time: " + (System.currentTimeMillis() - start));
+                printResults(start, alarmUnknown, alarmUnknownFed, "Alarm", treshold);
             }
         }
+    }
+
+    private void printResults(long start, double weka, Performance performanceFed, String name, double treshold) {
+        System.out.println("Dataset: " + name + " Unknown level: " + treshold);
+        System.out.println("Central performance: " + weka);
+        System.out.println("Validating against real data:");
+        System.out.println(performanceFed.getRealAuc());
+
+        System.out.println("Validating against full synthetic data:");
+        System.out.println(performanceFed.getSyntheticAuc());
+
+        System.out.println("Validating against fold synthetic data:");
+        System.out.println(performanceFed.getSyntheticFoldAuc());
+
+        System.out.println("Time taken in ms: " + (System.currentTimeMillis() - start));
     }
 
     @Test
@@ -682,99 +596,6 @@ public class TestPerformance {
         assertEquals(averageAUC, 0.79, 0.025);
         assertEquals(averageAUCSynthetic, 0.99, 0.1);
         assertEquals(averageAUCFoldSynthetic, 0.79, 0.2);
-        Performance tuple = new Performance();
-        tuple.setRealAuc(averageAUC);
-        tuple.setSyntheticAuc(averageAUCSynthetic);
-        tuple.setSyntheticFoldAuc(averageAUCFoldSynthetic);
-        return tuple;
-    }
-
-    private Performance asia(List<Integer> folds) throws Exception {
-        double aucSum = 0;
-        double aucSumSynthetic = 0;
-        double aucSumFoldSynthetic = 0;
-        //no unknowns
-        for (Integer fold : folds) {
-            List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
-            String ids = otherFolds.stream().sorted().collect(Collectors.toList()).toString().replace("[", "")
-                    .replace("]", "").replace(" ", "").replace(",", "");
-            String left = FOLD_LEFTHALF_ASIA + ids + ".csv";
-            String right = FOLD_RIGHTHALF_ASIA + ids + ".csv";
-            String testFoldarrf = TEST_FOLD_ASIA + fold + "WEKA.arff";
-            String testFoldcsv = TEST_FOLD_ASIA + fold + ".csv";
-            Performance res = buildAndValidate(left, right,
-                                               readData("lung", testFoldarrf),
-                                               "lung", testFoldcsv, buildAsiaNetwork());
-            assertEquals(res.getRealAuc(), 0.96, 0.05);
-            assertEquals(res.getSyntheticAuc(), 0.96, 0.05);
-            assertEquals(res.getSyntheticFoldAuc(), 0.96, 0.05);
-            aucSum += res.getRealAuc();
-            aucSumSynthetic += res.getSyntheticAuc();
-            aucSumFoldSynthetic += res.getSyntheticFoldAuc();
-
-        }
-        double averageAUC = aucSum / folds.size();
-        double averageAUCSynthetic = aucSumSynthetic / folds.size();
-        double averageAUCFoldSynthetic = aucSumFoldSynthetic / folds.size();
-        assertEquals(averageAUC, 0.99, 0.025);
-        assertEquals(averageAUCSynthetic, 0.99, 0.025);
-        assertEquals(averageAUCFoldSynthetic, 0.99, 0.025);
-        Performance tuple = new Performance();
-        tuple.setRealAuc(averageAUC);
-        tuple.setSyntheticAuc(averageAUCSynthetic);
-        tuple.setSyntheticFoldAuc(averageAUCFoldSynthetic);
-        return tuple;
-    }
-
-    private Performance asiaUnknown(List<Integer> folds, double treshold) throws Exception {
-        double aucSum = 0;
-        double aucSumSynthetic = 0;
-        double aucSumFoldSynthetic = 0;
-        //unknowns
-        for (Integer fold : folds) {
-            List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
-            String ids = otherFolds.stream().sorted().collect(Collectors.toList()).toString().replace("[", "")
-                    .replace("]", "").replace(" ", "").replace(",", "");
-            String left = FOLD_LEFTHALF_ASIA_MISSING.replace("missing",
-                                                             "Treshold" + String.valueOf(treshold)
-                                                                     .replace(".", "_") + "missing") + ids + ".csv";
-            String right = FOLD_RIGHTHALF_ASIA_MISSING.replace("missing",
-                                                               "Treshold" + String.valueOf(treshold)
-                                                                       .replace(".", "_") + "missing") + ids + ".csv";
-            String testFoldarrf = TEST_FOLD_ASIA +
-                    "Treshold" + String.valueOf(treshold)
-                    .replace(".", "_") + "missing" + fold + "WEKA.arff";
-            String testFoldcsv = testFoldarrf.replace("WEKA.arff", ".csv");
-            Performance res = buildAndValidate(left, right,
-                                               readData("lung", testFoldarrf),
-                                               "lung", testFoldcsv, buildAsiaNetwork());
-            //the difference between a good and a bad fold can be quite big here dependin on RNG.
-            //The average is still going to be quite close to .78 though
-            if (treshold == 0.05) {
-                assertEquals(res.getRealAuc(), 0.78, 0.07);
-                assertEquals(res.getSyntheticAuc(), 0.78, 0.07);
-                assertEquals(res.getSyntheticFoldAuc(), 0.78, 0.08);
-            } else if (treshold == 0.1) {
-                assertEquals(res.getRealAuc(), 0.70, 0.1);
-                assertEquals(res.getSyntheticAuc(), 0.70, 0.1);
-                assertEquals(res.getSyntheticFoldAuc(), 0.70, 0.1);
-            }
-            aucSum += res.getRealAuc();
-            aucSumSynthetic += res.getSyntheticAuc();
-            aucSumFoldSynthetic += res.getSyntheticFoldAuc();
-        }
-        double averageAUC = aucSum / folds.size();
-        double averageAUCSynthetic = aucSumSynthetic / folds.size();
-        double averageAUCFoldSynthetic = aucSumFoldSynthetic / folds.size();
-        if (treshold == 0.05) {
-            assertEquals(averageAUC, 0.78, 0.04);
-            assertEquals(averageAUCSynthetic, 0.78, 0.04);
-            assertEquals(averageAUCFoldSynthetic, 0.78, 0.04);
-        } else if (treshold == 0.1) {
-            assertEquals(averageAUC, 0.7, 0.04);
-            assertEquals(averageAUCSynthetic, 0.7, 0.04);
-            assertEquals(averageAUCFoldSynthetic, 0.7, 0.04);
-        }
         Performance tuple = new Performance();
         tuple.setRealAuc(averageAUC);
         tuple.setSyntheticAuc(averageAUCSynthetic);
