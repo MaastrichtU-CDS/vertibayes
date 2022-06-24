@@ -7,7 +7,7 @@ import weka.core.Instances;
 
 import java.util.Random;
 
-import static com.florian.vertibayes.weka.performance.Util.readData;
+import static com.florian.vertibayes.weka.performance.tests.util.Util.readData;
 
 public class WekaPerformance {
 

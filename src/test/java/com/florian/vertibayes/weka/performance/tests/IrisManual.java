@@ -1,19 +1,23 @@
 package com.florian.vertibayes.weka.performance.tests;
 
 import com.florian.vertibayes.webservice.domain.external.WebNode;
-import com.florian.vertibayes.weka.performance.Performance;
 import com.florian.vertibayes.weka.performance.tests.base.PerformanceMissingTestBase;
 import com.florian.vertibayes.weka.performance.tests.base.PerformanceTestBase;
+import com.florian.vertibayes.weka.performance.tests.util.Performance;
+import com.florian.vertibayes.weka.performance.tests.util.Variance;
 
 import java.util.List;
 
-import static com.florian.vertibayes.notunittests.generatedata.GenerateNetworks.*;
-import static com.florian.vertibayes.weka.performance.Util.readData;
+import static com.florian.vertibayes.notunittests.generatedata.GenerateNetworks.buildIrisNetworkBinned;
+import static com.florian.vertibayes.notunittests.generatedata.GenerateNetworks.buildIrisNetworkBinnedMissing;
 import static com.florian.vertibayes.weka.performance.VertiBayesPerformance.buildAndValidate;
 import static com.florian.vertibayes.weka.performance.WekaPerformance.wekaTest;
+import static com.florian.vertibayes.weka.performance.tests.util.Performance.averagePerformance;
+import static com.florian.vertibayes.weka.performance.tests.util.Performance.checkVariance;
+import static com.florian.vertibayes.weka.performance.tests.util.Util.readData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class Iris {
+public class IrisManual {
 
     public static final String TEST_FULL = "resources/Experiments/iris/irisWeka.arff";
     public static final String TEST_FULL_MISSING = "resources/Experiments/iris/irisMissing.arff";
@@ -35,72 +39,87 @@ public class Iris {
     public static final String IRIS_WEKA_BIF = "resources/Experiments/iris/irisWekaBif.xml";
 
     private static final String LABEL = "label";
+    private static final String NAME = "IrisManual";
 
-    public static Performance kFoldUnknown(boolean automaticBinning, double treshold) throws Exception {
+    private static final List<WebNode> nodes = buildIrisNetworkBinned();
+
+    private static final double AVERAGERROR = 0.025;
+    private static final Variance FOLDVARIANCE;
+    private static final Variance FOLDVARIANCEMISSING;
+
+    static {
+        FOLDVARIANCE = new Variance();
+        FOLDVARIANCE.setRealAucVariance(0.05);
+        FOLDVARIANCE.setSyntheticAucVariance(0.05);
+        FOLDVARIANCE.setSyntheticFoldAucVariance(0.05);
+
+        FOLDVARIANCEMISSING = new Variance();
+        FOLDVARIANCEMISSING.setRealAucVariance(0.06);
+        FOLDVARIANCEMISSING.setSyntheticAucVariance(0.06);
+        FOLDVARIANCEMISSING.setSyntheticFoldAucVariance(0.06);
+    }
+
+    public static Performance kFoldUnknown(double treshold) throws Exception {
         List<WebNode> nodes;
-        if (automaticBinning) {
-            nodes = buildIrisNetworkNoBins();
-        } else {
-            nodes = buildIrisNetworkBinnedMissing();
-        }
+        nodes = buildIrisNetworkBinnedMissing();
 
         PerformanceMissingTestBase test = new PerformanceMissingTestBase(FOLD_LEFTHALF_MISSING,
                                                                          FOLD_RIGHTHALF_MISSING, TEST_FOLD,
                                                                          LABEL, nodes);
-        Performance p = test.kFoldTest(treshold);
-        double irisUnknown = Iris.weka(treshold);
+        List<Performance> performances = test.kFoldTest(treshold);
+        Performance p = averagePerformance(performances);
+        checkVariance(performances, p, FOLDVARIANCEMISSING);
+        p.setName(NAME);
+        double irisUnknown = IrisManual.weka(treshold);
         p.setWekaAuc(irisUnknown);
 
         if (treshold == 0.05) {
-            assertEquals(p.getRealAuc(), 0.96, 0.04);
-            assertEquals(p.getSyntheticAuc(), 0.96, 0.04);
+            assertEquals(p.getRealAuc(), 0.96, AVERAGERROR);
+            assertEquals(p.getSyntheticAuc(), 0.96, AVERAGERROR);
             // Synthetic fold AUC for iris is all over the place due to the small folds
             // So ignore it
         } else if (treshold == 0.1) {
-            assertEquals(p.getRealAuc(), 0.96, 0.04);
-            assertEquals(p.getSyntheticAuc(), 0.96, 0.04);
+            assertEquals(p.getRealAuc(), 0.96, AVERAGERROR);
+            assertEquals(p.getSyntheticAuc(), 0.96, AVERAGERROR);
+            // Synthetic fold AUC for iris is all over the place due to the small folds
+            // So ignore it
+        } else if (treshold == 0.3) {
+            assertEquals(p.getRealAuc(), 0.96, AVERAGERROR);
+            assertEquals(p.getSyntheticAuc(), 0.96, AVERAGERROR);
             // Synthetic fold AUC for iris is all over the place due to the small folds
             // So ignore it
         }
 
-        assertEquals(irisUnknown, p.getRealAuc(), 0.025);
-        assertEquals(irisUnknown, p.getSyntheticAuc(), 0.025);
+        assertEquals(irisUnknown, p.getRealAuc(), AVERAGERROR);
+        assertEquals(irisUnknown, p.getSyntheticAuc(), AVERAGERROR);
         // Synthetic fold AUC for iris is all over the place due to the small folds
         // So ignore it
 
         return p;
     }
 
-    public static Performance kFold(boolean automaticBinning) throws Exception {
-        List<WebNode> nodes;
-        if (automaticBinning) {
-            nodes = buildIrisNetworkNoBins();
-        } else {
-            nodes = buildIrisNetworkBinned();
-        }
-
+    public static Performance kFold() throws Exception {
         PerformanceTestBase test = new PerformanceTestBase(FOLD_LEFTHALF,
                                                            FOLD_RIGHTHALF, TEST_FOLD,
                                                            LABEL, nodes);
-        Performance p = test.kFoldTest();
-        double iris = Iris.weka();
+        List<Performance> performances = test.kFoldTest();
+        Performance p = averagePerformance(performances);
+        checkVariance(performances, p, FOLDVARIANCE);
+        p.setName(NAME);
+        double iris = IrisManual.weka();
         p.setWekaAuc(iris);
-        if (automaticBinning) {
-            assertEquals(p.getRealAuc(), 0.96, 0.05);
-            assertEquals(p.getSyntheticAuc(), 0.96, 0.05);
-        } else {
-            assertEquals(p.getRealAuc(), 0.90, 0.1);
-            assertEquals(p.getSyntheticAuc(), 0.90, 0.1);
-        }
+        assertEquals(p.getRealAuc(), 0.90, AVERAGERROR);
+        assertEquals(p.getSyntheticAuc(), 0.90, AVERAGERROR);
 
-        assertEquals(iris, p.getRealAuc(), 0.025);
-        assertEquals(iris, p.getSyntheticAuc(), 0.025);
+
+        assertEquals(iris, p.getRealAuc(), AVERAGERROR);
+        assertEquals(iris, p.getSyntheticAuc(), AVERAGERROR);
         // Synthetic fold AUC for iris is all over the place due to the small folds
         // So ignore it
         return p;
     }
 
-    public static double weka(double treshold) throws Exception {
+    private static double weka(double treshold) throws Exception {
         return wekaTest("label",
                         IRIS_WEKA_BIF.replace("Missing",
                                               "MissingTreshold" + String.valueOf(
@@ -111,26 +130,19 @@ public class Iris {
                                                     .replace(".", "_")));
     }
 
-    public static double weka() throws Exception {
+    private static double weka() throws Exception {
         return wekaTest(LABEL, IRIS_WEKA_BIF, TEST_FULL);
     }
 
     public static void testVertiBayesFullDataSet() throws Exception {
-        double aucManual = buildAndValidate(FIRSTHALF, SECONDHALF,
-                                            readData(LABEL, TEST_FULL), LABEL,
-                                            TEST_FULL.replace("Weka.arff",
-                                                              ".csv"), buildIrisNetworkBinned()).getRealAuc();
-
-        double aucAutomatic = buildAndValidate(FIRSTHALF, SECONDHALF,
-                                               readData(LABEL, TEST_FULL), LABEL,
-                                               TEST_FULL.replace("Weka.arff",
-                                                                 ".csv"), buildIrisNetworkNoBins()).getRealAuc();
-
+        double auc = buildAndValidate(FIRSTHALF, SECONDHALF,
+                                      readData(LABEL, TEST_FULL), LABEL,
+                                      TEST_FULL.replace("Weka.arff",
+                                                        ".csv"), nodes).getRealAuc();
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
         //However, due to the random factors there is some variance possible
-        assertEquals(aucAutomatic, 0.98, 0.025);
-        assertEquals(aucManual, 0.98, 0.025);
+        assertEquals(auc, 0.98, AVERAGERROR);
     }
 
     public static void testVertiBayesFullDataSetMissing(double treshold) throws Exception {
@@ -144,16 +156,18 @@ public class Iris {
         double auc = buildAndValidate(first, second,
                                       readData(LABEL, full), LABEL,
                                       full.replace(".arff",
-                                                   ".csv"), buildIrisNetworkBinnedMissing()).getRealAuc();
+                                                   ".csv"), nodes).getRealAuc();
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
         //However, due to the random factors there is some variance possible
         // check AUC depending on the degree of missing data
         if (treshold == 0.05) {
-            assertEquals(auc, 0.98, 0.025);
+            assertEquals(auc, 0.98, AVERAGERROR);
         } else if (treshold == 0.1) {
-            assertEquals(auc, 0.98, 0.025);
+            assertEquals(auc, 0.96, AVERAGERROR);
+        } else if (treshold == 0.3) {
+            assertEquals(auc, 0.96, AVERAGERROR);
         }
     }
 }

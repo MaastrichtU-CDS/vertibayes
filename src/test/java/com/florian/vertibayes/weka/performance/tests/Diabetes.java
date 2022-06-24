@@ -1,16 +1,19 @@
 package com.florian.vertibayes.weka.performance.tests;
 
 import com.florian.vertibayes.webservice.domain.external.WebNode;
-import com.florian.vertibayes.weka.performance.Performance;
 import com.florian.vertibayes.weka.performance.tests.base.PerformanceMissingTestBase;
 import com.florian.vertibayes.weka.performance.tests.base.PerformanceTestBase;
+import com.florian.vertibayes.weka.performance.tests.util.Performance;
+import com.florian.vertibayes.weka.performance.tests.util.Variance;
 
 import java.util.List;
 
 import static com.florian.vertibayes.notunittests.generatedata.GenerateNetworks.buildDiabetesNetwork;
-import static com.florian.vertibayes.weka.performance.Util.readData;
 import static com.florian.vertibayes.weka.performance.VertiBayesPerformance.buildAndValidate;
 import static com.florian.vertibayes.weka.performance.WekaPerformance.wekaTest;
+import static com.florian.vertibayes.weka.performance.tests.util.Performance.averagePerformance;
+import static com.florian.vertibayes.weka.performance.tests.util.Performance.checkVariance;
+import static com.florian.vertibayes.weka.performance.tests.util.Util.readData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Diabetes {
@@ -38,35 +41,55 @@ public class Diabetes {
 
     private static final String LABEL = "Outcome";
     private static final List<WebNode> nodes = buildDiabetesNetwork();
+    private static final String NAME = "Diabetes";
+
+    private static final double AVERAGERROR = 0.025;
+    private static final Variance FOLDVARIANCE;
+    private static final Variance FOLDVARIANCEMISSING;
+
+    static {
+        FOLDVARIANCE = new Variance();
+        FOLDVARIANCE.setRealAucVariance(0.05);
+        FOLDVARIANCE.setSyntheticAucVariance(0.05);
+        FOLDVARIANCE.setSyntheticFoldAucVariance(0.05);
+
+        FOLDVARIANCEMISSING = new Variance();
+        FOLDVARIANCEMISSING.setRealAucVariance(0.06);
+        FOLDVARIANCEMISSING.setSyntheticAucVariance(0.06);
+        FOLDVARIANCEMISSING.setSyntheticFoldAucVariance(0.06);
+    }
 
     public static Performance kFoldUnknown(double treshold) throws Exception {
         PerformanceMissingTestBase test = new PerformanceMissingTestBase(FOLD_LEFTHALF_MISSING,
                                                                          FOLD_RIGHTHALF_MISSING,
                                                                          TEST_FOLD,
                                                                          LABEL, nodes);
-        Performance p = test.kFoldTest(treshold);
+        List<Performance> performances = test.kFoldTest(treshold);
+        Performance p = averagePerformance(performances);
+        checkVariance(performances, p, FOLDVARIANCEMISSING);
+        p.setName(NAME);
         double diabetesUnknown = Diabetes.weka(treshold);
         p.setWekaAuc(diabetesUnknown);
 
         if (treshold == 0.05) {
-            assertEquals(p.getRealAuc(), 0.79, 0.025);
-            assertEquals(p.getSyntheticAuc(), 0.87, 0.025);
-            assertEquals(p.getSyntheticFoldAuc(), 0.79, 0.025);
+            assertEquals(p.getRealAuc(), 0.79, AVERAGERROR);
+            assertEquals(p.getSyntheticAuc(), 0.87, AVERAGERROR);
+            assertEquals(p.getSyntheticFoldAuc(), 0.79, AVERAGERROR);
         } else if (treshold == 0.1) {
-            assertEquals(p.getRealAuc(), 0.75, 0.025);
-            assertEquals(p.getSyntheticAuc(), 0.83, 0.025);
-            assertEquals(p.getSyntheticFoldAuc(), 0.75, 0.025);
+            assertEquals(p.getRealAuc(), 0.75, AVERAGERROR);
+            assertEquals(p.getSyntheticAuc(), 0.83, AVERAGERROR);
+            assertEquals(p.getSyntheticFoldAuc(), 0.75, AVERAGERROR);
         } else if (treshold == 0.3) {
-            assertEquals(p.getRealAuc(), 0.65, 0.025);
-            assertEquals(p.getSyntheticAuc(), 0.75, 0.025);
-            assertEquals(p.getSyntheticFoldAuc(), 0.65, 0.025);
+            assertEquals(p.getRealAuc(), 0.65, AVERAGERROR);
+            assertEquals(p.getSyntheticAuc(), 0.75, AVERAGERROR);
+            assertEquals(p.getSyntheticFoldAuc(), 0.65, AVERAGERROR);
         }
 
-        assertEquals(diabetesUnknown, p.getRealAuc(), 0.025);
+        assertEquals(diabetesUnknown, p.getRealAuc(), AVERAGERROR);
         //Using synthetic training data in k-fold results in weird stuff for diabetes, no idea why.
         //Other validation methods have expected results
         assertEquals(diabetesUnknown, p.getSyntheticAuc(), 0.11);
-        assertEquals(diabetesUnknown, p.getSyntheticFoldAuc(), 0.025);
+        assertEquals(diabetesUnknown, p.getSyntheticFoldAuc(), AVERAGERROR);
 
         return p;
     }
@@ -75,22 +98,25 @@ public class Diabetes {
         PerformanceTestBase test = new PerformanceTestBase(FOLD_LEFTHALF,
                                                            FOLD_RIGHTHALF, TEST_FOLD,
                                                            LABEL, nodes);
-        Performance p = test.kFoldTest();
+        List<Performance> performances = test.kFoldTest();
+        Performance p = averagePerformance(performances);
+        checkVariance(performances, p, FOLDVARIANCE);
+        p.setName(NAME);
         double diabetesWeka = Diabetes.weka();
         p.setWekaAuc(diabetesWeka);
 
-        assertEquals(p.getRealAuc(), 0.79, 0.2);
-        assertEquals(p.getSyntheticAuc(), 0.79, 0.2);
-        assertEquals(p.getSyntheticFoldAuc(), 0.79, 0.2);
+        assertEquals(p.getRealAuc(), 0.79, AVERAGERROR);
+        assertEquals(p.getSyntheticAuc(), 0.79, AVERAGERROR);
+        assertEquals(p.getSyntheticFoldAuc(), 0.79, AVERAGERROR);
         assertEquals(diabetesWeka, p.getRealAuc(), 0.025);
         //Using synthetic training data in k-fold results in weird stuff for diabetes
         //Other validation methods have expected results
         assertEquals(diabetesWeka, p.getSyntheticAuc(), 0.11);
-        assertEquals(diabetesWeka, p.getSyntheticFoldAuc(), 0.025);
+        assertEquals(diabetesWeka, p.getSyntheticFoldAuc(), AVERAGERROR);
         return p;
     }
 
-    public static double weka(double treshold) throws Exception {
+    private static double weka(double treshold) throws Exception {
         return wekaTest(LABEL,
                         DIABETES_WEKA_BIF.replace("Missing",
                                                   "Treshold" + String.valueOf(treshold)
@@ -100,7 +126,7 @@ public class Diabetes {
                                                           .replace(".", "_")));
     }
 
-    public static double weka() throws Exception {
+    private static double weka() throws Exception {
         return wekaTest("lung", DIABETES_WEKA_BIF, TEST_FULL);
     }
 
@@ -130,11 +156,11 @@ public class Diabetes {
         //So performance should be high
         //However, due to the random factors there is some variance possible
         if (treshold == 0.05) {
-            assertEquals(auc, 0.84, 0.025);
+            assertEquals(auc, 0.84, AVERAGERROR);
         } else if (treshold == 0.1) {
-            assertEquals(auc, 0.80, 0.025);
+            assertEquals(auc, 0.80, AVERAGERROR);
         } else if (treshold == 0.3) {
-            assertEquals(auc, 0.75, 0.025);
+            assertEquals(auc, 0.75, AVERAGERROR);
         }
     }
 }

@@ -1,15 +1,15 @@
 package com.florian.vertibayes.weka.performance.tests.base;
 
 import com.florian.vertibayes.webservice.domain.external.WebNode;
-import com.florian.vertibayes.weka.performance.Performance;
+import com.florian.vertibayes.weka.performance.tests.util.Performance;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.florian.vertibayes.notunittests.generatedata.GenerateNetworks.buildAsiaNetwork;
-import static com.florian.vertibayes.weka.performance.Util.readData;
 import static com.florian.vertibayes.weka.performance.VertiBayesPerformance.buildAndValidate;
+import static com.florian.vertibayes.weka.performance.tests.util.Util.readData;
 
 public class PerformanceTestBase {
     private final String FOLD_LEFTHALF;
@@ -35,11 +35,9 @@ public class PerformanceTestBase {
         }
     }
 
-    public Performance kFoldTest()
+    public List<Performance> kFoldTest()
             throws Exception {
-        double aucSum = 0;
-        double aucSumSynthetic = 0;
-        double aucSumFoldSynthetic = 0;
+        List<Performance> performances = new ArrayList<>();
         //no unknowns
         for (Integer fold : folds) {
             List<Integer> otherFolds = folds.stream().filter(x -> x != fold).collect(Collectors.toList());
@@ -54,19 +52,10 @@ public class PerformanceTestBase {
             Performance res = buildAndValidate(left, right,
                                                readData("lung", testFoldarrf),
                                                "lung", testFoldcsv, buildAsiaNetwork());
-            aucSum += res.getRealAuc();
-            aucSumSynthetic += res.getSyntheticAuc();
-            aucSumFoldSynthetic += res.getSyntheticFoldAuc();
+            performances.add(res);
 
         }
-        double averageAUC = aucSum / folds.size();
-        double averageAUCSynthetic = aucSumSynthetic / folds.size();
-        double averageAUCFoldSynthetic = aucSumFoldSynthetic / folds.size();
-        Performance tuple = new Performance();
-        tuple.setRealAuc(averageAUC);
-        tuple.setSyntheticAuc(averageAUCSynthetic);
-        tuple.setSyntheticFoldAuc(averageAUCFoldSynthetic);
-        return tuple;
+        return performances;
 
     }
 

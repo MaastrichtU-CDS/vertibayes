@@ -1,16 +1,19 @@
 package com.florian.vertibayes.weka.performance.tests;
 
 import com.florian.vertibayes.webservice.domain.external.WebNode;
-import com.florian.vertibayes.weka.performance.Performance;
 import com.florian.vertibayes.weka.performance.tests.base.PerformanceMissingTestBase;
 import com.florian.vertibayes.weka.performance.tests.base.PerformanceTestBase;
+import com.florian.vertibayes.weka.performance.tests.util.Performance;
+import com.florian.vertibayes.weka.performance.tests.util.Variance;
 
 import java.util.List;
 
 import static com.florian.vertibayes.notunittests.generatedata.GenerateNetworks.buildAsiaNetwork;
-import static com.florian.vertibayes.weka.performance.Util.readData;
 import static com.florian.vertibayes.weka.performance.VertiBayesPerformance.buildAndValidate;
 import static com.florian.vertibayes.weka.performance.WekaPerformance.wekaTest;
+import static com.florian.vertibayes.weka.performance.tests.util.Performance.averagePerformance;
+import static com.florian.vertibayes.weka.performance.tests.util.Performance.checkVariance;
+import static com.florian.vertibayes.weka.performance.tests.util.Util.readData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Asia {
@@ -37,28 +40,52 @@ public class Asia {
 
     private static final String LABEL = "lung";
     private static final List<WebNode> nodes = buildAsiaNetwork();
+    private static final String NAME = "Asia";
+
+    private static final double AVERAGERROR = 0.025;
+    private static final Variance FOLDVARIANCE;
+    private static final Variance FOLDVARIANCEMISSING;
+
+    static {
+        FOLDVARIANCE = new Variance();
+        FOLDVARIANCE.setRealAucVariance(0.05);
+        FOLDVARIANCE.setSyntheticAucVariance(0.05);
+        FOLDVARIANCE.setSyntheticFoldAucVariance(0.05);
+
+        FOLDVARIANCEMISSING = new Variance();
+        FOLDVARIANCEMISSING.setRealAucVariance(0.06);
+        FOLDVARIANCEMISSING.setSyntheticAucVariance(0.06);
+        FOLDVARIANCEMISSING.setSyntheticFoldAucVariance(0.06);
+    }
 
 
     public static Performance kFoldUnknown(double treshold) throws Exception {
         PerformanceMissingTestBase test = new PerformanceMissingTestBase(FOLD_LEFTHALF_MISSING,
                                                                          FOLD_RIGHTHALF_MISSING, TEST_FOLD,
                                                                          LABEL, nodes);
-        Performance p = test.kFoldTest(treshold);
+        List<Performance> performances = test.kFoldTest(treshold);
+        Performance p = averagePerformance(performances);
+        checkVariance(performances, p, FOLDVARIANCEMISSING);
+        p.setName(NAME);
         double asiaUnknown = Asia.weka(treshold);
         p.setWekaAuc(asiaUnknown);
 
         if (treshold == 0.05) {
-            assertEquals(p.getRealAuc(), 0.78, 0.025);
-            assertEquals(p.getSyntheticAuc(), 0.78, 0.025);
-            assertEquals(p.getSyntheticFoldAuc(), 0.78, 0.025);
+            assertEquals(p.getRealAuc(), 0.78, AVERAGERROR);
+            assertEquals(p.getSyntheticAuc(), 0.78, AVERAGERROR);
+            assertEquals(p.getSyntheticFoldAuc(), 0.78, AVERAGERROR);
         } else if (treshold == 0.01) {
-            assertEquals(p.getRealAuc(), 0.7, 0.025);
-            assertEquals(p.getSyntheticAuc(), 0.7, 0.025);
-            assertEquals(p.getSyntheticFoldAuc(), 0.7, 0.025);
+            assertEquals(p.getRealAuc(), 0.7, AVERAGERROR);
+            assertEquals(p.getSyntheticAuc(), 0.7, AVERAGERROR);
+            assertEquals(p.getSyntheticFoldAuc(), 0.7, AVERAGERROR);
+        } else if (treshold == 0.03) {
+            assertEquals(p.getRealAuc(), 0.62, AVERAGERROR);
+            assertEquals(p.getSyntheticAuc(), 0.62, AVERAGERROR);
+            assertEquals(p.getSyntheticFoldAuc(), 0.62, AVERAGERROR);
         }
-        assertEquals(asiaUnknown, p.getRealAuc(), 0.025);
-        assertEquals(asiaUnknown, p.getSyntheticAuc(), 0.025);
-        assertEquals(asiaUnknown, p.getSyntheticFoldAuc(), 0.025);
+        assertEquals(asiaUnknown, p.getRealAuc(), AVERAGERROR);
+        assertEquals(asiaUnknown, p.getSyntheticAuc(), AVERAGERROR);
+        assertEquals(asiaUnknown, p.getSyntheticFoldAuc(), AVERAGERROR);
 
 
         return p;
@@ -68,23 +95,25 @@ public class Asia {
         PerformanceTestBase test = new PerformanceTestBase(FOLD_LEFTHALF,
                                                            FOLD_RIGHTHALF, TEST_FOLD,
                                                            LABEL, nodes);
-        Performance p = test.kFoldTest();
-
+        List<Performance> performances = test.kFoldTest();
+        Performance p = averagePerformance(performances);
+        checkVariance(performances, p, FOLDVARIANCE);
+        p.setName(NAME);
         double asiaWeka = Asia.weka();
         p.setWekaAuc(asiaWeka);
 
-        assertEquals(p.getRealAuc(), 0.99, 0.025);
-        assertEquals(p.getSyntheticAuc(), 0.99, 0.025);
-        assertEquals(p.getSyntheticFoldAuc(), 0.99, 0.025);
+        assertEquals(p.getRealAuc(), 0.99, AVERAGERROR);
+        assertEquals(p.getSyntheticAuc(), 0.99, AVERAGERROR);
+        assertEquals(p.getSyntheticFoldAuc(), 0.99, AVERAGERROR);
 
-        assertEquals(asiaWeka, p.getRealAuc(), 0.025);
-        assertEquals(asiaWeka, p.getSyntheticAuc(), 0.025);
-        assertEquals(asiaWeka, p.getSyntheticFoldAuc(), 0.025);
+        assertEquals(asiaWeka, p.getRealAuc(), AVERAGERROR);
+        assertEquals(asiaWeka, p.getSyntheticAuc(), AVERAGERROR);
+        assertEquals(asiaWeka, p.getSyntheticFoldAuc(), AVERAGERROR);
 
         return p;
     }
 
-    public static double weka(double treshold) throws Exception {
+    private static double weka(double treshold) throws Exception {
         return wekaTest(LABEL,
                         ASIA_WEKA_BIF.replace("Missing",
                                               "Treshold" + String.valueOf(treshold)
@@ -94,7 +123,7 @@ public class Asia {
                                                           .replace(".", "_")));
     }
 
-    public static double weka() throws Exception {
+    private static double weka() throws Exception {
         return wekaTest("lung", ASIA_WEKA_BIF, TEST_FULL);
     }
 
@@ -107,7 +136,7 @@ public class Asia {
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
         //However, due to the random factors there is some variance possible
-        assertEquals(auc, 0.98, 0.025);
+        assertEquals(auc, 0.98, AVERAGERROR);
     }
 
     public static void testVertiBayesFullDataSetMissing(double treshold) throws Exception {
@@ -125,9 +154,11 @@ public class Asia {
         //So performance should be high
         //However, due to the random factors there is some variance possible
         if (treshold == 0.05) {
-            assertEquals(auc, 0.78, 0.025);
+            assertEquals(auc, 0.78, AVERAGERROR);
         } else if (treshold == 0.1) {
-            assertEquals(auc, 0.70, 0.04);
+            assertEquals(auc, 0.70, AVERAGERROR);
+        } else if (treshold == 0.3) {
+            assertEquals(auc, 0.62, AVERAGERROR);
         }
     }
 }

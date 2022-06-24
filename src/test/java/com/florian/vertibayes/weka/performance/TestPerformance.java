@@ -3,7 +3,8 @@ package com.florian.vertibayes.weka.performance;
 import com.florian.vertibayes.weka.performance.tests.Alarm;
 import com.florian.vertibayes.weka.performance.tests.Asia;
 import com.florian.vertibayes.weka.performance.tests.Diabetes;
-import com.florian.vertibayes.weka.performance.tests.Iris;
+import com.florian.vertibayes.weka.performance.tests.IrisManual;
+import com.florian.vertibayes.weka.performance.tests.util.Performance;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -46,11 +47,11 @@ public class TestPerformance {
             printResults(start, diabetes, "diabetes :", 0);
 
             start = System.currentTimeMillis();
-            Performance irisAutomatic = Iris.kFold(true);
+            Performance irisAutomatic = IrisManual.kFold();
             printResults(start, irisAutomatic, "IrisAutomatic :", 0);
 
             start = System.currentTimeMillis();
-            Performance irisManual = Iris.kFold(false);
+            Performance irisManual = IrisManual.kFold();
             printResults(start, irisManual, "IrisManual :", 0);
 
             start = System.currentTimeMillis();
@@ -80,11 +81,11 @@ public class TestPerformance {
                 printResults(start, diabetesUnknown, "Diabetes :", treshold);
 
                 start = System.currentTimeMillis();
-                Performance irisAutomaticUnknown = Iris.kFoldUnknown(true, treshold);
+                Performance irisAutomaticUnknown = IrisManual.kFoldUnknown(treshold);
                 printResults(start, irisAutomaticUnknown, "IrisAutomatic", treshold);
 
                 start = System.currentTimeMillis();
-                Performance irisManualUnknown = Iris.kFoldUnknown(false, treshold);
+                Performance irisManualUnknown = IrisManual.kFoldUnknown(treshold);
                 printResults(start, irisManualUnknown, "IrisManual", treshold);
 
                 start = System.currentTimeMillis();
@@ -103,7 +104,7 @@ public class TestPerformance {
         // do not turn on ALARM, IRIS or DIABETES unless you have the time to wait
         if (!SMALL_TEST) {
             start = System.currentTimeMillis();
-            Iris.testVertiBayesFullDataSet();
+            IrisManual.testVertiBayesFullDataSet();
             System.out.println("Time: " + (System.currentTimeMillis() - start));
 
             start = System.currentTimeMillis();
@@ -131,7 +132,7 @@ public class TestPerformance {
                 System.out.println("Time: " + (System.currentTimeMillis() - start));
 
                 start = System.currentTimeMillis();
-                Iris.testVertiBayesFullDataSetMissing(d);
+                IrisManual.testVertiBayesFullDataSetMissing(d);
                 System.out.println("Time: " + (System.currentTimeMillis() - start));
 
                 start = System.currentTimeMillis();

@@ -1,4 +1,4 @@
-package com.florian.vertibayes.weka.performance;
+package com.florian.vertibayes.weka.performance.tests.util;
 
 import com.florian.nscalarproduct.data.Attribute;
 import com.florian.nscalarproduct.webservice.ServerEndpoint;

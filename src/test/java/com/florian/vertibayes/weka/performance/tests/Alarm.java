@@ -1,16 +1,19 @@
 package com.florian.vertibayes.weka.performance.tests;
 
 import com.florian.vertibayes.webservice.domain.external.WebNode;
-import com.florian.vertibayes.weka.performance.Performance;
 import com.florian.vertibayes.weka.performance.tests.base.PerformanceMissingTestBase;
 import com.florian.vertibayes.weka.performance.tests.base.PerformanceTestBase;
+import com.florian.vertibayes.weka.performance.tests.util.Performance;
+import com.florian.vertibayes.weka.performance.tests.util.Variance;
 
 import java.util.List;
 
 import static com.florian.vertibayes.notunittests.generatedata.GenerateNetworks.buildAlarmNetwork;
-import static com.florian.vertibayes.weka.performance.Util.readData;
 import static com.florian.vertibayes.weka.performance.VertiBayesPerformance.buildAndValidate;
 import static com.florian.vertibayes.weka.performance.WekaPerformance.wekaTest;
+import static com.florian.vertibayes.weka.performance.tests.util.Performance.averagePerformance;
+import static com.florian.vertibayes.weka.performance.tests.util.Performance.checkVariance;
+import static com.florian.vertibayes.weka.performance.tests.util.Util.readData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Alarm {
@@ -36,28 +39,52 @@ public class Alarm {
 
     private static final String LABEL = "BP";
     private final static List<WebNode> nodes = buildAlarmNetwork();
+    private static final String NAME = "Alarm";
 
+    private static final double AVERAGERROR = 0.025;
+    private static final Variance FOLDVARIANCE;
+    private static final Variance FOLDVARIANCEMISSING;
+
+    static {
+        FOLDVARIANCE = new Variance();
+        FOLDVARIANCE.setRealAucVariance(0.05);
+        FOLDVARIANCE.setSyntheticAucVariance(0.05);
+        FOLDVARIANCE.setSyntheticFoldAucVariance(0.05);
+
+        FOLDVARIANCEMISSING = new Variance();
+        FOLDVARIANCEMISSING.setRealAucVariance(0.06);
+        FOLDVARIANCEMISSING.setSyntheticAucVariance(0.06);
+        FOLDVARIANCEMISSING.setSyntheticFoldAucVariance(0.06);
+    }
 
     public static Performance kFoldUnknown(double treshold) throws Exception {
         PerformanceMissingTestBase test = new PerformanceMissingTestBase(FOLD_LEFTHALF_MISSING,
                                                                          FOLD_RIGHTHALF_MISSING, TEST_FOLD,
                                                                          LABEL, nodes);
-        Performance p = test.kFoldTest(treshold);
+        List<Performance> performances = test.kFoldTest(treshold);
+        Performance p = averagePerformance(performances);
+        checkVariance(performances, p, FOLDVARIANCEMISSING);
+
+        p.setName(NAME);
         double alarmUnknown = Alarm.weka(treshold);
         p.setWekaAuc(alarmUnknown);
         if (treshold == 0.05) {
-            assertEquals(p.getRealAuc(), 0.88, 0.05);
-            assertEquals(p.getSyntheticAuc(), 0.88, 0.05);
-            assertEquals(p.getSyntheticFoldAuc(), 0.88, 0.05);
+            assertEquals(p.getRealAuc(), 0.88, AVERAGERROR);
+            assertEquals(p.getSyntheticAuc(), 0.88, AVERAGERROR);
+            assertEquals(p.getSyntheticFoldAuc(), 0.88, AVERAGERROR);
         } else if (treshold == 0.1) {
-            assertEquals(p.getRealAuc(), 0.80, 0.1);
-            assertEquals(p.getSyntheticAuc(), 0.80, 0.1);
-            assertEquals(p.getSyntheticFoldAuc(), 0.80, 0.1);
+            assertEquals(p.getRealAuc(), 0.80, AVERAGERROR);
+            assertEquals(p.getSyntheticAuc(), 0.80, AVERAGERROR);
+            assertEquals(p.getSyntheticFoldAuc(), 0.80, AVERAGERROR);
+        } else if (treshold == 0.3) {
+            assertEquals(p.getRealAuc(), 0.72, AVERAGERROR);
+            assertEquals(p.getSyntheticAuc(), 0.72, AVERAGERROR);
+            assertEquals(p.getSyntheticFoldAuc(), 0.72, AVERAGERROR);
         }
 
-        assertEquals(alarmUnknown, p.getRealAuc(), 0.05);
-        assertEquals(alarmUnknown, p.getSyntheticAuc(), 0.05);
-        assertEquals(alarmUnknown, p.getSyntheticFoldAuc(), 0.05);
+        assertEquals(alarmUnknown, p.getRealAuc(), AVERAGERROR);
+        assertEquals(alarmUnknown, p.getSyntheticAuc(), AVERAGERROR);
+        assertEquals(alarmUnknown, p.getSyntheticFoldAuc(), AVERAGERROR);
 
         return p;
     }
@@ -66,22 +93,25 @@ public class Alarm {
         PerformanceTestBase test = new PerformanceTestBase(FOLD_LEFTHALF,
                                                            FOLD_RIGHTHALF, TEST_FOLD,
                                                            LABEL, nodes);
-        Performance p = test.kFoldTest();
+        List<Performance> performances = test.kFoldTest();
+        Performance p = averagePerformance(performances);
+        checkVariance(performances, p, FOLDVARIANCE);
+        p.setName(NAME);
         double alarmWeka = Alarm.weka();
         p.setWekaAuc(alarmWeka);
 
-        assertEquals(p.getRealAuc(), 0.91, 0.025);
-        assertEquals(p.getSyntheticAuc(), 0.91, 0.025);
-        assertEquals(p.getSyntheticFoldAuc(), 0.91, 0.025);
+        assertEquals(p.getRealAuc(), 0.91, AVERAGERROR);
+        assertEquals(p.getSyntheticAuc(), 0.91, AVERAGERROR);
+        assertEquals(p.getSyntheticFoldAuc(), 0.91, AVERAGERROR);
 
-        assertEquals(alarmWeka, p.getRealAuc(), 0.025);
-        assertEquals(alarmWeka, p.getSyntheticAuc(), 0.025);
-        assertEquals(alarmWeka, p.getSyntheticFoldAuc(), 0.025);
+        assertEquals(alarmWeka, p.getRealAuc(), AVERAGERROR);
+        assertEquals(alarmWeka, p.getSyntheticAuc(), AVERAGERROR);
+        assertEquals(alarmWeka, p.getSyntheticFoldAuc(), AVERAGERROR);
 
         return p;
     }
 
-    public static double weka(double treshold) throws Exception {
+    private static double weka(double treshold) throws Exception {
         return wekaTest(LABEL,
                         ALARM_WEKA_BIF.replace("Missing",
                                                "Treshold" + String.valueOf(treshold)
@@ -91,7 +121,7 @@ public class Alarm {
                                                           .replace(".", "_")));
     }
 
-    public static double weka() throws Exception {
+    private static double weka() throws Exception {
         return wekaTest("lung", ALARM_WEKA_BIF, TEST_FULL);
     }
 
@@ -104,7 +134,7 @@ public class Alarm {
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
         //However, due to the random factors there is some variance possible
-        assertEquals(auc, 0.98, 0.025);
+        assertEquals(auc, 0.98, AVERAGERROR);
     }
 
     public static void testVertiBayesFullDataSetMissing(double treshold) throws Exception {
@@ -122,9 +152,11 @@ public class Alarm {
         //So performance should be high
         //However, due to the random factors there is some variance possible
         if (treshold == 0.05) {
-            assertEquals(auc, 0.88, 0.04);
+            assertEquals(auc, 0.88, AVERAGERROR);
         } else if (treshold == 0.1) {
-            assertEquals(auc, 0.88, 0.04);
+            assertEquals(auc, 0.80, AVERAGERROR);
+        } else if (treshold == 0.3) {
+            assertEquals(auc, 0.72, AVERAGERROR);
         }
     }
 }
