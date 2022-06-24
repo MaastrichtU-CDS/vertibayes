@@ -34,20 +34,6 @@ public class TestPerformance {
     private static final List<Double> TRESHHOLDS = Arrays.asList(0.05, 0.1);
     private static final boolean SMALL_TEST = true;
 
-//    public void testVertiBayesDiabetes() throws Exception {
-//        List<Double> tresh = new ArrayList<>();
-//        tresh.addAll(TRESHHOLDS);
-//        tresh.add(0.3);
-//        for (double treshold : tresh) {
-//            Performance diabetesUnknownFed = DiabetesTest.kFoldUnknown(treshold);
-//            double diabetesUnknown = DiabetesTest.weka(treshold);
-//
-//            assertEquals(diabetesUnknown, diabetesUnknownFed.getRealAuc(), 0.025);
-//            assertEquals(diabetesUnknown, diabetesUnknownFed.getSyntheticAuc(), 0.11);
-//            assertEquals(diabetesUnknown, diabetesUnknownFed.getSyntheticFoldAuc(), 0.025);
-//        }
-//    }
-
     @Test
     public void testVertiBayesKFoldKnown() throws Exception {
         long start = System.currentTimeMillis();

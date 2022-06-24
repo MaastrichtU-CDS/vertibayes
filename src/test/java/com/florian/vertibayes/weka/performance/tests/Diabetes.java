@@ -48,19 +48,18 @@ public class Diabetes {
         double diabetesUnknown = Diabetes.weka(treshold);
         p.setWekaAuc(diabetesUnknown);
 
-        //the difference between a good and a bad fold can be quite big here dependin on RNG.
         if (treshold == 0.05) {
-            assertEquals(p.getRealAuc(), 0.76, 0.1);
-            assertEquals(p.getSyntheticAuc(), 0.76, 0.15);
-            assertEquals(p.getSyntheticFoldAuc(), 0.76, 0.11);
+            assertEquals(p.getRealAuc(), 0.79, 0.025);
+            assertEquals(p.getSyntheticAuc(), 0.87, 0.025);
+            assertEquals(p.getSyntheticFoldAuc(), 0.79, 0.025);
         } else if (treshold == 0.1) {
-            assertEquals(p.getRealAuc(), 0.74, 0.1);
-            assertEquals(p.getSyntheticAuc(), 0.74, 0.15);
-            assertEquals(p.getSyntheticFoldAuc(), 0.74, 0.11);
+            assertEquals(p.getRealAuc(), 0.75, 0.025);
+            assertEquals(p.getSyntheticAuc(), 0.83, 0.025);
+            assertEquals(p.getSyntheticFoldAuc(), 0.75, 0.025);
         } else if (treshold == 0.3) {
-            assertEquals(p.getRealAuc(), 0.73, 0.1);
-            assertEquals(p.getSyntheticAuc(), 0.73, 0.15);
-            assertEquals(p.getSyntheticFoldAuc(), 0.73, 0.11);
+            assertEquals(p.getRealAuc(), 0.65, 0.025);
+            assertEquals(p.getSyntheticAuc(), 0.75, 0.025);
+            assertEquals(p.getSyntheticFoldAuc(), 0.65, 0.025);
         }
 
         assertEquals(diabetesUnknown, p.getRealAuc(), 0.025);
