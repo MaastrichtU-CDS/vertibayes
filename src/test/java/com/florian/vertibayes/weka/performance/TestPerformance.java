@@ -39,21 +39,22 @@ public class TestPerformance {
         printResults(start, asia, 0);
 
         if (!SMALL_TEST) {
+
             start = System.currentTimeMillis();
-            Performance diabetes = Diabetes.kFold();
-            printResults(start, diabetes, 0);
+            Performance irisAutomatic = IrisAutomatic.kFold();
+            printResults(start, irisAutomatic, 0);
+
+            start = System.currentTimeMillis();
+            Performance irisManual = IrisManual.kFold();
+            printResults(start, irisManual, 0);
 
             start = System.currentTimeMillis();
             Performance diabetesFewBins = DiabetesFewBins.kFold();
             printResults(start, diabetesFewBins, 0);
 
             start = System.currentTimeMillis();
-            Performance irisAutomatic = IrisManual.kFold();
-            printResults(start, irisAutomatic, 0);
-
-            start = System.currentTimeMillis();
-            Performance irisManual = IrisManual.kFold();
-            printResults(start, irisManual, 0);
+            Performance diabetes = Diabetes.kFold();
+            printResults(start, diabetes, 0);
 
             start = System.currentTimeMillis();
             Performance alarm = Alarm.kFold();
@@ -78,20 +79,20 @@ public class TestPerformance {
 
             if (!SMALL_TEST) {
                 start = System.currentTimeMillis();
-                Performance diabetesUnknown = Diabetes.kFoldUnknown(treshold);
-                printResults(start, diabetesUnknown, treshold);
+                Performance irisAutomaticUnknown = IrisAutomatic.kFoldUnknown(treshold);
+                printResults(start, irisAutomaticUnknown, treshold);
+
+                start = System.currentTimeMillis();
+                Performance irisManualUnknown = IrisManual.kFoldUnknown(treshold);
+                printResults(start, irisManualUnknown, treshold);
 
                 start = System.currentTimeMillis();
                 Performance diabetesFewBins = DiabetesFewBins.kFoldUnknown(treshold);
                 printResults(start, diabetesFewBins, 0);
 
                 start = System.currentTimeMillis();
-                Performance irisAutomaticUnknown = IrisManual.kFoldUnknown(treshold);
-                printResults(start, irisAutomaticUnknown, treshold);
-
-                start = System.currentTimeMillis();
-                Performance irisManualUnknown = IrisManual.kFoldUnknown(treshold);
-                printResults(start, irisManualUnknown, treshold);
+                Performance diabetesUnknown = Diabetes.kFoldUnknown(treshold);
+                printResults(start, diabetesUnknown, treshold);
 
                 start = System.currentTimeMillis();
                 Performance alarmUnknown = Alarm.kFoldUnknown(treshold);
@@ -113,11 +114,11 @@ public class TestPerformance {
             System.out.println("Time: " + (System.currentTimeMillis() - start));
 
             start = System.currentTimeMillis();
-            Diabetes.testVertiBayesFullDataSet();
+            DiabetesFewBins.testVertiBayesFullDataSet();
             System.out.println("Time: " + (System.currentTimeMillis() - start));
 
             start = System.currentTimeMillis();
-            DiabetesFewBins.testVertiBayesFullDataSet();
+            Diabetes.testVertiBayesFullDataSet();
             System.out.println("Time: " + (System.currentTimeMillis() - start));
 
             start = System.currentTimeMillis();
