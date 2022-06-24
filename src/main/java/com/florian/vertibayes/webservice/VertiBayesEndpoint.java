@@ -47,11 +47,12 @@ public class VertiBayesEndpoint extends ServerEndpoint {
                 .getBody();
     }
 
-    public Set<Bin> getBins(String attributeName) {
+    public Set<Bin> getBins(String attributeName, double minPercentage) {
         if (testing) {
-            return ((BayesServer) (server)).getBins(attributeName);
+            return ((BayesServer) (server)).getBins(attributeName, minPercentage);
         }
-        return REST_TEMPLATE.getForEntity(serverUrl + "/getBins?attribute=" + attributeName, Set.class)
+        return REST_TEMPLATE.getForEntity(serverUrl + "/getBins?attribute=" + attributeName
+                                                  + "&minPercentage=" + minPercentage, Set.class)
                 .getBody();
     }
 }

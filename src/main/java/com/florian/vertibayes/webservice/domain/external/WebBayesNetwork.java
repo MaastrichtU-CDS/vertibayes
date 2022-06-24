@@ -6,6 +6,15 @@ public class WebBayesNetwork {
     // utility class for communicating about BayesNetworks with the outside world
     private List<WebNode> nodes;
     private String target;
+    private double minPercentage;
+
+    public double getMinPercentage() {
+        return minPercentage;
+    }
+
+    public void setMinPercentage(double minPercentage) {
+        this.minPercentage = minPercentage;
+    }
 
     public List<WebNode> getNodes() {
         return nodes;

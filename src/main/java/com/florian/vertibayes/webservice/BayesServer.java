@@ -28,7 +28,8 @@ public class BayesServer extends Server {
     private Data data;
     private Map<String, Set<String>> uniqueValues = new HashMap<>();
     private static final int MINCOUNT = 10;
-    private double minPercentage = 0.25;
+    private static final double MINPERCENTAGE_DEFAULT = 0.1;
+    private double minPercentage = MINPERCENTAGE_DEFAULT;
 
 
     public BigInteger count() {
@@ -48,13 +49,6 @@ public class BayesServer extends Server {
     }
 
     public BayesServer(String path, String id) {
-        this.path = path;
-        this.serverId = id;
-        readData();
-    }
-
-    public BayesServer(String path, String id, double minPercentage) {
-        this.minPercentage = minPercentage;
         this.path = path;
         this.serverId = id;
         readData();
@@ -80,7 +74,8 @@ public class BayesServer extends Server {
     }
 
     @GetMapping ("getBins")
-    public Set<Bin> getBins(String attribute) {
+    public Set<Bin> getBins(String attribute, double minPercentage) {
+        setMinPercentage(minPercentage);
         Set<Bin> bins = new HashSet<>();
         if (this.data == null) {
             readData();
@@ -292,6 +287,15 @@ public class BayesServer extends Server {
     protected void reset() {
         dataStations = new HashMap<>();
         secretStations = new HashMap<>();
+    }
+
+
+    private void setMinPercentage(double minPercentage) {
+        if (minPercentage == 0.1 || minPercentage == 0.2 || minPercentage == 0.25 || minPercentage == 0.3) {
+            this.minPercentage = minPercentage;
+        } else {
+            this.minPercentage = MINPERCENTAGE_DEFAULT;
+        }
     }
 
 }

@@ -38,8 +38,9 @@ public class VertiBayesPerformance {
                                                                  String secondhalf,
                                                                  String target, double minPercentage)
             throws Exception {
-        VertiBayesCentralServer central = createCentral(firsthalf, secondhalf, minPercentage);
+        VertiBayesCentralServer central = createCentral(firsthalf, secondhalf);
         WebBayesNetwork req = new WebBayesNetwork();
+        req.setMinPercentage(minPercentage);
         req.setNodes(input);
         req.setTarget(target);
         return central.expectationMaximization(req);

@@ -53,12 +53,14 @@ public class IrisManual {
         FOLDVARIANCE = new Variance();
         FOLDVARIANCE.setRealAucVariance(0.05);
         FOLDVARIANCE.setSyntheticAucVariance(0.05);
-        FOLDVARIANCE.setSyntheticFoldAucVariance(0.05);
+        //Iris synthetic fold is weird
+        FOLDVARIANCE.setSyntheticFoldAucVariance(1.0);
 
         FOLDVARIANCEMISSING = new Variance();
         FOLDVARIANCEMISSING.setRealAucVariance(0.06);
         FOLDVARIANCEMISSING.setSyntheticAucVariance(0.06);
-        FOLDVARIANCEMISSING.setSyntheticFoldAucVariance(0.06);
+        //Iris synthetic fold is weird
+        FOLDVARIANCEMISSING.setSyntheticFoldAucVariance(1.0);
     }
 
     public static Performance kFoldUnknown(double treshold) throws Exception {

@@ -27,8 +27,9 @@ public class Util {
     public static double generateSyntheticFold(BayesNet network, String testData, List<WebNode> original,
                                                List<WebNode> testNetwork, String target, double minPercentage)
             throws Exception {
-        VertiBayesCentralServer station = createCentral(testData, testData, minPercentage);
+        VertiBayesCentralServer station = createCentral(testData, testData);
         WebBayesNetwork req = new WebBayesNetwork();
+        req.setMinPercentage(minPercentage);
         req.setNodes(testNetwork);
         req.setTarget(target);
         WebBayesNetwork res = station.maximumLikelyhood(req);
@@ -51,9 +52,9 @@ public class Util {
         return data;
     }
 
-    public static VertiBayesCentralServer createCentral(String firsthalf, String secondhalf, double minPercentage) {
-        BayesServer station1 = new BayesServer(firsthalf, "1", minPercentage);
-        BayesServer station2 = new BayesServer(secondhalf, "2", minPercentage);
+    public static VertiBayesCentralServer createCentral(String firsthalf, String secondhalf) {
+        BayesServer station1 = new BayesServer(firsthalf, "1");
+        BayesServer station2 = new BayesServer(secondhalf, "2");
 
         VertiBayesEndpoint endpoint1 = new VertiBayesEndpoint(station1);
         VertiBayesEndpoint endpoint2 = new VertiBayesEndpoint(station2);

@@ -68,7 +68,7 @@ public class VertiBayesCentralServer extends CentralServer {
         initEndpoints();
         endpoints.stream().forEach(x -> x.initEndpoints());
         List<Node> nodes = WebNodeMapper.mapWebNodeToNode(req.getNodes());
-        initNodesMaximumLikelyhood(nodes);
+        initNodesMaximumLikelyhood(nodes, req.getMinPercentage());
         initThetas(nodes);
         WebBayesNetwork response = new WebBayesNetwork();
         response.setNodes(mapWebNodeFromNode(nodes));
@@ -80,7 +80,7 @@ public class VertiBayesCentralServer extends CentralServer {
         initEndpoints();
         endpoints.stream().forEach(x -> x.initEndpoints());
         List<Node> nodes = WebNodeMapper.mapWebNodeToNode(req.getNodes());
-        initNodesMaximumLikelyhood(nodes);
+        initNodesMaximumLikelyhood(nodes, req.getMinPercentage());
         initThetas(nodes);
 
         ExpectationMaximizationTestResponse res = wekaExpectationMaximization(mapWebNodeFromNode(nodes), SAMPLE_SIZE,
@@ -124,12 +124,12 @@ public class VertiBayesCentralServer extends CentralServer {
         this.secretEndpoint = secretServer;
     }
 
-    private void initNodesMaximumLikelyhood(List<Node> nodes) {
+    private void initNodesMaximumLikelyhood(List<Node> nodes, double minPercentage) {
         for (Node n : nodes) {
             if (n.getType() != Attribute.AttributeType.real && n.getType() != Attribute.AttributeType.numeric) {
                 initNode(n);
             } else if (n.getBins().isEmpty()) {
-                initNodeBinned(n);
+                initNodeBinned(n, minPercentage);
             }
         }
     }
@@ -140,9 +140,9 @@ public class VertiBayesCentralServer extends CentralServer {
         }
     }
 
-    private void initNodeBinned(Node node) {
+    private void initNodeBinned(Node node, double minPercentage) {
         for (ServerEndpoint endpoint : endpoints) {
-            node.getBins().addAll(((VertiBayesEndpoint) endpoint).getBins(node.getName()));
+            node.getBins().addAll(((VertiBayesEndpoint) endpoint).getBins(node.getName(), minPercentage));
         }
     }
 
