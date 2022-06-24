@@ -38,23 +38,24 @@ public class GenerateTestData {
         //CHECK IF ALL ATTRIBUTES ARE IN THE SAME ORDER, IDEM FOR ATTRIBUTE-VALUES IN THE CASE OF NOMINAL ATTRIBUTES
 
         for (double d : TRESHHOLDS) {
-//
-//            generateMissingData(CSV_PATH_IRIS_ORIGINAL, CSV_PATH_IRIS_MISSING, d);
-//            generateMissingData(CSV_PATH_ASIA_ORIGINAL, CSV_PATH_ASIA_MISSING, d);
-//            generateMissingData(CSV_PATH_ALARM_ORIGINAL, CSV_PATH_ALARM_MISSING, d);
+
+            generateMissingData(CSV_PATH_IRIS_ORIGINAL, CSV_PATH_IRIS_MISSING, d);
+            generateMissingData(CSV_PATH_ASIA_ORIGINAL, CSV_PATH_ASIA_MISSING, d);
+            generateMissingData(CSV_PATH_ALARM_ORIGINAL, CSV_PATH_ALARM_MISSING, d);
             generateMissingData(CSV_PATH_DIABETES_ORIGINAL, CSV_PATH_DIABETES_MISSING, d);
             String t = String.valueOf(d).replace(".", "_");
-//            generateFolds(CSV_PATH_IRIS_MISSING.replace(".csv", "Treshold" + t + ".csv"),
-//                          CSV_PATH_IRIS_TARGET + "Treshold" + t, FOLDS, true);
-//            generateFolds(CSV_PATH_ASIA_MISSING.replace(".csv", "Treshold" + t + ".csv"),
-//                          CSV_PATH_ASIA_TARGET + "Treshold" + t, FOLDS, true);
-//            generateFolds(CSV_PATH_ALARM_MISSING.replace(".csv", "Treshold" + t + ".csv"),
-//                          CSV_PATH_ALARM_TARGET + "Treshold" + t, FOLDS, true);
+            generateFolds(CSV_PATH_IRIS_MISSING.replace(".csv", "Treshold" + t + ".csv"),
+                          CSV_PATH_IRIS_TARGET + "Treshold" + t, FOLDS, true);
+            generateFolds(CSV_PATH_ASIA_MISSING.replace(".csv", "Treshold" + t + ".csv"),
+                          CSV_PATH_ASIA_TARGET + "Treshold" + t, FOLDS, true);
+            generateFolds(CSV_PATH_ALARM_MISSING.replace(".csv", "Treshold" + t + ".csv"),
+                          CSV_PATH_ALARM_TARGET + "Treshold" + t, FOLDS, true);
             generateFolds(CSV_PATH_DIABETES_MISSING.replace(".csv", "Treshold" + t + ".csv"),
                           CSV_PATH_DIABETES_TARGET + "Treshold" + t, FOLDS, true);
-//            generateFolds(CSV_PATH_IRIS_ORIGINAL, CSV_PATH_IRIS_TARGET, FOLDS, false);
-//            generateFolds(CSV_PATH_ASIA_ORIGINAL, CSV_PATH_ASIA_TARGET, FOLDS, false);
-//            generateFolds(CSV_PATH_ALARM_ORIGINAL, CSV_PATH_ALARM_TARGET, FOLDS, false);
+
+            generateFolds(CSV_PATH_IRIS_ORIGINAL, CSV_PATH_IRIS_TARGET, FOLDS, false);
+            generateFolds(CSV_PATH_ASIA_ORIGINAL, CSV_PATH_ASIA_TARGET, FOLDS, false);
+            generateFolds(CSV_PATH_ALARM_ORIGINAL, CSV_PATH_ALARM_TARGET, FOLDS, false);
             generateFolds(CSV_PATH_DIABETES_ORIGINAL, CSV_PATH_DIABETES_TARGET, FOLDS, false);
         }
 
