@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.florian.vertibayes.notunittests.generatedata.GenerateNetworks.buildAsiaNetwork;
 import static com.florian.vertibayes.weka.performance.VertiBayesPerformance.buildAndValidate;
 import static com.florian.vertibayes.weka.performance.tests.util.Util.readData;
 
@@ -50,8 +49,8 @@ public class PerformanceTestBase {
             String testFoldcsv = TEST_FOLD + fold + ".csv";
 
             Performance res = buildAndValidate(left, right,
-                                               readData("lung", testFoldarrf),
-                                               "lung", testFoldcsv, buildAsiaNetwork());
+                                               readData(LABEL, testFoldarrf),
+                                               LABEL, testFoldcsv, NODES);
             performances.add(res);
 
         }
