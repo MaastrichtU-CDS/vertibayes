@@ -16,17 +16,20 @@ public class PerformanceTestBase {
     private final String TEST_FOLD;
     private final String LABEL;
     private final List<WebNode> NODES;
+    private final double MINPERCENTAGE;
 
     private int FOLDS = 10;
     private static List<Integer> folds;
 
-    public PerformanceTestBase(String left, String right, String test, String label, List<WebNode> nodes) {
+    public PerformanceTestBase(String left, String right, String test, String label, List<WebNode> nodes,
+                               double minPercentage) {
 
         this.FOLD_LEFTHALF = left;
         this.FOLD_RIGHTHALF = right;
         this.TEST_FOLD = test;
         this.LABEL = label;
         this.NODES = nodes;
+        this.MINPERCENTAGE = minPercentage;
 
         folds = new ArrayList<>();
         for (int i = 0; i < FOLDS; i++) {
@@ -50,7 +53,7 @@ public class PerformanceTestBase {
 
             Performance res = buildAndValidate(left, right,
                                                readData(LABEL, testFoldarrf),
-                                               LABEL, testFoldcsv, NODES);
+                                               LABEL, testFoldcsv, NODES, MINPERCENTAGE);
             performances.add(res);
 
         }

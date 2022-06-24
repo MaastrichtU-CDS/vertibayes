@@ -1,9 +1,6 @@
 package com.florian.vertibayes.weka.performance;
 
-import com.florian.vertibayes.weka.performance.tests.Alarm;
-import com.florian.vertibayes.weka.performance.tests.Asia;
-import com.florian.vertibayes.weka.performance.tests.Diabetes;
-import com.florian.vertibayes.weka.performance.tests.IrisManual;
+import com.florian.vertibayes.weka.performance.tests.*;
 import com.florian.vertibayes.weka.performance.tests.util.Performance;
 import org.junit.jupiter.api.Test;
 
@@ -39,24 +36,28 @@ public class TestPerformance {
     public void testVertiBayesKFoldKnown() throws Exception {
         long start = System.currentTimeMillis();
         Performance asia = Asia.kFold();
-        printResults(start, asia, "Asia :", 0);
+        printResults(start, asia, 0);
 
         if (!SMALL_TEST) {
             start = System.currentTimeMillis();
             Performance diabetes = Diabetes.kFold();
-            printResults(start, diabetes, "diabetes :", 0);
+            printResults(start, diabetes, 0);
+
+            start = System.currentTimeMillis();
+            Performance diabetesFewBins = DiabetesFewBins.kFold();
+            printResults(start, diabetesFewBins, 0);
 
             start = System.currentTimeMillis();
             Performance irisAutomatic = IrisManual.kFold();
-            printResults(start, irisAutomatic, "IrisAutomatic :", 0);
+            printResults(start, irisAutomatic, 0);
 
             start = System.currentTimeMillis();
             Performance irisManual = IrisManual.kFold();
-            printResults(start, irisManual, "IrisManual :", 0);
+            printResults(start, irisManual, 0);
 
             start = System.currentTimeMillis();
             Performance alarm = Alarm.kFold();
-            printResults(start, alarm, "Alarm :", 0);
+            printResults(start, alarm, 0);
         }
     }
 
@@ -73,24 +74,28 @@ public class TestPerformance {
 
             long start = System.currentTimeMillis();
             Performance asiaUnknown = Asia.kFoldUnknown(treshold);
-            printResults(start, asiaUnknown, "Asia :", treshold);
+            printResults(start, asiaUnknown, treshold);
 
             if (!SMALL_TEST) {
                 start = System.currentTimeMillis();
                 Performance diabetesUnknown = Diabetes.kFoldUnknown(treshold);
-                printResults(start, diabetesUnknown, "Diabetes :", treshold);
+                printResults(start, diabetesUnknown, treshold);
+
+                start = System.currentTimeMillis();
+                Performance diabetesFewBins = DiabetesFewBins.kFoldUnknown(treshold);
+                printResults(start, diabetesFewBins, 0);
 
                 start = System.currentTimeMillis();
                 Performance irisAutomaticUnknown = IrisManual.kFoldUnknown(treshold);
-                printResults(start, irisAutomaticUnknown, "IrisAutomatic", treshold);
+                printResults(start, irisAutomaticUnknown, treshold);
 
                 start = System.currentTimeMillis();
                 Performance irisManualUnknown = IrisManual.kFoldUnknown(treshold);
-                printResults(start, irisManualUnknown, "IrisManual", treshold);
+                printResults(start, irisManualUnknown, treshold);
 
                 start = System.currentTimeMillis();
                 Performance alarmUnknown = Alarm.kFoldUnknown(treshold);
-                printResults(start, alarmUnknown, "Alarm", treshold);
+                printResults(start, alarmUnknown, treshold);
             }
         }
     }
@@ -109,6 +114,10 @@ public class TestPerformance {
 
             start = System.currentTimeMillis();
             Diabetes.testVertiBayesFullDataSet();
+            System.out.println("Time: " + (System.currentTimeMillis() - start));
+
+            start = System.currentTimeMillis();
+            DiabetesFewBins.testVertiBayesFullDataSet();
             System.out.println("Time: " + (System.currentTimeMillis() - start));
 
             start = System.currentTimeMillis();
@@ -132,6 +141,10 @@ public class TestPerformance {
                 System.out.println("Time: " + (System.currentTimeMillis() - start));
 
                 start = System.currentTimeMillis();
+                DiabetesFewBins.testVertiBayesFullDataSetMissing(d);
+                System.out.println("Time: " + (System.currentTimeMillis() - start));
+
+                start = System.currentTimeMillis();
                 IrisManual.testVertiBayesFullDataSetMissing(d);
                 System.out.println("Time: " + (System.currentTimeMillis() - start));
 
@@ -142,8 +155,8 @@ public class TestPerformance {
         }
     }
 
-    private void printResults(long start, Performance performance, String name, double treshold) {
-        System.out.println("Dataset: " + name + " Unknown level: " + treshold);
+    private void printResults(long start, Performance performance, double treshold) {
+        System.out.println("Dataset: " + performance.getName() + " Unknown level: " + treshold);
         System.out.println("Central performance: " + performance.getWekaAuc());
         System.out.println("Validating against real data:");
         System.out.println(performance.getRealAuc());

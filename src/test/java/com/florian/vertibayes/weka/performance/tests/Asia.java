@@ -39,12 +39,14 @@ public class Asia {
     public static final String ASIA_WEKA_BIF = "resources/Experiments/asia/asiabif.xml";
 
     private static final String LABEL = "lung";
-    private static final List<WebNode> nodes = buildAsiaNetwork();
+    private static final List<WebNode> NODES = buildAsiaNetwork();
     private static final String NAME = "Asia";
 
     private static final double AVERAGERROR = 0.025;
     private static final Variance FOLDVARIANCE;
     private static final Variance FOLDVARIANCEMISSING;
+
+    private static final double MINPERCENTAGE = 0.1;
 
     static {
         FOLDVARIANCE = new Variance();
@@ -62,7 +64,7 @@ public class Asia {
     public static Performance kFoldUnknown(double treshold) throws Exception {
         PerformanceMissingTestBase test = new PerformanceMissingTestBase(FOLD_LEFTHALF_MISSING,
                                                                          FOLD_RIGHTHALF_MISSING, TEST_FOLD,
-                                                                         LABEL, nodes);
+                                                                         LABEL, NODES, MINPERCENTAGE);
         List<Performance> performances = test.kFoldTest(treshold);
         Performance p = averagePerformance(performances);
         checkVariance(performances, p, FOLDVARIANCEMISSING);
@@ -94,7 +96,7 @@ public class Asia {
     public static Performance kFold() throws Exception {
         PerformanceTestBase test = new PerformanceTestBase(FOLD_LEFTHALF,
                                                            FOLD_RIGHTHALF, TEST_FOLD,
-                                                           LABEL, nodes);
+                                                           LABEL, NODES, MINPERCENTAGE);
         List<Performance> performances = test.kFoldTest();
         Performance p = averagePerformance(performances);
         checkVariance(performances, p, FOLDVARIANCE);
@@ -124,13 +126,13 @@ public class Asia {
     }
 
     private static double weka() throws Exception {
-        return wekaTest("lung", ASIA_WEKA_BIF, TEST_FULL);
+        return wekaTest(LABEL, ASIA_WEKA_BIF, TEST_FULL);
     }
 
     public static void testVertiBayesFullDataSet() throws Exception {
         double auc = buildAndValidate(FIRSTHALF, SECONDHALF, readData(LABEL, TEST_FULL),
                                       LABEL, TEST_FULL.replace("WEKA.arff", ".csv"),
-                                      nodes).getRealAuc();
+                                      NODES, MINPERCENTAGE).getRealAuc();
 
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
@@ -148,7 +150,8 @@ public class Asia {
                 .replace(".", "_"));
         double auc = buildAndValidate(first, second,
                                       readData(LABEL, full), LABEL, full.replace(".arff",
-                                                                                 ".csv"), nodes).getRealAuc();
+                                                                                 ".csv"), NODES,
+                                      MINPERCENTAGE).getRealAuc();
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high

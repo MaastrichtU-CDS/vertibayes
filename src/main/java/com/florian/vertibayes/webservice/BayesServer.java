@@ -28,7 +28,7 @@ public class BayesServer extends Server {
     private Data data;
     private Map<String, Set<String>> uniqueValues = new HashMap<>();
     private static final int MINCOUNT = 10;
-    private static final double MINPERCENTAGE = 0.1;
+    private double minPercentage = 0.25;
 
 
     public BigInteger count() {
@@ -48,6 +48,13 @@ public class BayesServer extends Server {
     }
 
     public BayesServer(String path, String id) {
+        this.path = path;
+        this.serverId = id;
+        readData();
+    }
+
+    public BayesServer(String path, String id, double minPercentage) {
+        this.minPercentage = minPercentage;
         this.path = path;
         this.serverId = id;
         readData();
@@ -186,7 +193,7 @@ public class BayesServer extends Server {
                     count++;
                 }
             }
-            return count >= MINCOUNT && count / ((double) data.getNumberOfIndividuals()) >= MINPERCENTAGE;
+            return count >= MINCOUNT && count / ((double) data.getNumberOfIndividuals()) >= minPercentage;
         }
     }
 

@@ -38,12 +38,14 @@ public class IrisAutomatic {
     public static final String IRIS_WEKA_BIF = "resources/Experiments/iris/irisWekaBif.xml";
 
     private static final String LABEL = "label";
-    private static final List<WebNode> nodes = buildIrisNetworkNoBins();
+    private static final List<WebNode> NODES = buildIrisNetworkNoBins();
     private static final String NAME = "IrisAutomatic";
 
     private static final double AVERAGERROR = 0.025;
     private static final Variance FOLDVARIANCE;
     private static final Variance FOLDVARIANCEMISSING;
+
+    private static final double MINPERCENTAGE = 0.1;
 
     static {
         FOLDVARIANCE = new Variance();
@@ -60,7 +62,7 @@ public class IrisAutomatic {
     public static Performance kFoldUnknown(double treshold) throws Exception {
         PerformanceMissingTestBase test = new PerformanceMissingTestBase(FOLD_LEFTHALF_MISSING,
                                                                          FOLD_RIGHTHALF_MISSING, TEST_FOLD,
-                                                                         LABEL, nodes);
+                                                                         LABEL, NODES, MINPERCENTAGE);
         List<Performance> performances = test.kFoldTest(treshold);
         Performance p = averagePerformance(performances);
         checkVariance(performances, p, FOLDVARIANCEMISSING);
@@ -96,7 +98,7 @@ public class IrisAutomatic {
     public static Performance kFold() throws Exception {
         PerformanceTestBase test = new PerformanceTestBase(FOLD_LEFTHALF,
                                                            FOLD_RIGHTHALF, TEST_FOLD,
-                                                           LABEL, nodes);
+                                                           LABEL, NODES, MINPERCENTAGE);
         List<Performance> performances = test.kFoldTest();
         Performance p = averagePerformance(performances);
         checkVariance(performances, p, FOLDVARIANCE);
@@ -133,7 +135,7 @@ public class IrisAutomatic {
         double auc = buildAndValidate(FIRSTHALF, SECONDHALF,
                                       readData(LABEL, TEST_FULL), LABEL,
                                       TEST_FULL.replace("Weka.arff",
-                                                        ".csv"), nodes).getRealAuc();
+                                                        ".csv"), NODES, MINPERCENTAGE).getRealAuc();
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
@@ -152,7 +154,7 @@ public class IrisAutomatic {
         double auc = buildAndValidate(first, second,
                                       readData(LABEL, full), LABEL,
                                       full.replace(".arff",
-                                                   ".csv"), nodes).getRealAuc();
+                                                   ".csv"), NODES, MINPERCENTAGE).getRealAuc();
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high

@@ -38,12 +38,14 @@ public class Alarm {
     public static final String ALARM_WEKA_BIF = "resources/Experiments/alarm/alarmbif.xml";
 
     private static final String LABEL = "BP";
-    private final static List<WebNode> nodes = buildAlarmNetwork();
+    private final static List<WebNode> NODES = buildAlarmNetwork();
     private static final String NAME = "Alarm";
 
     private static final double AVERAGERROR = 0.025;
     private static final Variance FOLDVARIANCE;
     private static final Variance FOLDVARIANCEMISSING;
+
+    private static final double MINPERCENTAGE = 0.1;
 
     static {
         FOLDVARIANCE = new Variance();
@@ -60,7 +62,7 @@ public class Alarm {
     public static Performance kFoldUnknown(double treshold) throws Exception {
         PerformanceMissingTestBase test = new PerformanceMissingTestBase(FOLD_LEFTHALF_MISSING,
                                                                          FOLD_RIGHTHALF_MISSING, TEST_FOLD,
-                                                                         LABEL, nodes);
+                                                                         LABEL, NODES, MINPERCENTAGE);
         List<Performance> performances = test.kFoldTest(treshold);
         Performance p = averagePerformance(performances);
         checkVariance(performances, p, FOLDVARIANCEMISSING);
@@ -92,7 +94,7 @@ public class Alarm {
     public static Performance kFold() throws Exception {
         PerformanceTestBase test = new PerformanceTestBase(FOLD_LEFTHALF,
                                                            FOLD_RIGHTHALF, TEST_FOLD,
-                                                           LABEL, nodes);
+                                                           LABEL, NODES, MINPERCENTAGE);
         List<Performance> performances = test.kFoldTest();
         Performance p = averagePerformance(performances);
         checkVariance(performances, p, FOLDVARIANCE);
@@ -122,13 +124,13 @@ public class Alarm {
     }
 
     private static double weka() throws Exception {
-        return wekaTest("lung", ALARM_WEKA_BIF, TEST_FULL);
+        return wekaTest(LABEL, ALARM_WEKA_BIF, TEST_FULL);
     }
 
     public static void testVertiBayesFullDataSet() throws Exception {
         double auc = buildAndValidate(FIRSTHALF, SECONDHALF, readData(LABEL, TEST_FULL),
                                       LABEL, TEST_FULL.replace("WEKA.arff", ".csv"),
-                                      nodes).getRealAuc();
+                                      NODES, MINPERCENTAGE).getRealAuc();
 
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
@@ -146,7 +148,8 @@ public class Alarm {
                 .replace(".", "_"));
         double auc = buildAndValidate(first, second,
                                       readData(LABEL, full), LABEL, full.replace("WEKA.arff",
-                                                                                 ".csv"), nodes).getRealAuc();
+                                                                                 ".csv"), NODES,
+                                      MINPERCENTAGE).getRealAuc();
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high

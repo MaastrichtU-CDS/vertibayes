@@ -16,38 +16,17 @@ import static com.florian.vertibayes.weka.performance.tests.util.Performance.che
 import static com.florian.vertibayes.weka.performance.tests.util.Util.readData;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class Diabetes {
-
-    public static final String TEST_FULL = "resources/Experiments/diabetes/diabetesWEKA.arff";
-    public static final String TEST_FULL_MISSING = "resources/Experiments/diabetes/diabetesMissing.arff";
-
-    public static final String FIRSTHALF = "resources/Experiments/diabetes/diabetes_firsthalf.csv";
-    public static final String SECONDHALF = "resources/Experiments/diabetes/diabetes_secondhalf.csv";
-
-    public static final String FOLD_LEFTHALF = "resources/Experiments/diabetes/folds/diabetesLeftSplit";
-    public static final String FOLD_RIGHTHALF = "resources/Experiments/diabetes/folds/diabetesRightSplit";
-
-    public static final String FOLD_LEFTHALF_MISSING = "resources/Experiments/diabetes/folds" +
-            "/diabetesmissingLeftSplit";
-    public static final String FOLD_RIGHTHALF_MISSING = "resources/Experiments/diabetes/folds" +
-            "/diabetesmissingRightSplit";
-
-    public static final String FIRSTHALF_MISSING = "resources/Experiments/diabetes/diabetesMissingLeft.csv";
-    public static final String SECONDHALF_MISSING = "resources/Experiments/diabetes/diabetesMissingRight.csv";
-
-    public static final String TEST_FOLD = "resources/Experiments/diabetes/folds/diabetes";
-
-    public static final String DIABETES_WEKA_BIF = "resources/Experiments/diabetes/diabetesbif.xml";
-
+public class DiabetesFewBins extends Diabetes {
     private static final String LABEL = "Outcome";
     private static final List<WebNode> NODES = buildDiabetesNetwork();
-    private static final String NAME = "Diabetes";
+    private static final String NAME = "DiabetesFewBins";
 
     private static final double AVERAGERROR = 0.025;
     private static final Variance FOLDVARIANCE;
     private static final Variance FOLDVARIANCEMISSING;
 
-    private static final double MINPERCENTAGE = 0.1;
+
+    private static final double MINPERCENTAGE = 0.25;
 
     static {
         FOLDVARIANCE = new Variance();
@@ -70,13 +49,13 @@ public class Diabetes {
         Performance p = averagePerformance(performances);
         checkVariance(performances, p, FOLDVARIANCEMISSING);
         p.setName(NAME);
-        double diabetesUnknown = Diabetes.weka(treshold);
+        double diabetesUnknown = DiabetesFewBins.weka(treshold);
         p.setWekaAuc(diabetesUnknown);
 
         if (treshold == 0.05) {
             assertEquals(p.getRealAuc(), 0.79, AVERAGERROR);
             assertEquals(p.getSyntheticAuc(), 0.87, AVERAGERROR);
-            assertEquals(p.getSyntheticFoldAuc(), 0.79, AVERAGERROR);
+            assertEquals(p.getSyntheticFoldAuc(), 0.80, AVERAGERROR);
         } else if (treshold == 0.1) {
             assertEquals(p.getRealAuc(), 0.75, AVERAGERROR);
             assertEquals(p.getSyntheticAuc(), 0.83, AVERAGERROR);
@@ -104,13 +83,13 @@ public class Diabetes {
         Performance p = averagePerformance(performances);
         checkVariance(performances, p, FOLDVARIANCE);
         p.setName(NAME);
-        double diabetesWeka = Diabetes.weka();
+        double diabetesWeka = DiabetesFewBins.weka();
         p.setWekaAuc(diabetesWeka);
 
         assertEquals(p.getRealAuc(), 0.79, AVERAGERROR);
         assertEquals(p.getSyntheticAuc(), 0.89, AVERAGERROR);
         assertEquals(p.getSyntheticFoldAuc(), 0.82, AVERAGERROR);
-        assertEquals(diabetesWeka, p.getRealAuc(), 0.025);
+        assertEquals(diabetesWeka, p.getRealAuc(), AVERAGERROR);
         //Using synthetic training data in k-fold results in weird stuff for diabetes
         //Other validation methods have expected results
         assertEquals(diabetesWeka, p.getSyntheticAuc(), 0.11);

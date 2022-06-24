@@ -17,10 +17,10 @@ import static com.florian.vertibayes.weka.performance.tests.util.Util.generateSy
 
 public class VertiBayesPerformance {
     public static Performance buildAndValidate(String left, String right, Instances testData,
-                                               String target, String test, List<WebNode> nodes)
+                                               String target, String test, List<WebNode> nodes, double minPercentage)
             throws Exception {
         ExpectationMaximizationTestResponse response = (ExpectationMaximizationTestResponse) generateModel(
-                nodes, left, right, target);
+                nodes, left, right, target, minPercentage);
         BayesNet network = response.getWeka();
         Evaluation eval = new Evaluation(testData);
         eval.evaluateModel(network, testData);
@@ -29,15 +29,16 @@ public class VertiBayesPerformance {
         res.setSyntheticAuc(response.getSyntheticAuc());
         res.setRealAuc(eval.weightedAreaUnderROC());
         res.setSyntheticFoldAuc(
-                generateSyntheticFold(network, test, response.getNodes(), nodes, target));
+                generateSyntheticFold(network, test, response.getNodes(), nodes, target, minPercentage));
         return res;
     }
 
+
     private static ExpectationMaximizationResponse generateModel(List<WebNode> input, String firsthalf,
                                                                  String secondhalf,
-                                                                 String target)
+                                                                 String target, double minPercentage)
             throws Exception {
-        VertiBayesCentralServer central = createCentral(firsthalf, secondhalf);
+        VertiBayesCentralServer central = createCentral(firsthalf, secondhalf, minPercentage);
         WebBayesNetwork req = new WebBayesNetwork();
         req.setNodes(input);
         req.setTarget(target);

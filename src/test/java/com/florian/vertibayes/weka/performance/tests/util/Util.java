@@ -25,9 +25,9 @@ import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNode
 
 public class Util {
     public static double generateSyntheticFold(BayesNet network, String testData, List<WebNode> original,
-                                               List<WebNode> testNetwork, String target)
+                                               List<WebNode> testNetwork, String target, double minPercentage)
             throws Exception {
-        VertiBayesCentralServer station = createCentral(testData, testData);
+        VertiBayesCentralServer station = createCentral(testData, testData, minPercentage);
         WebBayesNetwork req = new WebBayesNetwork();
         req.setNodes(testNetwork);
         req.setTarget(target);
@@ -51,9 +51,9 @@ public class Util {
         return data;
     }
 
-    public static VertiBayesCentralServer createCentral(String firsthalf, String secondhalf) {
-        BayesServer station1 = new BayesServer(firsthalf, "1");
-        BayesServer station2 = new BayesServer(secondhalf, "2");
+    public static VertiBayesCentralServer createCentral(String firsthalf, String secondhalf, double minPercentage) {
+        BayesServer station1 = new BayesServer(firsthalf, "1", minPercentage);
+        BayesServer station2 = new BayesServer(secondhalf, "2", minPercentage);
 
         VertiBayesEndpoint endpoint1 = new VertiBayesEndpoint(station1);
         VertiBayesEndpoint endpoint2 = new VertiBayesEndpoint(station2);
