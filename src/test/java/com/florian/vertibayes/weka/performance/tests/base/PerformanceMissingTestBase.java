@@ -7,8 +7,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.florian.vertibayes.weka.performance.VertiBayesPerformance.buildAndValidate;
 import static com.florian.vertibayes.weka.performance.tests.util.Util.readData;
+import static com.florian.vertibayes.weka.performance.tests.util.VertiBayesPerformance.buildAndValidate;
 
 public class PerformanceMissingTestBase {
     private final String FOLD_LEFTHALF;
@@ -16,19 +16,21 @@ public class PerformanceMissingTestBase {
     private final String TEST_FOLD;
     private final String LABEL;
     private final List<WebNode> NODES;
+    private final List<WebNode> TEST_NODES;
     private final double MINPERCENTAGE;
 
     private int FOLDS = 10;
     private static List<Integer> folds;
 
     public PerformanceMissingTestBase(String left, String right, String test, String label, List<WebNode> nodes,
-                                      double minPercentage) {
+                                      List<WebNode> testNodes, double minPercentage) {
 
         this.FOLD_LEFTHALF = left;
         this.FOLD_RIGHTHALF = right;
         this.TEST_FOLD = test;
         this.LABEL = label;
         this.NODES = nodes;
+        this.TEST_NODES = testNodes;
         this.MINPERCENTAGE = minPercentage;
 
         folds = new ArrayList<>();
@@ -59,7 +61,7 @@ public class PerformanceMissingTestBase {
             String testFoldCsv = testFoldarff.replace("WEKA.arff", ".csv");
             res = buildAndValidate(left, right,
                                    readData(LABEL, testFoldarff),
-                                   LABEL, testFoldCsv, NODES, MINPERCENTAGE);
+                                   LABEL, testFoldCsv, NODES, TEST_NODES, MINPERCENTAGE);
 
 
             performances.add(res);
