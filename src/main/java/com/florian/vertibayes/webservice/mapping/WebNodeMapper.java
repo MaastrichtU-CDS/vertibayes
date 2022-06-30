@@ -10,10 +10,7 @@ import com.florian.vertibayes.webservice.domain.external.WebParentValue;
 import com.florian.vertibayes.webservice.domain.external.WebTheta;
 import com.florian.vertibayes.webservice.domain.external.WebValue;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class WebNodeMapper {
 
@@ -35,7 +32,7 @@ public final class WebNodeMapper {
                     }
                 }
             }
-            n.setBins(node.getBins());
+            n.setBins(new HashSet<>(node.getBins()));
             listOutput.add(n);
             output.put(n.getName(), n);
 
@@ -100,7 +97,7 @@ public final class WebNodeMapper {
             n.setName(node.getName());
             n.setType(node.getType());
             n.setParents(new ArrayList<>());
-            n.setBins(node.getBins());
+            n.setBins(new HashSet<>(node.getBins()));
             for (Node parent : node.getParents()) {
                 n.getParents().add(parent.getName());
             }
