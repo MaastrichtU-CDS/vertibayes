@@ -13,9 +13,9 @@ public class TestPerformance {
     // TO TEST MANUALLY USE TEST.ARFF THAT IS GENERATED DURING THESE TEST CASES AS THE BASELINE THEN COMPARE TO
     // THE CORRESPONDING TEST FILE
 
-    // DIABETES TAKES ABOUT 6 MINUTES TO TRAIN ONCE
-    // ALARM TAKES ABOUT 2.5 MINUTES TO TRAIN ONCE
-    // IRIS ABOUT 0.75
+    // DIABETES TAKES ABOUT 27 seconds TO TRAIN ONCE (few bins variant)
+    // ALARM TAKES ABOUT 265 seconds
+    // IRIS ABOUT 12 seconds (automatic binning)
     // ASIA ABOUT 10 seconds
     // THIS IS ASSUMING NO SYNTHETIC FOLD. THIS IS ALSO ONLY 1 FOLD IN THE CASE OF K-FOLD.
     // MISSING DATA ARE EVEN SLOWER DUE TO THE EXTRA CPD'S THAT NEED TO BE CALCULATED (ALARM GOES TO 11)
@@ -30,15 +30,113 @@ public class TestPerformance {
     // IMPORTANT NOTE 2: DUE TO THE RANDOM NATURE OF EM,DATA GENERATION & THE FOLDS IT IS POSSIBLE TO GET THE
     // OCCASIONAL TERRIBLE PERFORMANCE, ESPECIALLY ON INDIVIDUAL FOLDS. RERUN THE TEST AND SEE IF IT HAPPENS AGAIN.
     private static final List<Double> TRESHHOLDS = Arrays.asList(0.05, 0.1, 0.3);
-    private static final boolean SMALL_TEST = false;
+    private static final boolean SMALL_TEST = true;
+
+    @Test
+    public void smallTest() throws Exception {
+        //Small test to check everything still works
+        if (SMALL_TEST) {
+            long start = System.currentTimeMillis();
+            Performance asia = Asia.kFold();
+            printResults(start, asia, 0);
+
+            start = System.currentTimeMillis();
+            Performance diabetes = DiabetesFewBins.kFold();
+            printResults(start, diabetes, 0);
+
+            System.out.println("Treshold: " + 0.05);
+
+            start = System.currentTimeMillis();
+            Performance asiaUnknown = Asia.kFoldUnknown(0.05);
+            printResults(start, asiaUnknown, 0.05);
+
+            start = System.currentTimeMillis();
+            Performance diabetesUnknown = DiabetesFewBins.kFoldUnknown(0.05);
+            printResults(start, diabetesUnknown, 0.05);
+
+            start = System.currentTimeMillis();
+            Asia.testVertiBayesFullDataSet();
+            System.out.println("Time: " + (System.currentTimeMillis() - start));
+
+            start = System.currentTimeMillis();
+            Asia.testVertiBayesFullDataSetMissing(0.05);
+            System.out.println("Time: " + (System.currentTimeMillis() - start));
+
+            start = System.currentTimeMillis();
+            DiabetesFewBins.testVertiBayesFullDataSet();
+            System.out.println("Time: " + (System.currentTimeMillis() - start));
+
+            start = System.currentTimeMillis();
+            DiabetesFewBins.testVertiBayesFullDataSetMissing(0.05);
+            System.out.println("Time: " + (System.currentTimeMillis() - start));
+        }
+    }
+
+    @Test
+    public void runtTimeTest() throws Exception {
+        if (!SMALL_TEST) {
+            int count = 25;
+
+            long smallSet = 0;
+            long baseSet = 0;
+            long tenValueSet = 0;
+            long twoParentSet = 0;
+            long fourValueSet = 0;
+
+            for (int i = 0; i < count; i++) {
+                long start = System.currentTimeMillis();
+                RuntimeTest.testSmallDataset();
+                smallSet += System.currentTimeMillis() - start;
+
+                start = System.currentTimeMillis();
+                RuntimeTest.testRegularDatasetMultipleParents();
+                twoParentSet += System.currentTimeMillis() - start;
+
+                start = System.currentTimeMillis();
+                RuntimeTest.testRegularDataset();
+                baseSet += System.currentTimeMillis() - start;
+
+                start = System.currentTimeMillis();
+                RuntimeTest.testRegularDatasetTenValues();
+                tenValueSet += System.currentTimeMillis() - start;
+
+                start = System.currentTimeMillis();
+                RuntimeTest.testRegularDatasetFourValues();
+                fourValueSet += System.currentTimeMillis() - start;
+            }
+
+            System.out.println("BaseSet: " + baseSet / count);
+            System.out.println(
+                    "Baseset contains: 5032 individuals, 3 nodes x1 - x2 - x3, x1.parents = {} x2.parents = {x1}, x3" +
+                            ".parents={x2}, x1, x2 & x3 all have 2 values {0,1}.\n This results in 10 probabilities " +
+                            "that " +
+                            "needed to be calculated.");
+            System.out.println("Smallset: " + smallSet / count);
+            System.out.println("Smallset contains 10 individuals, the rest is the same as baseset");
+            System.out.println("Multipleparents: " + twoParentSet / count);
+            System.out.println(
+                    "Multipleparents gives x3.parents={x2, x3}, resulting in 14 probabilities that need to be " +
+                            "calculated " +
+                            "the rest is the same as baseset");
+            System.out.println("fourValueSet: " + fourValueSet / count);
+            System.out.println(
+                    "fourValueSet gives x1{0,1,2,3}, resulting in 14 probabilities that need to be calculated " +
+                            "the rest is the same as baseset");
+            System.out.println("tenValueSet: " + tenValueSet / count);
+            System.out.println(
+                    "tenValueSet gives x1{0,1,2,3,4,5,6,7,8,9}, resulting in 34 probabilities that need to be " +
+                            "calculated " +
+                            "the rest is the same as baseset");
+        }
+    }
 
     @Test
     public void testVertiBayesKFoldKnown() throws Exception {
-        long start = System.currentTimeMillis();
-        Performance asia = Asia.kFold();
-        printResults(start, asia, 0);
-
         if (!SMALL_TEST) {
+            long start = System.currentTimeMillis();
+            Performance asia = Asia.kFold();
+            printResults(start, asia, 0);
+
 
             start = System.currentTimeMillis();
             Performance irisAutomatic = IrisAutomatic.kFold();
@@ -64,20 +162,16 @@ public class TestPerformance {
 
     @Test
     public void testVertiBayesKFoldUnKnown() throws Exception {
-        int count = 0;
-        for (double treshold : TRESHHOLDS) {
-            if (SMALL_TEST && count >= 1) {
-                //small test only does the first treshold
-                break;
-            }
-            count++;
-            System.out.println("Treshold: " + treshold);
+        if (!SMALL_TEST) {
+            int count = 0;
+            for (double treshold : TRESHHOLDS) {
+                count++;
+                System.out.println("Treshold: " + treshold);
 
-            long start = System.currentTimeMillis();
-            Performance asiaUnknown = Asia.kFoldUnknown(treshold);
-            printResults(start, asiaUnknown, treshold);
+                long start = System.currentTimeMillis();
+                Performance asiaUnknown = Asia.kFoldUnknown(treshold);
+                printResults(start, asiaUnknown, treshold);
 
-            if (!SMALL_TEST) {
                 start = System.currentTimeMillis();
                 Performance irisAutomaticUnknown = IrisAutomatic.kFoldUnknown(treshold);
                 printResults(start, irisAutomaticUnknown, treshold);
@@ -88,7 +182,7 @@ public class TestPerformance {
 
                 start = System.currentTimeMillis();
                 Performance diabetesFewBins = DiabetesFewBins.kFoldUnknown(treshold);
-                printResults(start, diabetesFewBins, 0);
+                printResults(start, diabetesFewBins, treshold);
 
                 start = System.currentTimeMillis();
                 Performance diabetesUnknown = Diabetes.kFoldUnknown(treshold);
@@ -103,14 +197,17 @@ public class TestPerformance {
 
     @Test
     public void testVertiBayesNoFold() throws Exception {
-        long start = System.currentTimeMillis();
-        Asia.testVertiBayesFullDataSet();
-        System.out.println("Time: " + (System.currentTimeMillis() - start));
-
-        // do not turn on ALARM, IRIS or DIABETES unless you have the time to wait
         if (!SMALL_TEST) {
+            long start = System.currentTimeMillis();
+            Asia.testVertiBayesFullDataSet();
+            System.out.println("Time: " + (System.currentTimeMillis() - start));
+
             start = System.currentTimeMillis();
             IrisManual.testVertiBayesFullDataSet();
+            System.out.println("Time: " + (System.currentTimeMillis() - start));
+
+            start = System.currentTimeMillis();
+            IrisAutomatic.testVertiBayesFullDataSet();
             System.out.println("Time: " + (System.currentTimeMillis() - start));
 
             start = System.currentTimeMillis();
@@ -124,21 +221,18 @@ public class TestPerformance {
             start = System.currentTimeMillis();
             Alarm.testVertiBayesFullDataSet();
             System.out.println("Time: " + (System.currentTimeMillis() - start));
-        }
-        int count = 0;
-        for (double d : TRESHHOLDS) {
-            start = System.currentTimeMillis();
-            Asia.testVertiBayesFullDataSetMissing(d);
-            System.out.println("Time: " + (System.currentTimeMillis() - start));
-            count++;
-            if (SMALL_TEST && count > 1) {
-                //only do the first treshhold for small test.
-                break;
-            }
-            if (!SMALL_TEST) {
-                // do not turn on unless you have the time to wait
+
+            for (double d : TRESHHOLDS) {
                 start = System.currentTimeMillis();
-                Diabetes.testVertiBayesFullDataSetMissing(d);
+                Asia.testVertiBayesFullDataSetMissing(d);
+                System.out.println("Time: " + (System.currentTimeMillis() - start));
+
+                start = System.currentTimeMillis();
+                IrisManual.testVertiBayesFullDataSetMissing(d);
+                System.out.println("Time: " + (System.currentTimeMillis() - start));
+
+                start = System.currentTimeMillis();
+                IrisAutomatic.testVertiBayesFullDataSetMissing(d);
                 System.out.println("Time: " + (System.currentTimeMillis() - start));
 
                 start = System.currentTimeMillis();
@@ -146,7 +240,7 @@ public class TestPerformance {
                 System.out.println("Time: " + (System.currentTimeMillis() - start));
 
                 start = System.currentTimeMillis();
-                IrisManual.testVertiBayesFullDataSetMissing(d);
+                Diabetes.testVertiBayesFullDataSetMissing(d);
                 System.out.println("Time: " + (System.currentTimeMillis() - start));
 
                 start = System.currentTimeMillis();
@@ -156,7 +250,7 @@ public class TestPerformance {
         }
     }
 
-    private void printResults(long start, Performance performance, double treshold) {
+    public static void printResults(long start, Performance performance, double treshold) {
         System.out.println("Dataset: " + performance.getName() + " Unknown level: " + treshold);
         System.out.println("Central performance: " + performance.getWekaAuc());
         System.out.println("Validating against real data:");

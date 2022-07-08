@@ -224,7 +224,7 @@ public class GenerateNetworks {
         return Arrays.asList(asia, tub, smoke, lung, bronc, either, xray, dysp);
     }
 
-    private static WebNode createWebNode(String name, Attribute.AttributeType type, List<String> parents) {
+    public static WebNode createWebNode(String name, Attribute.AttributeType type, List<String> parents) {
         WebNode n = new WebNode();
         n.setType(type);
         n.setName(name);

@@ -9,11 +9,11 @@ import com.florian.vertibayes.weka.performance.tests.util.Variance;
 import java.util.List;
 
 import static com.florian.vertibayes.notunittests.generatedata.GenerateNetworks.buildIrisNetworkNoBins;
-import static com.florian.vertibayes.weka.performance.VertiBayesPerformance.buildAndValidate;
-import static com.florian.vertibayes.weka.performance.WekaPerformance.wekaTest;
 import static com.florian.vertibayes.weka.performance.tests.util.Performance.averagePerformance;
 import static com.florian.vertibayes.weka.performance.tests.util.Performance.checkVariance;
 import static com.florian.vertibayes.weka.performance.tests.util.Util.readData;
+import static com.florian.vertibayes.weka.performance.tests.util.VertiBayesPerformance.buildAndValidate;
+import static com.florian.vertibayes.weka.performance.tests.util.WekaPerformance.wekaTest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class IrisAutomatic {
@@ -38,10 +38,10 @@ public class IrisAutomatic {
     public static final String IRIS_WEKA_BIF = "resources/Experiments/iris/irisWekaBif.xml";
 
     private static final String LABEL = "label";
-    private static final List<WebNode> NODES = buildIrisNetworkNoBins();
+    private static List<WebNode> NODES = buildIrisNetworkNoBins();
     private static final String NAME = "IrisAutomatic";
 
-    private static final double AVERAGERROR = 0.025;
+    private static final double AVERAGERROR = 0.05;
     private static final Variance FOLDVARIANCE;
     private static final Variance FOLDVARIANCEMISSING;
 
@@ -49,19 +49,24 @@ public class IrisAutomatic {
 
     static {
         FOLDVARIANCE = new Variance();
-        FOLDVARIANCE.setRealAucVariance(0.05);
-        FOLDVARIANCE.setSyntheticAucVariance(0.05);
+        FOLDVARIANCE.setRealAucVariance(0.20);
+        FOLDVARIANCE.setSyntheticAucVariance(0.20);
         //Iris synthetic fold is weird
         FOLDVARIANCE.setSyntheticFoldAucVariance(1.0);
 
         FOLDVARIANCEMISSING = new Variance();
-        FOLDVARIANCEMISSING.setRealAucVariance(0.06);
-        FOLDVARIANCEMISSING.setSyntheticAucVariance(0.06);
+        FOLDVARIANCEMISSING.setRealAucVariance(0.20);
+        FOLDVARIANCEMISSING.setSyntheticAucVariance(0.20);
         //Iris synthetic fold is weird
         FOLDVARIANCEMISSING.setSyntheticFoldAucVariance(1.0);
     }
 
+    private static void initNodes() {
+        NODES = buildIrisNetworkNoBins();
+    }
+
     public static Performance kFoldUnknown(double treshold) throws Exception {
+        initNodes();
         PerformanceMissingTestBase test = new PerformanceMissingTestBase(FOLD_LEFTHALF_MISSING,
                                                                          FOLD_RIGHTHALF_MISSING, TEST_FOLD,
                                                                          LABEL, NODES, MINPERCENTAGE);
@@ -73,18 +78,18 @@ public class IrisAutomatic {
         p.setWekaAuc(irisUnknown);
 
         if (treshold == 0.05) {
-            assertEquals(p.getRealAuc(), 0.96, AVERAGERROR);
-            assertEquals(p.getSyntheticAuc(), 0.96, AVERAGERROR);
+            assertEquals(p.getRealAuc(), 0.98, AVERAGERROR);
+            assertEquals(p.getSyntheticAuc(), 0.98, AVERAGERROR);
             // Synthetic fold AUC for iris is all over the place due to the small folds
             // So ignore it
         } else if (treshold == 0.1) {
-            assertEquals(p.getRealAuc(), 0.96, AVERAGERROR);
-            assertEquals(p.getSyntheticAuc(), 0.96, AVERAGERROR);
+            assertEquals(p.getRealAuc(), 0.97, AVERAGERROR);
+            assertEquals(p.getSyntheticAuc(), 0.97, AVERAGERROR);
             // Synthetic fold AUC for iris is all over the place due to the small folds
             // So ignore it
         } else if (treshold == 0.3) {
-            assertEquals(p.getRealAuc(), 0.96, AVERAGERROR);
-            assertEquals(p.getSyntheticAuc(), 0.96, AVERAGERROR);
+            assertEquals(p.getRealAuc(), 0.92, AVERAGERROR);
+            assertEquals(p.getSyntheticAuc(), 0.92, AVERAGERROR);
             // Synthetic fold AUC for iris is all over the place due to the small folds
             // So ignore it
         }
@@ -98,6 +103,7 @@ public class IrisAutomatic {
     }
 
     public static Performance kFold() throws Exception {
+        initNodes();
         PerformanceTestBase test = new PerformanceTestBase(FOLD_LEFTHALF,
                                                            FOLD_RIGHTHALF, TEST_FOLD,
                                                            LABEL, NODES, MINPERCENTAGE);
@@ -134,6 +140,7 @@ public class IrisAutomatic {
     }
 
     public static void testVertiBayesFullDataSet() throws Exception {
+        initNodes();
         double auc = buildAndValidate(FIRSTHALF, SECONDHALF,
                                       readData(LABEL, TEST_FULL), LABEL,
                                       TEST_FULL.replace("Weka.arff",
@@ -146,6 +153,7 @@ public class IrisAutomatic {
     }
 
     public static void testVertiBayesFullDataSetMissing(double treshold) throws Exception {
+        initNodes();
         String first = FIRSTHALF_MISSING.replace("Missing", "MissingTreshold" + String.valueOf(treshold)
                 .replace(".", "_"));
         String second = SECONDHALF_MISSING.replace("Missing", "MissingTreshold" + String.valueOf(treshold)
@@ -165,9 +173,9 @@ public class IrisAutomatic {
         if (treshold == 0.05) {
             assertEquals(auc, 0.98, AVERAGERROR);
         } else if (treshold == 0.1) {
-            assertEquals(auc, 0.96, AVERAGERROR);
+            assertEquals(auc, 0.97, AVERAGERROR);
         } else if (treshold == 0.3) {
-            assertEquals(auc, 0.96, AVERAGERROR);
+            assertEquals(auc, 0.90, AVERAGERROR);
         }
     }
 }

@@ -30,6 +30,7 @@ public class BayesServer extends Server {
     private static final int MINCOUNT = 10;
     private static final double MINPERCENTAGE_DEFAULT = 0.1;
     private double minPercentage = MINPERCENTAGE_DEFAULT;
+    private static final List<Double> VALID_PERCENTAGES = Arrays.asList(0.1, 0.2, 0.25, 0.3);
 
 
     public BigInteger count() {
@@ -291,7 +292,7 @@ public class BayesServer extends Server {
 
 
     private void setMinPercentage(double minPercentage) {
-        if (minPercentage == 0.1 || minPercentage == 0.2 || minPercentage == 0.25 || minPercentage == 0.3) {
+        if (VALID_PERCENTAGES.contains(minPercentage)) {
             this.minPercentage = minPercentage;
         } else {
             this.minPercentage = MINPERCENTAGE_DEFAULT;

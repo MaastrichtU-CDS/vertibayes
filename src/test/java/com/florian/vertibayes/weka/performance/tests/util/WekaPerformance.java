@@ -1,4 +1,4 @@
-package com.florian.vertibayes.weka.performance;
+package com.florian.vertibayes.weka.performance.tests.util;
 
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.BayesNet;

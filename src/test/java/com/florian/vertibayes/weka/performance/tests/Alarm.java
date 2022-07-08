@@ -9,11 +9,11 @@ import com.florian.vertibayes.weka.performance.tests.util.Variance;
 import java.util.List;
 
 import static com.florian.vertibayes.notunittests.generatedata.GenerateNetworks.buildAlarmNetwork;
-import static com.florian.vertibayes.weka.performance.VertiBayesPerformance.buildAndValidate;
-import static com.florian.vertibayes.weka.performance.WekaPerformance.wekaTest;
 import static com.florian.vertibayes.weka.performance.tests.util.Performance.averagePerformance;
 import static com.florian.vertibayes.weka.performance.tests.util.Performance.checkVariance;
 import static com.florian.vertibayes.weka.performance.tests.util.Util.readData;
+import static com.florian.vertibayes.weka.performance.tests.util.VertiBayesPerformance.buildAndValidate;
+import static com.florian.vertibayes.weka.performance.tests.util.WekaPerformance.wekaTest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Alarm {
@@ -38,7 +38,7 @@ public class Alarm {
     public static final String ALARM_WEKA_BIF = "resources/Experiments/alarm/alarmbif.xml";
 
     private static final String LABEL = "BP";
-    private final static List<WebNode> NODES = buildAlarmNetwork();
+    private static List<WebNode> NODES = buildAlarmNetwork();
     private static final String NAME = "Alarm";
 
     private static final double AVERAGERROR = 0.025;
@@ -59,7 +59,12 @@ public class Alarm {
         FOLDVARIANCEMISSING.setSyntheticFoldAucVariance(0.06);
     }
 
+    private static void initNodes() {
+        NODES = buildAlarmNetwork();
+    }
+
     public static Performance kFoldUnknown(double treshold) throws Exception {
+        initNodes();
         PerformanceMissingTestBase test = new PerformanceMissingTestBase(FOLD_LEFTHALF_MISSING,
                                                                          FOLD_RIGHTHALF_MISSING, TEST_FOLD,
                                                                          LABEL, NODES, MINPERCENTAGE);
@@ -75,13 +80,13 @@ public class Alarm {
             assertEquals(p.getSyntheticAuc(), 0.88, AVERAGERROR);
             assertEquals(p.getSyntheticFoldAuc(), 0.88, AVERAGERROR);
         } else if (treshold == 0.1) {
-            assertEquals(p.getRealAuc(), 0.80, AVERAGERROR);
-            assertEquals(p.getSyntheticAuc(), 0.80, AVERAGERROR);
-            assertEquals(p.getSyntheticFoldAuc(), 0.80, AVERAGERROR);
+            assertEquals(p.getRealAuc(), 0.84, AVERAGERROR);
+            assertEquals(p.getSyntheticAuc(), 0.84, AVERAGERROR);
+            assertEquals(p.getSyntheticFoldAuc(), 0.84, AVERAGERROR);
         } else if (treshold == 0.3) {
-            assertEquals(p.getRealAuc(), 0.72, AVERAGERROR);
-            assertEquals(p.getSyntheticAuc(), 0.72, AVERAGERROR);
-            assertEquals(p.getSyntheticFoldAuc(), 0.72, AVERAGERROR);
+            assertEquals(p.getRealAuc(), 0.75, AVERAGERROR);
+            assertEquals(p.getSyntheticAuc(), 0.75, AVERAGERROR);
+            assertEquals(p.getSyntheticFoldAuc(), 0.75, AVERAGERROR);
         }
 
         assertEquals(alarmUnknown, p.getRealAuc(), AVERAGERROR);
@@ -92,6 +97,7 @@ public class Alarm {
     }
 
     public static Performance kFold() throws Exception {
+        initNodes();
         PerformanceTestBase test = new PerformanceTestBase(FOLD_LEFTHALF,
                                                            FOLD_RIGHTHALF, TEST_FOLD,
                                                            LABEL, NODES, MINPERCENTAGE);
@@ -114,6 +120,7 @@ public class Alarm {
     }
 
     private static double weka(double treshold) throws Exception {
+        initNodes();
         return wekaTest(LABEL,
                         ALARM_WEKA_BIF.replace("Missing",
                                                "Treshold" + String.valueOf(treshold)
@@ -128,6 +135,7 @@ public class Alarm {
     }
 
     public static void testVertiBayesFullDataSet() throws Exception {
+        initNodes();
         double auc = buildAndValidate(FIRSTHALF, SECONDHALF, readData(LABEL, TEST_FULL),
                                       LABEL, TEST_FULL.replace("WEKA.arff", ".csv"),
                                       NODES, MINPERCENTAGE).getRealAuc();
@@ -136,10 +144,11 @@ public class Alarm {
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
         //However, due to the random factors there is some variance possible
-        assertEquals(auc, 0.98, AVERAGERROR);
+        assertEquals(auc, 0.92, AVERAGERROR);
     }
 
     public static void testVertiBayesFullDataSetMissing(double treshold) throws Exception {
+        initNodes();
         String first = FIRSTHALF_MISSING.replace("Missing", "MissingTreshold" + String.valueOf(treshold)
                 .replace(".", "_"));
         String second = SECONDHALF_MISSING.replace("Missing", "MissingTreshold" + String.valueOf(treshold)
@@ -147,7 +156,7 @@ public class Alarm {
         String full = TEST_FULL_MISSING.replace("Missing", "MissingTreshold" + String.valueOf(treshold)
                 .replace(".", "_"));
         double auc = buildAndValidate(first, second,
-                                      readData(LABEL, full), LABEL, full.replace("WEKA.arff",
+                                      readData(LABEL, full), LABEL, full.replace(".arff",
                                                                                  ".csv"), NODES,
                                       MINPERCENTAGE).getRealAuc();
 
@@ -157,9 +166,9 @@ public class Alarm {
         if (treshold == 0.05) {
             assertEquals(auc, 0.88, AVERAGERROR);
         } else if (treshold == 0.1) {
-            assertEquals(auc, 0.80, AVERAGERROR);
+            assertEquals(auc, 0.84, AVERAGERROR);
         } else if (treshold == 0.3) {
-            assertEquals(auc, 0.72, AVERAGERROR);
+            assertEquals(auc, 0.75, AVERAGERROR);
         }
     }
 }
