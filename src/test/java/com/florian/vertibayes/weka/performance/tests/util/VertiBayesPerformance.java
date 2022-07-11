@@ -11,8 +11,7 @@ import weka.core.Instances;
 
 import java.util.List;
 
-import static com.florian.vertibayes.weka.performance.tests.util.Util.createCentral;
-import static com.florian.vertibayes.weka.performance.tests.util.Util.generateSyntheticFold;
+import static com.florian.vertibayes.weka.performance.tests.util.Util.*;
 
 public class VertiBayesPerformance {
     public static Performance buildAndValidate(String left, String right, Instances testData,
@@ -32,9 +31,9 @@ public class VertiBayesPerformance {
         res.setRealAuc(eval.weightedAreaUnderROC());
         res.setSyntheticFoldAuc(
                 generateSyntheticFold(network, test, response.getNodes(), nodes, target, minPercentage));
+        res.getErrors().put(test, recordErrors(network, testData));
         return res;
     }
-
 
     public static ExpectationMaximizationResponse generateModel(List<WebNode> input, String firsthalf,
                                                                 String secondhalf,
@@ -47,5 +46,6 @@ public class VertiBayesPerformance {
         req.setTarget(target);
         return central.expectationMaximization(req);
     }
+
 
 }

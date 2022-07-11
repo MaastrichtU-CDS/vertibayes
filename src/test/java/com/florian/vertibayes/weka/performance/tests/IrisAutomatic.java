@@ -13,6 +13,7 @@ import static com.florian.vertibayes.weka.performance.tests.util.Performance.ave
 import static com.florian.vertibayes.weka.performance.tests.util.Performance.checkVariance;
 import static com.florian.vertibayes.weka.performance.tests.util.Util.readData;
 import static com.florian.vertibayes.weka.performance.tests.util.VertiBayesPerformance.buildAndValidate;
+import static com.florian.vertibayes.weka.performance.tests.util.WekaPerformance.wekaGenerateErrors;
 import static com.florian.vertibayes.weka.performance.tests.util.WekaPerformance.wekaTest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -74,8 +75,10 @@ public class IrisAutomatic {
         Performance p = averagePerformance(performances);
         checkVariance(performances, p, FOLDVARIANCEMISSING);
         p.setName(NAME);
-        double irisUnknown = IrisAutomatic.weka(treshold);
-        p.setWekaAuc(irisUnknown);
+        Performance irisUnknown = IrisAutomatic.weka(treshold);
+        p.setWekaAuc(irisUnknown.getWekaAuc());
+        p.setWekaErrors(irisUnknown.getWekaErrors());
+        p.matchErrors();
 
         if (treshold == 0.05) {
             assertEquals(p.getRealAuc(), 0.98, AVERAGERROR);
@@ -94,8 +97,8 @@ public class IrisAutomatic {
             // So ignore it
         }
 
-        assertEquals(irisUnknown, p.getRealAuc(), AVERAGERROR);
-        assertEquals(irisUnknown, p.getSyntheticAuc(), AVERAGERROR);
+        assertEquals(p.getWekaAuc(), p.getRealAuc(), AVERAGERROR);
+        assertEquals(p.getWekaAuc(), p.getSyntheticAuc(), AVERAGERROR);
         // Synthetic fold AUC for iris is all over the place due to the small folds
         // So ignore it
 
@@ -111,32 +114,51 @@ public class IrisAutomatic {
         Performance p = averagePerformance(performances);
         checkVariance(performances, p, FOLDVARIANCE);
         p.setName(NAME);
-        double iris = IrisAutomatic.weka();
-        p.setWekaAuc(iris);
+        Performance iris = IrisAutomatic.weka();
+        p.setWekaAuc(iris.getWekaAuc());
+        p.setWekaErrors(iris.getWekaErrors());
+        p.matchErrors();
+
         assertEquals(p.getRealAuc(), 0.99, AVERAGERROR);
         assertEquals(p.getSyntheticAuc(), 0.99, AVERAGERROR);
 
 
-        assertEquals(iris, p.getRealAuc(), AVERAGERROR);
-        assertEquals(iris, p.getSyntheticAuc(), AVERAGERROR);
+        assertEquals(p.getWekaAuc(), p.getRealAuc(), AVERAGERROR);
+        assertEquals(p.getWekaAuc(), p.getSyntheticAuc(), AVERAGERROR);
         // Synthetic fold AUC for iris is all over the place due to the small folds
         // So ignore it
         return p;
     }
 
-    private static double weka(double treshold) throws Exception {
-        return wekaTest("label",
-                        IRIS_WEKA_BIF.replace("Missing",
-                                              "MissingTreshold" + String.valueOf(
-                                                              treshold)
-                                                      .replace(".", "_"))
-                , TEST_FULL_MISSING.replace("Missing",
-                                            "MissingTreshold" + String.valueOf(treshold)
-                                                    .replace(".", "_")));
+    private static Performance weka(double treshold) throws Exception {
+        String testFold = TEST_FOLD + "Treshold" + String.valueOf(treshold).replace(".", "_") + "missing.arff";
+
+        Performance res = new Performance();
+        Performance errors = wekaGenerateErrors(LABEL,
+                                                IRIS_WEKA_BIF.replace("Missing",
+                                                                      "Treshold" + String.valueOf(treshold)
+                                                                              .replace(".", "_")),
+                                                testFold);
+        res.getErrors().putAll(errors.getWekaErrors());
+
+        res.setWekaAuc(wekaTest(LABEL,
+                                IRIS_WEKA_BIF.replace("Missing",
+                                                      "Treshold" + String.valueOf(treshold)
+                                                              .replace(".", "_")),
+                                TEST_FULL_MISSING.replace("Missing",
+                                                          "MissingTreshold" + String.valueOf(treshold)
+                                                                  .replace(".", "_"))));
+        return res;
     }
 
-    private static double weka() throws Exception {
-        return wekaTest(LABEL, IRIS_WEKA_BIF, TEST_FULL);
+    private static Performance weka() throws Exception {
+        String testFold = TEST_FOLD + ".arff";
+
+        Performance res = new Performance();
+        Performance errors = wekaGenerateErrors(LABEL, IRIS_WEKA_BIF, testFold);
+        res.getWekaErrors().putAll(errors.getErrors());
+        res.setWekaAuc(wekaTest(LABEL, IRIS_WEKA_BIF, TEST_FULL));
+        return res;
     }
 
     public static void testVertiBayesFullDataSet() throws Exception {

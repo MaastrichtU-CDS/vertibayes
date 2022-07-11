@@ -13,6 +13,7 @@ import static com.florian.vertibayes.weka.performance.tests.util.Performance.ave
 import static com.florian.vertibayes.weka.performance.tests.util.Performance.checkVariance;
 import static com.florian.vertibayes.weka.performance.tests.util.Util.readData;
 import static com.florian.vertibayes.weka.performance.tests.util.VertiBayesPerformance.buildAndValidate;
+import static com.florian.vertibayes.weka.performance.tests.util.WekaPerformance.wekaGenerateErrors;
 import static com.florian.vertibayes.weka.performance.tests.util.WekaPerformance.wekaTest;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -55,8 +56,10 @@ public class DiabetesFewBins extends Diabetes {
         Performance p = averagePerformance(performances);
         checkVariance(performances, p, FOLDVARIANCEMISSING);
         p.setName(NAME);
-        double diabetesUnknown = DiabetesFewBins.weka(treshold);
-        p.setWekaAuc(diabetesUnknown);
+        Performance diabetesUnknown = DiabetesFewBins.weka(treshold);
+        p.setWekaAuc(diabetesUnknown.getWekaAuc());
+        p.setWekaErrors(diabetesUnknown.getWekaErrors());
+        p.matchErrors();
 
         if (treshold == 0.05) {
             assertEquals(p.getRealAuc(), 0.79, AVERAGERROR);
@@ -72,11 +75,11 @@ public class DiabetesFewBins extends Diabetes {
             assertEquals(p.getSyntheticFoldAuc(), 0.65, AVERAGERROR);
         }
 
-        assertEquals(diabetesUnknown, p.getRealAuc(), AVERAGERROR);
-        //Using synthetic training data in k-fold results in weird stuff for diabetes, no idea why.
+        assertEquals(p.getWekaAuc(), p.getRealAuc(), AVERAGERROR);
+        //Using synthetic training data in k-fold results in overfitting for diabetes.
         //Other validation methods have expected results
-        assertEquals(diabetesUnknown, p.getSyntheticAuc(), 0.11);
-        assertEquals(diabetesUnknown, p.getSyntheticFoldAuc(), AVERAGERROR);
+        assertEquals(p.getWekaAuc(), p.getSyntheticAuc(), 0.11);
+        assertEquals(p.getWekaAuc(), p.getSyntheticFoldAuc(), AVERAGERROR);
 
         return p;
     }
@@ -90,32 +93,51 @@ public class DiabetesFewBins extends Diabetes {
         Performance p = averagePerformance(performances);
         checkVariance(performances, p, FOLDVARIANCE);
         p.setName(NAME);
-        double diabetesWeka = DiabetesFewBins.weka();
-        p.setWekaAuc(diabetesWeka);
+        Performance diabetesWeka = DiabetesFewBins.weka();
+        p.setWekaAuc(diabetesWeka.getWekaAuc());
+        p.setWekaErrors(diabetesWeka.getWekaErrors());
+        p.matchErrors();
 
         assertEquals(p.getRealAuc(), 0.79, AVERAGERROR);
         assertEquals(p.getSyntheticAuc(), 0.89, AVERAGERROR);
         assertEquals(p.getSyntheticFoldAuc(), 0.82, AVERAGERROR);
-        assertEquals(diabetesWeka, p.getRealAuc(), AVERAGERROR);
-        //Using synthetic training data in k-fold results in weird stuff for diabetes
+        assertEquals(p.getWekaAuc(), p.getRealAuc(), AVERAGERROR);
+        //Using synthetic training data in k-fold results in overfitting for diabetes
         //Other validation methods have expected results
-        assertEquals(diabetesWeka, p.getSyntheticAuc(), 0.11);
-        assertEquals(diabetesWeka, p.getSyntheticFoldAuc(), AVERAGERROR);
+        assertEquals(p.getWekaAuc(), p.getSyntheticAuc(), 0.11);
+        assertEquals(p.getWekaAuc(), p.getSyntheticFoldAuc(), AVERAGERROR);
         return p;
     }
 
-    private static double weka(double treshold) throws Exception {
-        return wekaTest(LABEL,
-                        DIABETES_WEKA_BIF.replace("Missing",
-                                                  "Treshold" + String.valueOf(treshold)
-                                                          .replace(".", "_")),
-                        TEST_FULL_MISSING.replace("Missing",
-                                                  "MissingTreshold" + String.valueOf(treshold)
-                                                          .replace(".", "_")));
+    private static Performance weka(double treshold) throws Exception {
+        String testFold = TEST_FOLD + "Treshold" + String.valueOf(treshold).replace(".", "_") + "missing.arff";
+
+        Performance res = new Performance();
+        Performance errors = wekaGenerateErrors(LABEL,
+                                                DIABETES_WEKA_BIF.replace("Missing",
+                                                                          "Treshold" + String.valueOf(treshold)
+                                                                                  .replace(".", "_")),
+                                                testFold);
+        res.getErrors().putAll(errors.getWekaErrors());
+
+        res.setWekaAuc(wekaTest(LABEL,
+                                DIABETES_WEKA_BIF.replace("Missing",
+                                                          "Treshold" + String.valueOf(treshold)
+                                                                  .replace(".", "_")),
+                                TEST_FULL_MISSING.replace("Missing",
+                                                          "MissingTreshold" + String.valueOf(treshold)
+                                                                  .replace(".", "_"))));
+        return res;
     }
 
-    private static double weka() throws Exception {
-        return wekaTest(LABEL, DIABETES_WEKA_BIF, TEST_FULL);
+    private static Performance weka() throws Exception {
+        String testFold = TEST_FOLD + ".arff";
+
+        Performance res = new Performance();
+        Performance errors = wekaGenerateErrors(LABEL, DIABETES_WEKA_BIF, testFold);
+        res.getWekaErrors().putAll(errors.getErrors());
+        res.setWekaAuc(wekaTest(LABEL, DIABETES_WEKA_BIF, TEST_FULL));
+        return res;
     }
 
     public static void testVertiBayesFullDataSet() throws Exception {

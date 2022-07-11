@@ -262,6 +262,10 @@ public class TestPerformance {
         System.out.println("Validating against fold synthetic data:");
         System.out.println(performance.getSyntheticFoldAuc());
 
+        System.out.println("Errors only present on Federated side: " + performance.getUniqueErrors()[0]);
+        System.out.println("Errors only present on Weka side: " + performance.getUniqueErrors()[1]);
+        System.out.println("Errors present on both sides: " + performance.getUniqueErrors()[2]);
+
         System.out.println("Time taken in ms: " + (System.currentTimeMillis() - start));
     }
 }

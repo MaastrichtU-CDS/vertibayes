@@ -10,6 +10,7 @@ import com.florian.vertibayes.webservice.domain.external.WebBayesNetwork;
 import com.florian.vertibayes.webservice.domain.external.WebNode;
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.BayesNet;
+import weka.core.Instance;
 import weka.core.Instances;
 
 import java.io.BufferedReader;
@@ -73,6 +74,18 @@ public class Util {
         VertiBayesCentralServer central = new VertiBayesCentralServer(true);
         central.initEndpoints(Arrays.asList(endpoint1, endpoint2), secretEnd);
         return central;
+    }
+
+    public static List<Integer> recordErrors(BayesNet network, Instances testData)
+            throws Exception {
+        List<Integer> errors = new ArrayList<>();
+        for (int i = 0; i < testData.size(); i++) {
+            Instance inst = testData.get(i);
+            if ((!Double.isNaN(inst.classValue())) && network.classifyInstance(inst) != inst.classValue()) {
+                errors.add(i);
+            }
+        }
+        return errors;
     }
 
     private static void createArrf(List<WebNode> original, List<WebNode> testNetwork, int samplesize, String path) {
