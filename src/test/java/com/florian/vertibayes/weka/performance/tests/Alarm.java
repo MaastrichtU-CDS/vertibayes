@@ -134,7 +134,7 @@ public class Alarm {
                                                                        "Treshold" + String.valueOf(treshold)
                                                                                .replace(".", "_")),
                                                 testFold);
-        res.getErrors().putAll(errors.getWekaErrors());
+        res.getWekaErrors().putAll(errors.getWekaErrors());
 
         res.setWekaAuc(wekaTest(LABEL,
                                 ALARM_WEKA_BIF.replace("Missing",
