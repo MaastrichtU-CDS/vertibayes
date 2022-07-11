@@ -154,7 +154,7 @@ public class Asia {
 
         Performance res = new Performance();
         Performance errors = wekaGenerateErrors(LABEL, ASIA_WEKA_BIF, testFold);
-        res.getWekaErrors().putAll(errors.getErrors());
+        res.getWekaErrors().putAll(errors.getWekaErrors());
         res.setWekaAuc(wekaTest(LABEL, ASIA_WEKA_BIF, TEST_FULL));
         return res;
     }

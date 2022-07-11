@@ -160,7 +160,7 @@ public class IrisManual {
 
         Performance res = new Performance();
         Performance errors = wekaGenerateErrors(LABEL, IRIS_WEKA_BIF, testFold);
-        res.getWekaErrors().putAll(errors.getErrors());
+        res.getWekaErrors().putAll(errors.getWekaErrors());
         res.setWekaAuc(wekaTest(LABEL, IRIS_WEKA_BIF, TEST_FULL));
         return res;
     }

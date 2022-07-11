@@ -151,7 +151,7 @@ public class Alarm {
 
         Performance res = new Performance();
         Performance errors = wekaGenerateErrors(LABEL, ALARM_WEKA_BIF, testFold);
-        res.getWekaErrors().putAll(errors.getErrors());
+        res.getWekaErrors().putAll(errors.getWekaErrors());
         res.setWekaAuc(wekaTest(LABEL, ALARM_WEKA_BIF, TEST_FULL));
         return res;
     }

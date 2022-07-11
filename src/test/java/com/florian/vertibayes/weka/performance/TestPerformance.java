@@ -30,7 +30,7 @@ public class TestPerformance {
     // IMPORTANT NOTE 2: DUE TO THE RANDOM NATURE OF EM,DATA GENERATION & THE FOLDS IT IS POSSIBLE TO GET THE
     // OCCASIONAL TERRIBLE PERFORMANCE, ESPECIALLY ON INDIVIDUAL FOLDS. RERUN THE TEST AND SEE IF IT HAPPENS AGAIN.
     private static final List<Double> TRESHHOLDS = Arrays.asList(0.05, 0.1, 0.3);
-    private static final boolean SMALL_TEST = true;
+    private static final boolean SMALL_TEST = false;
 
     @Test
     public void smallTest() throws Exception {
