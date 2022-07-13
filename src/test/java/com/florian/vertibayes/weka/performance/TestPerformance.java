@@ -30,7 +30,7 @@ public class TestPerformance {
     // IMPORTANT NOTE 2: DUE TO THE RANDOM NATURE OF EM,DATA GENERATION & THE FOLDS IT IS POSSIBLE TO GET THE
     // OCCASIONAL TERRIBLE PERFORMANCE, ESPECIALLY ON INDIVIDUAL FOLDS. RERUN THE TEST AND SEE IF IT HAPPENS AGAIN.
     private static final List<Double> TRESHHOLDS = Arrays.asList(0.05, 0.1, 0.3);
-    private static final boolean SMALL_TEST = false;
+    private static final boolean SMALL_TEST = true;
 
     @Test
     public void smallTest() throws Exception {
@@ -147,6 +147,10 @@ public class TestPerformance {
             printResults(start, irisManual, 0);
 
             start = System.currentTimeMillis();
+            Performance diabetesFewestBins = DiabetesFewestBins.kFold();
+            printResults(start, diabetesFewestBins, 0);
+
+            start = System.currentTimeMillis();
             Performance diabetesFewBins = DiabetesFewBins.kFold();
             printResults(start, diabetesFewBins, 0);
 
@@ -181,6 +185,10 @@ public class TestPerformance {
                 printResults(start, irisManualUnknown, treshold);
 
                 start = System.currentTimeMillis();
+                Performance diabetesFewestBins = DiabetesFewestBins.kFoldUnknown(treshold);
+                printResults(start, diabetesFewestBins, treshold);
+
+                start = System.currentTimeMillis();
                 Performance diabetesFewBins = DiabetesFewBins.kFoldUnknown(treshold);
                 printResults(start, diabetesFewBins, treshold);
 
@@ -211,6 +219,11 @@ public class TestPerformance {
             System.out.println("Time: " + (System.currentTimeMillis() - start));
 
             start = System.currentTimeMillis();
+            DiabetesFewestBins.testVertiBayesFullDataSet();
+            System.out.println("Time: " + (System.currentTimeMillis() - start));
+
+
+            start = System.currentTimeMillis();
             DiabetesFewBins.testVertiBayesFullDataSet();
             System.out.println("Time: " + (System.currentTimeMillis() - start));
 
@@ -233,6 +246,10 @@ public class TestPerformance {
 
                 start = System.currentTimeMillis();
                 IrisAutomatic.testVertiBayesFullDataSetMissing(d);
+                System.out.println("Time: " + (System.currentTimeMillis() - start));
+
+                start = System.currentTimeMillis();
+                DiabetesFewestBins.testVertiBayesFullDataSetMissing(d);
                 System.out.println("Time: " + (System.currentTimeMillis() - start));
 
                 start = System.currentTimeMillis();

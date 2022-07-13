@@ -30,7 +30,7 @@ public class BayesServer extends Server {
     private static final int MINCOUNT = 10;
     private static final double MINPERCENTAGE_DEFAULT = 0.1;
     private double minPercentage = MINPERCENTAGE_DEFAULT;
-    private static final List<Double> VALID_PERCENTAGES = Arrays.asList(0.1, 0.2, 0.25, 0.3);
+    private static final List<Double> VALID_PERCENTAGES = Arrays.asList(0.1, 0.2, 0.25, 0.3, 0.4);
 
 
     public BigInteger count() {
