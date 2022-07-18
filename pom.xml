@@ -40,7 +40,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot</artifactId>
             <version>2.5.6</version>
-            <scope>import</scope>
         </dependency>
         <dependency>
             <groupId>org.springframework</groupId>
@@ -56,7 +55,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
             <version>2.5.6</version>
-            <scope>import</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/nz.ac.waikato.cms.weka/weka-stable -->
         <dependency>
