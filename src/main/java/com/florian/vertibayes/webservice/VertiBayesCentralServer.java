@@ -30,7 +30,6 @@ import static com.florian.vertibayes.weka.WEKAExpectationMaximiation.wekaExpecta
 @RestController
 public class VertiBayesCentralServer extends CentralServer {
     public static final double ONE = 0.99;
-    public static final int SAMPLE_SIZE = 10000;
     //inherets endpoints from centralserver
     //overriding endpoints is impossible, use a different endpoint if you want to override
 
@@ -83,11 +82,12 @@ public class VertiBayesCentralServer extends CentralServer {
         initNodesMaximumLikelyhood(nodes, req.getMinPercentage());
         initThetas(nodes);
 
-        ExpectationMaximizationTestResponse res = wekaExpectationMaximization(mapWebNodeFromNode(nodes), SAMPLE_SIZE,
-                                                                              req.getTarget(), testing);
+        ExpectationMaximizationTestResponse res = wekaExpectationMaximization(mapWebNodeFromNode(nodes),
+                                                                              req.getTarget());
         if (!testing) {
             ExpectationMaximizationResponse response = new ExpectationMaximizationResponse();
             response.setNodes(res.getNodes());
+            response.setAuc(res.getSyntheticAuc());
             return response;
         }
         return res;
