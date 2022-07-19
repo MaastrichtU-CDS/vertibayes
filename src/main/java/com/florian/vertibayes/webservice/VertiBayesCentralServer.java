@@ -87,7 +87,7 @@ public class VertiBayesCentralServer extends CentralServer {
         if (!testing) {
             ExpectationMaximizationResponse response = new ExpectationMaximizationResponse();
             response.setNodes(res.getNodes());
-            response.setAuc(res.getSyntheticAuc());
+            response.setSyntheticTrainingAuc(res.getSyntheticAuc());
             return response;
         }
         return res;
