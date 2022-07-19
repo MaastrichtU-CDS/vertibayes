@@ -28,8 +28,8 @@ public final class WEKAExpectationMaximiation {
     private WEKAExpectationMaximiation() {
     }
 
-    public static ExpectationMaximizationTestResponse wekaExpectationMaximization(List<WebNode> nodes, int sampleSize,
-                                                                                  String target, boolean testing)
+    public static ExpectationMaximizationTestResponse wekaExpectationMaximization(List<WebNode> nodes,
+                                                                                  String target)
             throws Exception {
 
         generateDataARRF(mapWebNodeToNode(nodes), SAMPLE_SIZE, ARFF);
@@ -57,11 +57,11 @@ public final class WEKAExpectationMaximiation {
 
 
         ExpectationMaximizationTestResponse response = new ExpectationMaximizationTestResponse();
-        if (testing) {
-            Evaluation eval = new Evaluation(data);
-            eval.crossValidateModel(network, data, FOLDS, new Random(1));
-            response.setSyntheticAuc(eval.weightedAreaUnderROC());
-        }
+
+        Evaluation eval = new Evaluation(data);
+        eval.crossValidateModel(network, data, FOLDS, new Random(1));
+        response.setSyntheticAuc(eval.weightedAreaUnderROC());
+
         response.setWeka(network);
         response.setNodes(fromBif(network.graph()));
         return response;
