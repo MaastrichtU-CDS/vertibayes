@@ -148,8 +148,8 @@ Important to note:
 Bins can be set manually when expert knowledge is available. They can also be determined automatically at which point a
 maximum of 10 bins will be made, and a minimum of 1 bin. Each bin will attempt to pick the smallest unique values that
 contain at least 10 individuals and 10% of the population. This is the default setting. It is also possible to create
-bins a minimum of 20%, 25% and 30% of the population. Other settings are not possible. If the current bin cannot be made
-large enough to achieve this it will be merged with the last bin.
+bins a minimum of 20%, 25%, 30% or 40% of the population. Other settings are not possible. If the current bin cannot be
+made large enough to achieve this it will be merged with the last bin.
 
 They will be automatically generated if the attribute in question is a number (real or integer) and the bins were left
 empty in the request.
