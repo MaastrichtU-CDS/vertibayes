@@ -342,6 +342,7 @@ empty in the request.
       "p" : 0.9972067039106145
     } ],
     "bins" : [ ]
-  } ]
+  } ],
+  "syntheticTrainingAuc": 0.49951998702044903
 }
 ```
