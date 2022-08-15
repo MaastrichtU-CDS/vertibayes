@@ -222,31 +222,59 @@ public class VertiBayesCentralServer extends CentralServer {
     private void determineProb(Theta t, Node n) {
 
         if (t.getParents().size() > 0) {
-            List<AttributeRequirement> parentsReq = t.getParents().parallelStream().map(x -> x.getRequirement())
-                    .collect(Collectors.toList());
-            List<AttributeRequirement> listReq = new ArrayList<>();
-            listReq.addAll(parentsReq);
-            listReq.add(t.getLocalRequirement());
-            BigInteger count = countValue(listReq);
-            BigInteger parentCount = countValue(parentsReq);
+            List<Theta> sliblings = findSliblings(t, n);
+            //Check if all sliblings already have an assigned value
+            if (sliblingsHaveTheta(sliblings)) {
+                //if all sliblings have a P value, then insert count into P value, then calculate
+                //proper P by calculating P / TOTAL
+                t.setP(getCount(t).doubleValue());
 
-            t.setP(count.doubleValue() / parentCount.doubleValue());
+                calculateP(t, sliblings);
+            } else {
+                //if sliblings do not have a P yet, then simply insert count into P value
+                t.setP(getCount(t).doubleValue());
+            }
         } else {
             List<Theta> sliblings = findSliblings(t, n);
             //Check if all sliblings already have an assigned value, if so this theta will just be 1-p
             //Otherwise calculate theta properly
             if (sliblingsHaveTheta(sliblings)) {
-                double p = 0;
-                for (Theta slibling : sliblings) {
-                    //add 0 when encountering NaN
-                    p += Double.isNaN(slibling.getP()) ? 0 : slibling.getP();
-                }
-                t.setP(1 - p);
+                calculateOneMinusSliblings(t, sliblings);
             } else {
                 BigInteger count = countValue(
-                        new ArrayList<AttributeRequirement>(Arrays.asList(t.getLocalRequirement())));
+                        new ArrayList<>(Arrays.asList(t.getLocalRequirement())));
                 t.setP(count.doubleValue() / (double) endpoints.get(0).getPopulation());
             }
+        }
+    }
+
+    private BigInteger getCount(Theta t) {
+        List<AttributeRequirement> listReq = t.getParents().parallelStream().map(x -> x.getRequirement())
+                .collect(Collectors.toList());
+        listReq.add(t.getLocalRequirement());
+        return countValue(listReq);
+    }
+
+    private void calculateOneMinusSliblings(Theta t, List<Theta> sliblings) {
+        double p = 0;
+        for (Theta slibling : sliblings) {
+            //add 0 when encountering NaN
+            p += Double.isNaN(slibling.getP()) ? 0 : slibling.getP();
+        }
+        t.setP(1 - p);
+    }
+
+    private void calculateP(Theta t, List<Theta> sliblings) {
+        // calculates P under the assumption sliblings currently contain counts.
+        // So P = slibling.getP() / sum(sliblings.getP())
+        // This way total count does not need to be calculated seperatly
+        double total = 0;
+        for (Theta slibling : sliblings) {
+            //add 0 when encountering NaN
+            total += Double.isNaN(slibling.getP()) ? 0 : slibling.getP();
+        }
+        for (Theta slibling : sliblings) {
+            slibling.setP(slibling.getP() / total);
         }
     }
 
