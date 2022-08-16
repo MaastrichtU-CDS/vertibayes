@@ -175,7 +175,7 @@ public class DiabetesFewestBins extends Diabetes {
         } else if (treshold == 0.1) {
             assertEquals(auc, 0.78, AVERAGERROR);
         } else if (treshold == 0.3) {
-            assertEquals(auc, 0.70, AVERAGERROR);
+            assertEquals(auc, 0.50, AVERAGERROR);
         }
     }
 }
