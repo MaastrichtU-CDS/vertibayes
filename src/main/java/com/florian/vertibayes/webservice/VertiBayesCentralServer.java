@@ -53,7 +53,6 @@ public class VertiBayesCentralServer extends CentralServer {
     public WebBayesNetwork buildNetwork() {
         initEndpoints();
         endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initK2Data(new ArrayList<>()));
-        endpoints.stream().forEach(x -> x.initEndpoints());
         network = new Network(endpoints, secretEndpoint, this);
         network.createNetwork();
         WebBayesNetwork response = new WebBayesNetwork();
@@ -65,7 +64,6 @@ public class VertiBayesCentralServer extends CentralServer {
     @PostMapping ("maximumLikelyhood")
     public WebBayesNetwork maximumLikelyhood(@RequestBody WebBayesNetwork req) {
         initEndpoints();
-        endpoints.stream().forEach(x -> x.initEndpoints());
         List<Node> nodes = WebNodeMapper.mapWebNodeToNode(req.getNodes());
         initNodesMaximumLikelyhood(nodes, req.getMinPercentage());
         initThetas(nodes);
@@ -77,7 +75,6 @@ public class VertiBayesCentralServer extends CentralServer {
     @PostMapping ("ExpectationMaximization")
     public ExpectationMaximizationResponse expectationMaximization(@RequestBody WebBayesNetwork req) throws Exception {
         initEndpoints();
-        endpoints.stream().forEach(x -> x.initEndpoints());
         List<Node> nodes = WebNodeMapper.mapWebNodeToNode(req.getNodes());
         initNodesMaximumLikelyhood(nodes, req.getMinPercentage());
         initThetas(nodes);
@@ -116,6 +113,8 @@ public class VertiBayesCentralServer extends CentralServer {
         if (secretEndpoint == null) {
             secretEndpoint = new ServerEndpoint(secretServer);
         }
+        endpoints.stream().forEach(x -> x.initEndpoints());
+        secretEndpoint.initEndpoints();
     }
 
     public void initEndpoints(List<ServerEndpoint> endpoints, ServerEndpoint secretServer) {
