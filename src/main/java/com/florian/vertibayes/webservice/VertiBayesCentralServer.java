@@ -30,7 +30,9 @@ import static com.florian.vertibayes.weka.WEKAExpectationMaximiation.wekaExpecta
 @RestController
 public class VertiBayesCentralServer extends CentralServer {
     public static final double ONE = 0.99;
-    //inherets endpoints from centralserver
+    public static final int PRECISION = 0; // Precision isn't relevant, as bayesian network calculations concern
+    // integers as its counts of individuals for K2 and maximumlikelyhood etc.
+    // inherets endpoints from centralserver
     //overriding endpoints is impossible, use a different endpoint if you want to override
 
     private Network network;
@@ -99,7 +101,7 @@ public class VertiBayesCentralServer extends CentralServer {
 
     public BigInteger nparty(List<ServerEndpoint> endpoints, ServerEndpoint secretServer) {
         CentralStation station = new CentralStation();
-        Protocol prot = new Protocol(endpoints, secretServer, "start");
+        Protocol prot = new Protocol(endpoints, secretServer, "start", PRECISION);
         return station.calculateNPartyScalarProduct(prot);
     }
 
