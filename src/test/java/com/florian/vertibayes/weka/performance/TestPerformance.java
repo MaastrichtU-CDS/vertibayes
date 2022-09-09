@@ -31,6 +31,7 @@ public class TestPerformance {
     // OCCASIONAL TERRIBLE PERFORMANCE, ESPECIALLY ON INDIVIDUAL FOLDS. RERUN THE TEST AND SEE IF IT HAPPENS AGAIN.
     private static final List<Double> TRESHHOLDS = Arrays.asList(0.05, 0.1, 0.3);
     private static final boolean SMALL_TEST = false;
+    private static final boolean CSV = false;
 
     @Test
     public void smallTest() throws Exception {
@@ -38,21 +39,21 @@ public class TestPerformance {
         if (SMALL_TEST) {
             long start = System.currentTimeMillis();
             Performance asia = Asia.kFold();
-            printResults(start, asia, 0);
+            printResults(start, asia, 0, CSV);
 
             start = System.currentTimeMillis();
             Performance diabetes = DiabetesFewBins.kFold();
-            printResults(start, diabetes, 0);
+            printResults(start, diabetes, 0, CSV);
 
             System.out.println("Treshold: " + 0.05);
 
             start = System.currentTimeMillis();
             Performance asiaUnknown = Asia.kFoldUnknown(0.05);
-            printResults(start, asiaUnknown, 0.05);
+            printResults(start, asiaUnknown, 0.05, CSV);
 
             start = System.currentTimeMillis();
             Performance diabetesUnknown = DiabetesFewBins.kFoldUnknown(0.05);
-            printResults(start, diabetesUnknown, 0.05);
+            printResults(start, diabetesUnknown, 0.05, CSV);
 
             start = System.currentTimeMillis();
             Asia.testVertiBayesFullDataSet();
@@ -135,32 +136,32 @@ public class TestPerformance {
         if (!SMALL_TEST) {
             long start = System.currentTimeMillis();
             Performance asia = Asia.kFold();
-            printResults(start, asia, 0);
+            printResults(start, asia, 0, CSV);
 
 
             start = System.currentTimeMillis();
             Performance irisAutomatic = IrisAutomatic.kFold();
-            printResults(start, irisAutomatic, 0);
+            printResults(start, irisAutomatic, 0, CSV);
 
             start = System.currentTimeMillis();
             Performance irisManual = IrisManual.kFold();
-            printResults(start, irisManual, 0);
+            printResults(start, irisManual, 0, CSV);
 
             start = System.currentTimeMillis();
             Performance diabetesFewestBins = DiabetesFewestBins.kFold();
-            printResults(start, diabetesFewestBins, 0);
+            printResults(start, diabetesFewestBins, 0, CSV);
 
             start = System.currentTimeMillis();
             Performance diabetesFewBins = DiabetesFewBins.kFold();
-            printResults(start, diabetesFewBins, 0);
+            printResults(start, diabetesFewBins, 0, CSV);
 
             start = System.currentTimeMillis();
             Performance diabetes = Diabetes.kFold();
-            printResults(start, diabetes, 0);
+            printResults(start, diabetes, 0, CSV);
 
             start = System.currentTimeMillis();
             Performance alarm = Alarm.kFold();
-            printResults(start, alarm, 0);
+            printResults(start, alarm, 0, CSV);
         }
     }
 
@@ -174,31 +175,31 @@ public class TestPerformance {
 
                 long start = System.currentTimeMillis();
                 Performance asiaUnknown = Asia.kFoldUnknown(treshold);
-                printResults(start, asiaUnknown, treshold);
+                printResults(start, asiaUnknown, treshold, CSV);
 
                 start = System.currentTimeMillis();
                 Performance irisAutomaticUnknown = IrisAutomatic.kFoldUnknown(treshold);
-                printResults(start, irisAutomaticUnknown, treshold);
+                printResults(start, irisAutomaticUnknown, treshold, CSV);
 
                 start = System.currentTimeMillis();
                 Performance irisManualUnknown = IrisManual.kFoldUnknown(treshold);
-                printResults(start, irisManualUnknown, treshold);
+                printResults(start, irisManualUnknown, treshold, CSV);
 
                 start = System.currentTimeMillis();
                 Performance diabetesFewestBins = DiabetesFewestBins.kFoldUnknown(treshold);
-                printResults(start, diabetesFewestBins, treshold);
+                printResults(start, diabetesFewestBins, treshold, CSV);
 
                 start = System.currentTimeMillis();
                 Performance diabetesFewBins = DiabetesFewBins.kFoldUnknown(treshold);
-                printResults(start, diabetesFewBins, treshold);
+                printResults(start, diabetesFewBins, treshold, CSV);
 
                 start = System.currentTimeMillis();
                 Performance diabetesUnknown = Diabetes.kFoldUnknown(treshold);
-                printResults(start, diabetesUnknown, treshold);
+                printResults(start, diabetesUnknown, treshold, CSV);
 
                 start = System.currentTimeMillis();
                 Performance alarmUnknown = Alarm.kFoldUnknown(treshold);
-                printResults(start, alarmUnknown, treshold);
+                printResults(start, alarmUnknown, treshold, CSV);
             }
         }
     }
@@ -209,79 +210,105 @@ public class TestPerformance {
             long start = System.currentTimeMillis();
             Performance p = Asia.testVertiBayesFullDataSet();
             p.setName("Asia");
-            printResults(start, p, 0.0);
+            printResults(start, p, 0.0, CSV);
 
             start = System.currentTimeMillis();
             p = IrisManual.testVertiBayesFullDataSet();
             p.setName("Irismanual");
-            printResults(start, p, 0.0);
+            printResults(start, p, 0.0, CSV);
 
             start = System.currentTimeMillis();
             p = IrisAutomatic.testVertiBayesFullDataSet();
             p.setName("IrisAutomatic");
-            printResults(start, p, 0.0);
+            printResults(start, p, 0.0, CSV);
 
             start = System.currentTimeMillis();
             p = DiabetesFewestBins.testVertiBayesFullDataSet();
             p.setName("Diabetes fewest bins");
-            printResults(start, p, 0.0);
+            printResults(start, p, 0.0, CSV);
 
 
             start = System.currentTimeMillis();
             p = DiabetesFewBins.testVertiBayesFullDataSet();
             p.setName("Diabetes few bins");
-            printResults(start, p, 0.0);
+            printResults(start, p, 0.0, CSV);
 
             start = System.currentTimeMillis();
             p = Diabetes.testVertiBayesFullDataSet();
             p.setName("Diabetes");
-            printResults(start, p, 0.0);
+            printResults(start, p, 0.0, CSV);
 
             start = System.currentTimeMillis();
             p = Alarm.testVertiBayesFullDataSet();
             p.setName("Alarm");
-            printResults(start, p, 0.0);
+            printResults(start, p, 0.0, CSV);
 
             for (double d : TRESHHOLDS) {
                 start = System.currentTimeMillis();
                 p = Asia.testVertiBayesFullDataSetMissing(d);
                 p.setName("Asia");
-                printResults(start, p, d);
+                printResults(start, p, d, CSV);
 
                 start = System.currentTimeMillis();
                 p = IrisManual.testVertiBayesFullDataSetMissing(d);
                 p.setName("IrisManual");
-                printResults(start, p, d);
+                printResults(start, p, d, CSV);
 
                 start = System.currentTimeMillis();
                 p = IrisAutomatic.testVertiBayesFullDataSetMissing(d);
                 p.setName("IrisAutomatic");
-                printResults(start, p, d);
+                printResults(start, p, d, CSV);
 
                 start = System.currentTimeMillis();
                 p = DiabetesFewestBins.testVertiBayesFullDataSetMissing(d);
                 p.setName("Diabetes fewest bins");
-                printResults(start, p, d);
+                printResults(start, p, d, CSV);
 
                 start = System.currentTimeMillis();
                 p = DiabetesFewBins.testVertiBayesFullDataSetMissing(d);
                 p.setName("Diabetes few bins");
-                printResults(start, p, d);
+                printResults(start, p, d, CSV);
 
                 start = System.currentTimeMillis();
                 p = Diabetes.testVertiBayesFullDataSetMissing(d);
                 p.setName("Diabetes");
-                printResults(start, p, d);
+                printResults(start, p, d, CSV);
 
                 start = System.currentTimeMillis();
                 p = Alarm.testVertiBayesFullDataSetMissing(d);
                 p.setName("Alarm");
-                printResults(start, p, d);
+                printResults(start, p, d, CSV);
             }
         }
     }
 
-    public static void printResults(long start, Performance performance, double treshold) {
+    public static void printResults(long start, Performance performance, double treshold, boolean csv) {
+        if (csv) {
+            printResultsCSVFormat(start, performance, treshold);
+        } else {
+            printResultsBasicFormat(start, performance, treshold);
+        }
+    }
+
+    public static void printResultsCSVFormat(long start, Performance performance, double treshold) {
+        String s = "";
+        s += performance.getName() + " " + treshold + " ; ";
+        s += performance.getWekaAuc() + " ; ";
+        s += performance.getRealAuc() + " ; ";
+        s += performance.getSyntheticAuc() + " ; ";
+        s += performance.getSyntheticFoldAuc() + " ; ";
+        s += performance.getWekaAIC() + " ; "; // Weka AIC
+        s += performance.getFullAIC() + " ; "; // fed full dataset AIC
+        s += performance.getAIC() + " ; "; // Fed k-fold AIC
+        s += performance.getUniqueErrors()[1] + " ; "; // weka errors
+        s += performance.getUniqueErrors()[0] + " ; "; // fed errors
+        s += performance.getUniqueErrors()[2] + " ; "; // both errors
+        s += (System.currentTimeMillis() - start);
+
+        System.out.println(s);
+    }
+
+    public static void printResultsBasicFormat(long start, Performance performance, double treshold) {
         System.out.println("Dataset: " + performance.getName() + " Unknown level: " + treshold);
         System.out.println("Central performance: " + performance.getWekaAuc());
         System.out.println("Validating against real data:");

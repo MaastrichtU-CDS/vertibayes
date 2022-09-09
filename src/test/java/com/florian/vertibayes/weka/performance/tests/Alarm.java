@@ -153,6 +153,7 @@ public class Alarm {
                                 TEST_FULL_MISSING.replace("Missing",
                                                           "MissingTreshold" + String.valueOf(treshold)
                                                                   .replace(".", "_")), res));
+
         return res;
     }
 
@@ -179,6 +180,9 @@ public class Alarm {
         //So performance should be high
         //However, due to the random factors there is some variance possible
         assertEquals(auc, 0.92, AVERAGERROR);
+        //the AIC here is the full AIC
+        p.setFullAIC(p.getAIC());
+        p.setAIC(0);
         return p;
     }
 
@@ -196,6 +200,9 @@ public class Alarm {
                                                                        ".csv"), NODES,
                                          MINPERCENTAGE, fulldata);
         double auc = p.getRealAuc();
+        //the AIC here is the full AIC
+        p.setFullAIC(p.getAIC());
+        p.setAIC(0);
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
         //However, due to the random factors there is some variance possible

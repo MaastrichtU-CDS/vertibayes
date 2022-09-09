@@ -9,15 +9,11 @@ public class test {
     @Test
     public void test() throws Exception {
         long start = System.currentTimeMillis();
-        Performance p = IrisAutomatic.weka();
-        printResults(start, p, 0.05);
-    }
-
-    @Test
-    public void test2() throws Exception {
-        long start = System.currentTimeMillis();
-        Performance p = IrisAutomatic.weka();
-        printResults(start, p, 0.05);
-
+        Performance p = IrisAutomatic.testVertiBayesFullDataSetMissing(0.05);
+        p.setName("test");
+        printResults(start, p, 0.05, true);
+        p = IrisAutomatic.kFold();
+        p.setName("test2");
+        printResults(start, p, 0.05, true);
     }
 }

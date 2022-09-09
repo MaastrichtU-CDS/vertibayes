@@ -175,6 +175,9 @@ public class Diabetes {
                                          MINPERCENTAGE, fulldata);
 
         double auc = p.getRealAuc();
+        //the AIC here is the full AIC
+        p.setFullAIC(p.getAIC());
+        p.setAIC(0);
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
@@ -196,6 +199,9 @@ public class Diabetes {
                                          full.replace(".arff", ".csv"), NODES, MINPERCENTAGE, fullData);
 
         double auc = p.getRealAuc();
+        //the AIC here is the full AIC
+        p.setFullAIC(p.getAIC());
+        p.setAIC(0);
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high

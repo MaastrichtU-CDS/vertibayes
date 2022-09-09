@@ -11,10 +11,19 @@ public class Performance {
     private double wekaAuc;
     private double AIC;
     private double wekaAIC;
+    private double fullAIC;
     private String name;
     private Map<String, List<Integer>> errors = new HashMap<>();
     private Map<String, List<Integer>> wekaErrors = new HashMap<>();
     private int[] uniqueErrors = new int[3]; // 0 = fed, 1 = weka, 2 = error in both
+
+    public double getFullAIC() {
+        return fullAIC;
+    }
+
+    public void setFullAIC(double fullAIC) {
+        this.fullAIC = fullAIC;
+    }
 
     public double getWekaAIC() {
         return wekaAIC;

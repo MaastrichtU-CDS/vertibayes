@@ -178,6 +178,9 @@ public class Asia {
         //So performance should be high
         //However, due to the random factors there is some variance possible
         double auc = p.getRealAuc();
+        //the AIC here is the full AIC
+        p.setFullAIC(p.getAIC());
+        p.setAIC(0);
 
         assertEquals(p.getRealAuc(), 0.98, AVERAGERROR);
         return p;
@@ -196,7 +199,9 @@ public class Asia {
                                                                               ".csv"), NODES,
                                          MINPERCENTAGE, fullMissingData);
         double auc = p.getRealAuc();
-
+        //the AIC here is the full AIC
+        p.setFullAIC(p.getAIC());
+        p.setAIC(0);
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
         //However, due to the random factors there is some variance possible

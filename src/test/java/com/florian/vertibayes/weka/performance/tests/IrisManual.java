@@ -178,6 +178,10 @@ public class IrisManual {
                                          readData(LABEL, TEST_FULL), LABEL,
                                          TEST_FULL.replace("Weka.arff",
                                                            ".csv"), NODES, MINPERCENTAGE, fullData);
+
+        //the AIC here is the full AIC
+        p.setFullAIC(p.getAIC());
+        p.setAIC(0);
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
         //However, due to the random factors there is some variance possible
@@ -203,6 +207,9 @@ public class IrisManual {
                                          full.replace(".arff",
                                                       ".csv"), nodes, MINPERCENTAGE, fullData);
         double auc = p.getRealAuc();
+        //the AIC here is the full AIC
+        p.setFullAIC(p.getAIC());
+        p.setAIC(0);
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high

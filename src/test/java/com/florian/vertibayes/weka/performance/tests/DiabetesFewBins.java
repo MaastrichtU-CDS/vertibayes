@@ -154,6 +154,9 @@ public class DiabetesFewBins extends Diabetes {
                                          LABEL, TEST_FULL.replace("WEKA.arff", ".csv"), NODES,
                                          MINPERCENTAGE, fullData);
 
+        //the AIC here is the full AIC
+        p.setFullAIC(p.getAIC());
+        p.setAIC(0);
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
@@ -175,6 +178,9 @@ public class DiabetesFewBins extends Diabetes {
         Performance p = buildAndValidate(first, second, fullData, LABEL,
                                          full.replace(".arff", ".csv"), NODES, MINPERCENTAGE, fullData);
         double auc = p.getRealAuc();
+        //the AIC here is the full AIC
+        p.setFullAIC(p.getAIC());
+        p.setAIC(0);
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
