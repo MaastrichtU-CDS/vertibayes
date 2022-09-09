@@ -30,7 +30,7 @@ public class TestPerformance {
     // IMPORTANT NOTE 2: DUE TO THE RANDOM NATURE OF EM,DATA GENERATION & THE FOLDS IT IS POSSIBLE TO GET THE
     // OCCASIONAL TERRIBLE PERFORMANCE, ESPECIALLY ON INDIVIDUAL FOLDS. RERUN THE TEST AND SEE IF IT HAPPENS AGAIN.
     private static final List<Double> TRESHHOLDS = Arrays.asList(0.05, 0.1, 0.3);
-    private static final boolean SMALL_TEST = true;
+    private static final boolean SMALL_TEST = false;
 
     @Test
     public void smallTest() throws Exception {
@@ -207,62 +207,76 @@ public class TestPerformance {
     public void testVertiBayesNoFold() throws Exception {
         if (!SMALL_TEST) {
             long start = System.currentTimeMillis();
-            Asia.testVertiBayesFullDataSet();
-            System.out.println("Time: " + (System.currentTimeMillis() - start));
+            Performance p = Asia.testVertiBayesFullDataSet();
+            p.setName("Asia");
+            printResults(start, p, 0.0);
 
             start = System.currentTimeMillis();
-            IrisManual.testVertiBayesFullDataSet();
-            System.out.println("Time: " + (System.currentTimeMillis() - start));
+            p = IrisManual.testVertiBayesFullDataSet();
+            p.setName("Irismanual");
+            printResults(start, p, 0.0);
 
             start = System.currentTimeMillis();
-            IrisAutomatic.testVertiBayesFullDataSet();
-            System.out.println("Time: " + (System.currentTimeMillis() - start));
+            p = IrisAutomatic.testVertiBayesFullDataSet();
+            p.setName("IrisAutomatic");
+            printResults(start, p, 0.0);
 
             start = System.currentTimeMillis();
-            DiabetesFewestBins.testVertiBayesFullDataSet();
-            System.out.println("Time: " + (System.currentTimeMillis() - start));
+            p = DiabetesFewestBins.testVertiBayesFullDataSet();
+            p.setName("Diabetes fewest bins");
+            printResults(start, p, 0.0);
 
 
             start = System.currentTimeMillis();
-            DiabetesFewBins.testVertiBayesFullDataSet();
-            System.out.println("Time: " + (System.currentTimeMillis() - start));
+            p = DiabetesFewBins.testVertiBayesFullDataSet();
+            p.setName("Diabetes few bins");
+            printResults(start, p, 0.0);
 
             start = System.currentTimeMillis();
-            Diabetes.testVertiBayesFullDataSet();
-            System.out.println("Time: " + (System.currentTimeMillis() - start));
+            p = Diabetes.testVertiBayesFullDataSet();
+            p.setName("Diabetes");
+            printResults(start, p, 0.0);
 
             start = System.currentTimeMillis();
-            Alarm.testVertiBayesFullDataSet();
-            System.out.println("Time: " + (System.currentTimeMillis() - start));
+            p = Alarm.testVertiBayesFullDataSet();
+            p.setName("Alarm");
+            printResults(start, p, 0.0);
 
             for (double d : TRESHHOLDS) {
                 start = System.currentTimeMillis();
-                Asia.testVertiBayesFullDataSetMissing(d);
-                System.out.println("Time: " + (System.currentTimeMillis() - start));
+                p = Asia.testVertiBayesFullDataSetMissing(d);
+                p.setName("Asia");
+                printResults(start, p, d);
 
                 start = System.currentTimeMillis();
-                IrisManual.testVertiBayesFullDataSetMissing(d);
-                System.out.println("Time: " + (System.currentTimeMillis() - start));
+                p = IrisManual.testVertiBayesFullDataSetMissing(d);
+                p.setName("IrisManual");
+                printResults(start, p, d);
 
                 start = System.currentTimeMillis();
-                IrisAutomatic.testVertiBayesFullDataSetMissing(d);
-                System.out.println("Time: " + (System.currentTimeMillis() - start));
+                p = IrisAutomatic.testVertiBayesFullDataSetMissing(d);
+                p.setName("IrisAutomatic");
+                printResults(start, p, d);
 
                 start = System.currentTimeMillis();
-                DiabetesFewestBins.testVertiBayesFullDataSetMissing(d);
-                System.out.println("Time: " + (System.currentTimeMillis() - start));
+                p = DiabetesFewestBins.testVertiBayesFullDataSetMissing(d);
+                p.setName("Diabetes fewest bins");
+                printResults(start, p, d);
 
                 start = System.currentTimeMillis();
-                DiabetesFewBins.testVertiBayesFullDataSetMissing(d);
-                System.out.println("Time: " + (System.currentTimeMillis() - start));
+                p = DiabetesFewBins.testVertiBayesFullDataSetMissing(d);
+                p.setName("Diabetes few bins");
+                printResults(start, p, d);
 
                 start = System.currentTimeMillis();
-                Diabetes.testVertiBayesFullDataSetMissing(d);
-                System.out.println("Time: " + (System.currentTimeMillis() - start));
+                p = Diabetes.testVertiBayesFullDataSetMissing(d);
+                p.setName("Diabetes");
+                printResults(start, p, d);
 
                 start = System.currentTimeMillis();
-                Alarm.testVertiBayesFullDataSetMissing(d);
-                System.out.println("Time: " + (System.currentTimeMillis() - start));
+                p = Alarm.testVertiBayesFullDataSetMissing(d);
+                p.setName("Alarm");
+                printResults(start, p, d);
             }
         }
     }
@@ -278,6 +292,12 @@ public class TestPerformance {
 
         System.out.println("Validating against fold synthetic data:");
         System.out.println(performance.getSyntheticFoldAuc());
+
+        System.out.println("AIC score real data:");
+        System.out.println(performance.getAIC());
+
+        System.out.println("AIC score weka:");
+        System.out.println(performance.getWekaAIC());
 
         System.out.println("Errors only present on Federated side: " + performance.getUniqueErrors()[0]);
         System.out.println("Errors only present on Weka side: " + performance.getUniqueErrors()[1]);

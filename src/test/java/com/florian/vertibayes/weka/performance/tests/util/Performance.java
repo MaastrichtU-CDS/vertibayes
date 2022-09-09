@@ -9,10 +9,28 @@ public class Performance {
     private double syntheticAuc;
     private double syntheticFoldAuc;
     private double wekaAuc;
+    private double AIC;
+    private double wekaAIC;
     private String name;
     private Map<String, List<Integer>> errors = new HashMap<>();
     private Map<String, List<Integer>> wekaErrors = new HashMap<>();
     private int[] uniqueErrors = new int[3]; // 0 = fed, 1 = weka, 2 = error in both
+
+    public double getWekaAIC() {
+        return wekaAIC;
+    }
+
+    public void setWekaAIC(double wekaAIC) {
+        this.wekaAIC = wekaAIC;
+    }
+
+    public double getAIC() {
+        return AIC;
+    }
+
+    public void setAIC(double AIC) {
+        this.AIC = AIC;
+    }
 
     public int[] getUniqueErrors() {
         return uniqueErrors;
@@ -83,15 +101,36 @@ public class Performance {
         double realAuc = 0;
         double syntheticAuc = 0;
         double syntheticFoldAuc = 0;
+        double Aic = 0;
+        double syntheticFoldAic = 0;
+        double syntheticAic = 0;
+        double wekaAic = 0;
+        double minAic = 0;
+        double maxAic = 0;
+        int i = 0;
         for (Performance per : performances) {
+
+            if (i == 0) {
+                minAic = per.getAIC();
+                maxAic = minAic;
+            } else if (minAic > per.getAIC()) {
+                minAic = per.getAIC();
+            }
+            if (maxAic < per.getAIC()) {
+                maxAic = per.getAIC();
+            }
             realAuc += per.getRealAuc();
             syntheticAuc += per.getSyntheticAuc();
             syntheticFoldAuc += per.getSyntheticFoldAuc();
+            Aic += per.getAIC();
+            wekaAic += per.getWekaAIC();
             p.getErrors().putAll(per.getErrors());
         }
         p.setRealAuc(realAuc / performances.size());
         p.setSyntheticAuc(syntheticAuc / performances.size());
         p.setSyntheticFoldAuc(syntheticFoldAuc / performances.size());
+        p.setAIC(Aic / performances.size());
+        p.setWekaAIC(wekaAic / performances.size());
         return p;
     }
 

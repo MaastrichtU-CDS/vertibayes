@@ -5,6 +5,7 @@ import com.florian.vertibayes.weka.performance.tests.base.PerformanceMissingTest
 import com.florian.vertibayes.weka.performance.tests.base.PerformanceTestBase;
 import com.florian.vertibayes.weka.performance.tests.util.Performance;
 import com.florian.vertibayes.weka.performance.tests.util.Variance;
+import weka.core.Instances;
 
 import java.util.List;
 
@@ -68,9 +69,11 @@ public class IrisAutomatic {
 
     public static Performance kFoldUnknown(double treshold) throws Exception {
         initNodes();
+        String full = generateMissingFullPath(treshold);
+        Instances fullData = readData(LABEL, TEST_FULL);
         PerformanceMissingTestBase test = new PerformanceMissingTestBase(FOLD_LEFTHALF_MISSING,
                                                                          FOLD_RIGHTHALF_MISSING, TEST_FOLD,
-                                                                         LABEL, NODES, MINPERCENTAGE);
+                                                                         LABEL, NODES, MINPERCENTAGE, fullData);
         List<Performance> performances = test.kFoldTest(treshold);
         Performance p = averagePerformance(performances);
         checkVariance(performances, p, FOLDVARIANCEMISSING);
@@ -78,6 +81,7 @@ public class IrisAutomatic {
         Performance irisUnknown = IrisAutomatic.weka(treshold);
         p.setWekaAuc(irisUnknown.getWekaAuc());
         p.setWekaErrors(irisUnknown.getWekaErrors());
+        p.setWekaAIC(irisUnknown.getWekaAIC());
         p.matchErrors();
 
         if (treshold == 0.05) {
@@ -107,9 +111,10 @@ public class IrisAutomatic {
 
     public static Performance kFold() throws Exception {
         initNodes();
+        Instances fullData = readData(LABEL, TEST_FULL);
         PerformanceTestBase test = new PerformanceTestBase(FOLD_LEFTHALF,
                                                            FOLD_RIGHTHALF, TEST_FOLD,
-                                                           LABEL, NODES, MINPERCENTAGE);
+                                                           LABEL, NODES, MINPERCENTAGE, fullData);
         List<Performance> performances = test.kFoldTest();
         Performance p = averagePerformance(performances);
         checkVariance(performances, p, FOLDVARIANCE);
@@ -117,6 +122,7 @@ public class IrisAutomatic {
         Performance iris = IrisAutomatic.weka();
         p.setWekaAuc(iris.getWekaAuc());
         p.setWekaErrors(iris.getWekaErrors());
+        p.setWekaAIC(iris.getWekaAIC());
         p.matchErrors();
 
         assertEquals(p.getRealAuc(), 0.99, AVERAGERROR);
@@ -130,7 +136,7 @@ public class IrisAutomatic {
         return p;
     }
 
-    private static Performance weka(double treshold) throws Exception {
+    public static Performance weka(double treshold) throws Exception {
         String testFold = TEST_FOLD + "Treshold" + String.valueOf(treshold).replace(".", "_") + "missing.arff";
 
         Performance res = new Performance();
@@ -147,34 +153,37 @@ public class IrisAutomatic {
                                                               .replace(".", "_")),
                                 TEST_FULL_MISSING.replace("Missing",
                                                           "MissingTreshold" + String.valueOf(treshold)
-                                                                  .replace(".", "_"))));
+                                                                  .replace(".", "_")), res));
         return res;
     }
 
-    private static Performance weka() throws Exception {
+    public static Performance weka() throws Exception {
         String testFold = TEST_FOLD + ".arff";
 
         Performance res = new Performance();
         Performance errors = wekaGenerateErrors(LABEL, IRIS_WEKA_BIF, testFold);
         res.getWekaErrors().putAll(errors.getWekaErrors());
-        res.setWekaAuc(wekaTest(LABEL, IRIS_WEKA_BIF, TEST_FULL));
+        res.setWekaAuc(wekaTest(LABEL, IRIS_WEKA_BIF, TEST_FULL, res));
         return res;
     }
 
-    public static void testVertiBayesFullDataSet() throws Exception {
+    public static Performance testVertiBayesFullDataSet() throws Exception {
         initNodes();
-        double auc = buildAndValidate(FIRSTHALF, SECONDHALF,
-                                      readData(LABEL, TEST_FULL), LABEL,
-                                      TEST_FULL.replace("Weka.arff",
-                                                        ".csv"), NODES, MINPERCENTAGE).getRealAuc();
+        Instances fullData = readData(LABEL, TEST_FULL);
+        Performance p = buildAndValidate(FIRSTHALF, SECONDHALF,
+                                         fullData, LABEL,
+                                         TEST_FULL.replace("Weka.arff",
+                                                           ".csv"), NODES, MINPERCENTAGE, fullData);
+        double auc = p.getRealAuc();
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
         //However, due to the random factors there is some variance possible
         assertEquals(auc, 0.98, AVERAGERROR);
+        return p;
     }
 
-    public static void testVertiBayesFullDataSetMissing(double treshold) throws Exception {
+    public static Performance testVertiBayesFullDataSetMissing(double treshold) throws Exception {
         initNodes();
         String first = FIRSTHALF_MISSING.replace("Missing", "MissingTreshold" + String.valueOf(treshold)
                 .replace(".", "_"));
@@ -183,11 +192,14 @@ public class IrisAutomatic {
         String full = TEST_FULL_MISSING.replace("Missing", "MissingTreshold" + String.valueOf(treshold)
                 .replace(".", "_"));
 
-        double auc = buildAndValidate(first, second,
-                                      readData(LABEL, full), LABEL,
-                                      full.replace(".arff",
-                                                   ".csv"), NODES, MINPERCENTAGE).getRealAuc();
+        Instances fullData = readData(LABEL, full);
 
+        Performance p = buildAndValidate(first, second,
+                                         fullData, LABEL,
+                                         full.replace(".arff",
+                                                      ".csv"), NODES, MINPERCENTAGE, fullData);
+
+        double auc = p.getRealAuc();
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
         //However, due to the random factors there is some variance possible
@@ -199,5 +211,11 @@ public class IrisAutomatic {
         } else if (treshold == 0.3) {
             assertEquals(auc, 0.90, AVERAGERROR);
         }
+        return p;
+    }
+
+    private static String generateMissingFullPath(double treshold) {
+        return TEST_FULL_MISSING.replace("Missing", "MissingTreshold" + String.valueOf(treshold)
+                .replace(".", "_"));
     }
 }

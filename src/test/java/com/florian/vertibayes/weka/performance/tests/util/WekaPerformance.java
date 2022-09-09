@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.florian.vertibayes.weka.performance.tests.util.Score.calculateAIC;
 import static com.florian.vertibayes.weka.performance.tests.util.Util.readData;
 import static com.florian.vertibayes.weka.performance.tests.util.Util.recordErrors;
 
@@ -24,7 +25,7 @@ public class WekaPerformance {
         }
     }
 
-    public static double wekaTest(String target, String biff, String arff) throws Exception {
+    public static double wekaTest(String target, String biff, String arff, Performance p) throws Exception {
         initFolds();
         FromFile search = new FromFile();
         search.setBIFFile(biff);
@@ -36,7 +37,9 @@ public class WekaPerformance {
         Evaluation eval = new Evaluation(data);
         network.buildClassifier(data);
         eval.crossValidateModel(network, data, 10, new Random(1));
-
+        p.setWekaAIC(network.measureAICScore());
+        p.setWekaAIC(calculateAIC(data, network)); // not using the WEKA AUC as WEKA has counts of 11.5 for some reason
+        // No idea why. What I'm doing does seem to be correct.
         return eval.weightedAreaUnderROC();
 
     }

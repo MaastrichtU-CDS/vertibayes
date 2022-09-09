@@ -25,8 +25,11 @@ import static com.florian.vertibayes.util.PrintingPress.printARFF;
 import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNodeToNode;
 
 public class Util {
-    public static double generateSyntheticFold(BayesNet network, String testData, List<WebNode> original,
-                                               List<WebNode> testNetwork, String target, double minPercentage)
+    private static double TEST_POPULATION = 10000;
+
+    public static void generateSyntheticFold(BayesNet network, String testData, List<WebNode> original,
+                                             List<WebNode> testNetwork, String target, double minPercentage,
+                                             Performance per)
             throws Exception {
         VertiBayesCentralServer station = createCentral(testData, testData);
         WebBayesNetwork req = new WebBayesNetwork();
@@ -38,7 +41,7 @@ public class Util {
         Instances test = readData(target, "temp.arff");
         Evaluation eval = new Evaluation(test);
         eval.evaluateModel(network, test);
-        return eval.weightedAreaUnderROC();
+        per.setSyntheticFoldAuc(eval.weightedAreaUnderROC());
     }
 
     public static Instances readData(String target, String arff) throws IOException {

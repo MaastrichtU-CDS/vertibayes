@@ -2,6 +2,7 @@ package com.florian.vertibayes.weka.performance.tests.base;
 
 import com.florian.vertibayes.webservice.domain.external.WebNode;
 import com.florian.vertibayes.weka.performance.tests.util.Performance;
+import weka.core.Instances;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,12 +18,13 @@ public class PerformanceTestBase {
     private final String LABEL;
     private final List<WebNode> NODES;
     private final double MINPERCENTAGE;
+    private final Instances FULL_DATA_SET;
 
     private int FOLDS = 10;
     private static List<Integer> folds;
 
     public PerformanceTestBase(String left, String right, String test, String label, List<WebNode> nodes,
-                               double minPercentage) {
+                               double minPercentage, Instances fullDataSet) {
 
         this.FOLD_LEFTHALF = left;
         this.FOLD_RIGHTHALF = right;
@@ -30,6 +32,7 @@ public class PerformanceTestBase {
         this.LABEL = label;
         this.NODES = nodes;
         this.MINPERCENTAGE = minPercentage;
+        this.FULL_DATA_SET = fullDataSet;
 
         folds = new ArrayList<>();
         for (int i = 0; i < FOLDS; i++) {
@@ -53,7 +56,7 @@ public class PerformanceTestBase {
 
             Performance res = buildAndValidate(left, right,
                                                readData(LABEL, testFoldarrf),
-                                               LABEL, testFoldcsv, NODES, MINPERCENTAGE);
+                                               LABEL, testFoldcsv, NODES, MINPERCENTAGE, FULL_DATA_SET);
             performances.add(res);
 
         }

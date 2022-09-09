@@ -5,6 +5,7 @@ import com.florian.vertibayes.weka.performance.tests.base.PerformanceMissingTest
 import com.florian.vertibayes.weka.performance.tests.base.PerformanceTestBase;
 import com.florian.vertibayes.weka.performance.tests.util.Performance;
 import com.florian.vertibayes.weka.performance.tests.util.Variance;
+import weka.core.Instances;
 
 import java.util.List;
 
@@ -48,10 +49,12 @@ public class DiabetesFewBins extends Diabetes {
 
     public static Performance kFoldUnknown(double treshold) throws Exception {
         initNodes();
+        String full = generateMissingFullPath(treshold);
+        Instances fullData = readData(LABEL, full);
         PerformanceMissingTestBase test = new PerformanceMissingTestBase(FOLD_LEFTHALF_MISSING,
                                                                          FOLD_RIGHTHALF_MISSING,
                                                                          TEST_FOLD,
-                                                                         LABEL, NODES, MINPERCENTAGE);
+                                                                         LABEL, NODES, MINPERCENTAGE, fullData);
         List<Performance> performances = test.kFoldTest(treshold);
         Performance p = averagePerformance(performances);
         checkVariance(performances, p, FOLDVARIANCEMISSING);
@@ -59,6 +62,7 @@ public class DiabetesFewBins extends Diabetes {
         Performance diabetesUnknown = DiabetesFewBins.weka(treshold);
         p.setWekaAuc(diabetesUnknown.getWekaAuc());
         p.setWekaErrors(diabetesUnknown.getWekaErrors());
+        p.setWekaAIC(diabetesUnknown.getWekaAIC());
         p.matchErrors();
 
         if (treshold == 0.05) {
@@ -86,9 +90,10 @@ public class DiabetesFewBins extends Diabetes {
 
     public static Performance kFold() throws Exception {
         initNodes();
+        Instances fullData = readData(LABEL, TEST_FULL);
         PerformanceTestBase test = new PerformanceTestBase(FOLD_LEFTHALF,
                                                            FOLD_RIGHTHALF, TEST_FOLD,
-                                                           LABEL, NODES, MINPERCENTAGE);
+                                                           LABEL, NODES, MINPERCENTAGE, fullData);
         List<Performance> performances = test.kFoldTest();
         Performance p = averagePerformance(performances);
         checkVariance(performances, p, FOLDVARIANCE);
@@ -96,6 +101,7 @@ public class DiabetesFewBins extends Diabetes {
         Performance diabetesWeka = DiabetesFewBins.weka();
         p.setWekaAuc(diabetesWeka.getWekaAuc());
         p.setWekaErrors(diabetesWeka.getWekaErrors());
+        p.setWekaAIC(diabetesWeka.getWekaAIC());
         p.matchErrors();
 
         assertEquals(p.getRealAuc(), 0.79, AVERAGERROR);
@@ -126,7 +132,7 @@ public class DiabetesFewBins extends Diabetes {
                                                                   .replace(".", "_")),
                                 TEST_FULL_MISSING.replace("Missing",
                                                           "MissingTreshold" + String.valueOf(treshold)
-                                                                  .replace(".", "_"))));
+                                                                  .replace(".", "_")), res));
         return res;
     }
 
@@ -136,25 +142,27 @@ public class DiabetesFewBins extends Diabetes {
         Performance res = new Performance();
         Performance errors = wekaGenerateErrors(LABEL, DIABETES_WEKA_BIF, testFold);
         res.getWekaErrors().putAll(errors.getWekaErrors());
-        res.setWekaAuc(wekaTest(LABEL, DIABETES_WEKA_BIF, TEST_FULL));
+        res.setWekaAuc(wekaTest(LABEL, DIABETES_WEKA_BIF, TEST_FULL, res));
         return res;
     }
 
-    public static void testVertiBayesFullDataSet() throws Exception {
+    public static Performance testVertiBayesFullDataSet() throws Exception {
         initNodes();
-        double auc = buildAndValidate(FIRSTHALF, SECONDHALF,
-                                      readData(LABEL, TEST_FULL),
-                                      LABEL, TEST_FULL.replace("WEKA.arff", ".csv"), NODES,
-                                      MINPERCENTAGE).getRealAuc();
+        Instances fullData = readData(LABEL, TEST_FULL);
+        Performance p = buildAndValidate(FIRSTHALF, SECONDHALF,
+                                         fullData,
+                                         LABEL, TEST_FULL.replace("WEKA.arff", ".csv"), NODES,
+                                         MINPERCENTAGE, fullData);
 
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
         //However, due to the random factors there is some variance possible
-        assertEquals(auc, 0.82, AVERAGERROR);
+        assertEquals(p.getRealAuc(), 0.82, AVERAGERROR);
+        return p;
     }
 
-    public static void testVertiBayesFullDataSetMissing(double treshold) throws Exception {
+    public static Performance testVertiBayesFullDataSetMissing(double treshold) throws Exception {
         initNodes();
         String first = FIRSTHALF_MISSING.replace("Missing", "MissingTreshold" + String.valueOf(treshold)
                 .replace(".", "_"));
@@ -162,8 +170,11 @@ public class DiabetesFewBins extends Diabetes {
                 .replace(".", "_"));
         String full = TEST_FULL_MISSING.replace("Missing", "MissingTreshold" + String.valueOf(treshold)
                 .replace(".", "_"));
-        double auc = buildAndValidate(first, second, readData(LABEL, full), LABEL,
-                                      full.replace(".arff", ".csv"), NODES, MINPERCENTAGE).getRealAuc();
+
+        Instances fullData = readData(LABEL, full);
+        Performance p = buildAndValidate(first, second, fullData, LABEL,
+                                         full.replace(".arff", ".csv"), NODES, MINPERCENTAGE, fullData);
+        double auc = p.getRealAuc();
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
@@ -175,5 +186,11 @@ public class DiabetesFewBins extends Diabetes {
         } else if (treshold == 0.3) {
             assertEquals(auc, 0.70, AVERAGERROR);
         }
+        return p;
+    }
+
+    private static String generateMissingFullPath(double treshold) {
+        return TEST_FULL_MISSING.replace("Missing", "MissingTreshold" + String.valueOf(treshold)
+                .replace(".", "_"));
     }
 }

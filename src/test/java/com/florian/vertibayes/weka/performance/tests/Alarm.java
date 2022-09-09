@@ -5,7 +5,9 @@ import com.florian.vertibayes.weka.performance.tests.base.PerformanceMissingTest
 import com.florian.vertibayes.weka.performance.tests.base.PerformanceTestBase;
 import com.florian.vertibayes.weka.performance.tests.util.Performance;
 import com.florian.vertibayes.weka.performance.tests.util.Variance;
+import weka.core.Instances;
 
+import java.io.IOException;
 import java.util.List;
 
 import static com.florian.vertibayes.notunittests.generatedata.GenerateNetworks.buildAlarmNetwork;
@@ -60,15 +62,20 @@ public class Alarm {
         FOLDVARIANCEMISSING.setSyntheticFoldAucVariance(0.06);
     }
 
+    public Alarm() throws IOException {
+    }
+
     private static void initNodes() {
         NODES = buildAlarmNetwork();
     }
 
     public static Performance kFoldUnknown(double treshold) throws Exception {
         initNodes();
+        String full = generateMissingFullPath(treshold);
+        Instances fullData = readData(LABEL, full);
         PerformanceMissingTestBase test = new PerformanceMissingTestBase(FOLD_LEFTHALF_MISSING,
                                                                          FOLD_RIGHTHALF_MISSING, TEST_FOLD,
-                                                                         LABEL, NODES, MINPERCENTAGE);
+                                                                         LABEL, NODES, MINPERCENTAGE, fullData);
         List<Performance> performances = test.kFoldTest(treshold);
         Performance p = averagePerformance(performances);
         checkVariance(performances, p, FOLDVARIANCEMISSING);
@@ -77,6 +84,7 @@ public class Alarm {
         Performance alarmUnknown = Alarm.weka(treshold);
         p.setWekaAuc(alarmUnknown.getWekaAuc());
         p.setWekaErrors(alarmUnknown.getWekaErrors());
+        p.setWekaAIC(alarmUnknown.getWekaAIC());
         p.matchErrors();
 
         if (treshold == 0.05) {
@@ -102,9 +110,10 @@ public class Alarm {
 
     public static Performance kFold() throws Exception {
         initNodes();
+        Instances fullData = readData(LABEL, TEST_FULL);
         PerformanceTestBase test = new PerformanceTestBase(FOLD_LEFTHALF,
                                                            FOLD_RIGHTHALF, TEST_FOLD,
-                                                           LABEL, NODES, MINPERCENTAGE);
+                                                           LABEL, NODES, MINPERCENTAGE, fullData);
         List<Performance> performances = test.kFoldTest();
         Performance p = averagePerformance(performances);
         checkVariance(performances, p, FOLDVARIANCE);
@@ -112,6 +121,7 @@ public class Alarm {
         Performance alarmWeka = Alarm.weka();
         p.setWekaAuc(alarmWeka.getWekaAuc());
         p.setWekaErrors(alarmWeka.getWekaErrors());
+        p.setWekaAIC(alarmWeka.getWekaAIC());
         p.matchErrors();
 
         assertEquals(p.getRealAuc(), 0.91, AVERAGERROR);
@@ -142,7 +152,7 @@ public class Alarm {
                                                                .replace(".", "_")),
                                 TEST_FULL_MISSING.replace("Missing",
                                                           "MissingTreshold" + String.valueOf(treshold)
-                                                                  .replace(".", "_"))));
+                                                                  .replace(".", "_")), res));
         return res;
     }
 
@@ -152,24 +162,27 @@ public class Alarm {
         Performance res = new Performance();
         Performance errors = wekaGenerateErrors(LABEL, ALARM_WEKA_BIF, testFold);
         res.getWekaErrors().putAll(errors.getWekaErrors());
-        res.setWekaAuc(wekaTest(LABEL, ALARM_WEKA_BIF, TEST_FULL));
+        res.setWekaAuc(wekaTest(LABEL, ALARM_WEKA_BIF, TEST_FULL, res));
         return res;
     }
 
-    public static void testVertiBayesFullDataSet() throws Exception {
+    public static Performance testVertiBayesFullDataSet() throws Exception {
         initNodes();
-        double auc = buildAndValidate(FIRSTHALF, SECONDHALF, readData(LABEL, TEST_FULL),
-                                      LABEL, TEST_FULL.replace("WEKA.arff", ".csv"),
-                                      NODES, MINPERCENTAGE).getRealAuc();
+        Instances fullData = readData(LABEL, TEST_FULL);
+        Performance p = buildAndValidate(FIRSTHALF, SECONDHALF, fullData,
+                                         LABEL, TEST_FULL.replace("WEKA.arff", ".csv"),
+                                         NODES, MINPERCENTAGE, fullData);
+        double auc = p.getRealAuc();
 
 
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
         //However, due to the random factors there is some variance possible
         assertEquals(auc, 0.92, AVERAGERROR);
+        return p;
     }
 
-    public static void testVertiBayesFullDataSetMissing(double treshold) throws Exception {
+    public static Performance testVertiBayesFullDataSetMissing(double treshold) throws Exception {
         initNodes();
         String first = FIRSTHALF_MISSING.replace("Missing", "MissingTreshold" + String.valueOf(treshold)
                 .replace(".", "_"));
@@ -177,11 +190,12 @@ public class Alarm {
                 .replace(".", "_"));
         String full = TEST_FULL_MISSING.replace("Missing", "MissingTreshold" + String.valueOf(treshold)
                 .replace(".", "_"));
-        double auc = buildAndValidate(first, second,
-                                      readData(LABEL, full), LABEL, full.replace(".arff",
-                                                                                 ".csv"), NODES,
-                                      MINPERCENTAGE).getRealAuc();
-
+        Instances fulldata = readData(LABEL, full);
+        Performance p = buildAndValidate(first, second,
+                                         fulldata, LABEL, full.replace(".arff",
+                                                                       ".csv"), NODES,
+                                         MINPERCENTAGE, fulldata);
+        double auc = p.getRealAuc();
         //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
         //So performance should be high
         //However, due to the random factors there is some variance possible
@@ -192,5 +206,11 @@ public class Alarm {
         } else if (treshold == 0.3) {
             assertEquals(auc, 0.75, AVERAGERROR);
         }
+        return p;
+    }
+
+    private static String generateMissingFullPath(double treshold) {
+        return TEST_FULL_MISSING.replace("Missing", "MissingTreshold" + String.valueOf(treshold)
+                .replace(".", "_"));
     }
 }

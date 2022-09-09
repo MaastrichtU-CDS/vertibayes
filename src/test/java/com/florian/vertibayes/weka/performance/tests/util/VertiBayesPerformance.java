@@ -11,12 +11,15 @@ import weka.core.Instances;
 
 import java.util.List;
 
+import static com.florian.vertibayes.weka.performance.tests.util.Score.calculateAIC;
 import static com.florian.vertibayes.weka.performance.tests.util.Util.*;
 
 public class VertiBayesPerformance {
+    private static double TEST_POPULATION = 10000;
+
     public static Performance buildAndValidate(String left, String right, Instances testData,
                                                String target, String test, List<WebNode> nodes,
-                                               double minPercentage)
+                                               double minPercentage, Instances fullData)
             throws Exception {
         ExpectationMaximizationTestResponse response = (ExpectationMaximizationTestResponse) generateModel(
                 nodes, left, right, target, minPercentage);
@@ -29,8 +32,9 @@ public class VertiBayesPerformance {
         Performance res = new Performance();
         res.setSyntheticAuc(response.getSyntheticAuc());
         res.setRealAuc(eval.weightedAreaUnderROC());
-        res.setSyntheticFoldAuc(
-                generateSyntheticFold(network, test, response.getNodes(), nodes, target, minPercentage));
+        generateSyntheticFold(network, test, response.getNodes(), nodes, target, minPercentage, res);
+        res.setAIC(calculateAIC(fullData, network));
+
         res.getErrors().put(test, recordErrors(network, testData));
         return res;
     }
