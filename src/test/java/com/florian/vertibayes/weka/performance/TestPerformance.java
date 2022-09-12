@@ -30,7 +30,7 @@ public class TestPerformance {
     // IMPORTANT NOTE 2: DUE TO THE RANDOM NATURE OF EM,DATA GENERATION & THE FOLDS IT IS POSSIBLE TO GET THE
     // OCCASIONAL TERRIBLE PERFORMANCE, ESPECIALLY ON INDIVIDUAL FOLDS. RERUN THE TEST AND SEE IF IT HAPPENS AGAIN.
     private static final List<Double> TRESHHOLDS = Arrays.asList(0.05, 0.1, 0.3);
-    private static final boolean SMALL_TEST = false;
+    private static final boolean SMALL_TEST = true;
     private static final boolean CSV = false;
 
     @Test
@@ -144,6 +144,10 @@ public class TestPerformance {
             printResults(start, irisAutomatic, 0, CSV);
 
             start = System.currentTimeMillis();
+            Performance irisWeka = IrisWeka.kFold();
+            printResults(start, irisWeka, 0, CSV);
+
+            start = System.currentTimeMillis();
             Performance irisManual = IrisManual.kFold();
             printResults(start, irisManual, 0, CSV);
 
@@ -215,6 +219,11 @@ public class TestPerformance {
             start = System.currentTimeMillis();
             p = IrisManual.testVertiBayesFullDataSet();
             p.setName("Irismanual");
+            printResults(start, p, 0.0, CSV);
+
+            start = System.currentTimeMillis();
+            p = IrisWeka.testVertiBayesFullDataSet();
+            p.setName("Iriswekal");
             printResults(start, p, 0.0, CSV);
 
             start = System.currentTimeMillis();
