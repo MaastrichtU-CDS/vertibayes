@@ -105,6 +105,91 @@ public class GenerateNetworks {
         return Arrays.asList(sepallength, sepalwidth, petallength, petalwidth, label);
     }
 
+    public static List<WebNode> buildIrisNetworkWekaBinned() {
+        WebNode label = createWebNode("label", Attribute.AttributeType.string, new ArrayList<>());
+        WebNode petallength = createWebNode("petallength", Attribute.AttributeType.real,
+                                            Arrays.asList(label.getName()));
+        WebNode petalwidth = createWebNode("petalwidth", Attribute.AttributeType.real,
+                                           Arrays.asList(label.getName()));
+        WebNode sepallength = createWebNode("sepallength", Attribute.AttributeType.real,
+                                            Arrays.asList(label.getName()));
+        WebNode sepalwidth = createWebNode("sepalwidth", Attribute.AttributeType.real,
+                                           Arrays.asList(label.getName()));
+        Set<Bin> sepalLenghtBins = new HashSet<>();
+        Bin bin1 = new Bin();
+        bin1.setLowerLimit("-inf");
+        bin1.setUpperLimit("5.55");
+        sepalLenghtBins.add(bin1);
+
+        Bin bin2 = new Bin();
+        bin2.setLowerLimit("5.55");
+        bin2.setUpperLimit("6.15");
+        sepalLenghtBins.add(bin2);
+
+        Bin bin3 = new Bin();
+        bin3.setLowerLimit("6.15");
+        bin3.setUpperLimit("inf");
+        sepalLenghtBins.add(bin3);
+
+        sepallength.setBins(sepalLenghtBins);
+        Set<Bin> sepalWidthBins = new HashSet<>();
+
+        Bin bin4 = new Bin();
+        bin4.setLowerLimit("-inf");
+        bin4.setUpperLimit("2.95");
+        sepalWidthBins.add(bin4);
+
+        Bin bin5 = new Bin();
+        bin5.setLowerLimit("2.95");
+        bin5.setUpperLimit("3.35");
+        sepalWidthBins.add(bin5);
+
+        Bin bin6 = new Bin();
+        bin6.setLowerLimit("3.35");
+        bin6.setUpperLimit("inf");
+        sepalWidthBins.add(bin6);
+
+        sepalwidth.setBins(sepalWidthBins);
+        Set<Bin> petalLengthbins = new HashSet<>();
+
+        Bin bin7 = new Bin();
+        bin7.setLowerLimit("-inf");
+        bin7.setUpperLimit("2.45");
+        petalLengthbins.add(bin7);
+
+        Bin bin8 = new Bin();
+        bin8.setLowerLimit("2.45");
+        bin8.setUpperLimit("4.75");
+        petalLengthbins.add(bin8);
+
+        Bin bin9 = new Bin();
+        bin9.setLowerLimit("4.75");
+        bin9.setUpperLimit("inf");
+        petalLengthbins.add(bin9);
+
+        petallength.setBins(petalLengthbins);
+        Set<Bin> petalWidthbins = new HashSet<>();
+        Bin bin10 = new Bin();
+        bin10.setLowerLimit("-inf");
+        bin10.setUpperLimit("0.8");
+        petalWidthbins.add(bin10);
+
+        Bin bin11 = new Bin();
+        bin11.setLowerLimit("0.8");
+        bin11.setUpperLimit("1.75");
+        petalWidthbins.add(bin11);
+
+        Bin bin12 = new Bin();
+        bin12.setLowerLimit("1.75");
+        bin12.setUpperLimit("inf");
+        petalWidthbins.add(bin12);
+
+        petalwidth.setBins(petalWidthbins);
+
+        //list nodes in the order you want the attributes printed
+        return Arrays.asList(sepallength, sepalwidth, petallength, petalwidth, label);
+    }
+
 
     public static List<WebNode> buildIrisNetworkBinned() {
         WebNode label = createWebNode("label", Attribute.AttributeType.string, new ArrayList<>());

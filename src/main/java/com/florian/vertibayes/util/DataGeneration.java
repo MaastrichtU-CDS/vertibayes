@@ -81,10 +81,7 @@ public final class DataGeneration {
                                         individual.put(node.getName(), "?");
                                     } else {
                                         //generate a number from the range
-                                        Double upper = Double.valueOf(local.getUpperLimit().getValue());
-                                        Double lower = Double.valueOf(local.getLowerLimit().getValue());
-                                        Double generated = random.nextDouble() * (upper - lower) + lower;
-                                        generated = checkMaximum(local, upper, generated);
+                                        Double generated = generateDouble(random, local);
                                         individual.put(node.getName(),
                                                        String.valueOf(
                                                                round(generated, local.getLowerLimit().getType())));
@@ -129,10 +126,7 @@ public final class DataGeneration {
                                         if (local.getLowerLimit().isUknown()) {
                                             individual.put(node.getName(), "?");
                                         } else {
-                                            Double upper = Double.valueOf(local.getUpperLimit().getValue());
-                                            Double lower = Double.valueOf(local.getLowerLimit().getValue());
-                                            Double generated = random.nextDouble() * (upper - lower) + lower;
-                                            generated = checkMaximum(local, upper, generated);
+                                            Double generated = generateDouble(random, local);
                                             individual.put(node.getName(), String.valueOf(
                                                     round(generated, local.getLowerLimit().getType())));
                                         }
@@ -157,6 +151,32 @@ public final class DataGeneration {
 
         return s;
     }
+
+    private static Double generateDouble(Random random, AttributeRequirement local) {
+        Double upper = 0.0;
+        Double lower = 0.0;
+        if (local.getUpperLimit().getValue().equals("inf")) {
+            // if upperlimit = infinite set a hard limit to lowerlimit *2
+            // otherwise sampling goes weird as you'll suddenly see people with a bloodpressure of 983745987435 or
+            // something
+            // Alternativly, just make sure your bins don't include inf
+            upper = Double.valueOf(local.getLowerLimit().getValue()) * 2;
+        } else {
+            upper = Double.valueOf(local.getUpperLimit().getValue());
+        }
+        if (local.getLowerLimit().getValue().equals("-inf")) {
+            // if upperlimit = -infinite set a hard limit to upperlimit /2
+            // otherwise sampling goes weird
+            // Alternativly just make sure your bins don't include -inf
+            lower = Double.valueOf(local.getUpperLimit().getValue()) / 2;
+        } else {
+            lower = Double.valueOf(local.getLowerLimit().getValue());
+        }
+        Double generated = random.nextDouble() * (upper - lower) + lower;
+        generated = checkMaximum(local, upper, generated);
+        return generated;
+    }
+
 
     private static Double checkMaximum(AttributeRequirement local, Double upper, Double generated) {
         if (round(generated, local.getLowerLimit().getType()) == upper) {
