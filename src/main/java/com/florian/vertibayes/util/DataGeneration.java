@@ -77,7 +77,7 @@ public final class DataGeneration {
                                 if (!local.isRange()) {
                                     individual.put(node.getName(), local.getValue().getValue());
                                 } else {
-                                    if (local.getLowerLimit().isUknown()) {
+                                    if (local.getLowerLimit().isUnknown()) {
                                         individual.put(node.getName(), "?");
                                     } else {
                                         //generate a number from the range
@@ -123,7 +123,7 @@ public final class DataGeneration {
                                         individual.put(node.getName(), local.getValue().getValue());
                                     } else {
                                         //generate a number from the range
-                                        if (local.getLowerLimit().isUknown()) {
+                                        if (local.getLowerLimit().isUnknown()) {
                                             individual.put(node.getName(), "?");
                                         } else {
                                             Double generated = generateDouble(random, local);

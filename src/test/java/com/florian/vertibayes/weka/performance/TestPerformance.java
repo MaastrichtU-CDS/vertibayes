@@ -223,7 +223,7 @@ public class TestPerformance {
 
             start = System.currentTimeMillis();
             p = IrisWeka.testVertiBayesFullDataSet();
-            p.setName("Iriswekal");
+            p.setName("Irisweka");
             printResults(start, p, 0.0, CSV);
 
             start = System.currentTimeMillis();
