@@ -9,7 +9,7 @@ public class test {
     @Test
     public void test() throws Exception {
         long start = System.currentTimeMillis();
-        Performance p = IrisWeka.kFold();
+        Performance p = IrisDiscrete.kFold();
         p.setName("test");
         printResults(start, p, 0.05, true);
 

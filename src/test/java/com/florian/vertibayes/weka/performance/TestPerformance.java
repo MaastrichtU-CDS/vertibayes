@@ -144,6 +144,10 @@ public class TestPerformance {
             printResults(start, irisAutomatic, 0, CSV);
 
             start = System.currentTimeMillis();
+            Performance irisDiscrete = IrisDiscrete.kFold();
+            printResults(start, irisDiscrete, 0, CSV);
+
+            start = System.currentTimeMillis();
             Performance irisWeka = IrisWeka.kFold();
             printResults(start, irisWeka, 0, CSV);
 
@@ -158,6 +162,10 @@ public class TestPerformance {
             start = System.currentTimeMillis();
             Performance diabetesFewBins = DiabetesFewBins.kFold();
             printResults(start, diabetesFewBins, 0, CSV);
+
+            start = System.currentTimeMillis();
+            Performance diabetesDiscrete = DiabetesDiscrete.kFold();
+            printResults(start, diabetesDiscrete, 0, CSV);
 
             start = System.currentTimeMillis();
             Performance diabetes = Diabetes.kFold();
@@ -186,6 +194,11 @@ public class TestPerformance {
                 printResults(start, irisAutomaticUnknown, treshold, CSV);
 
                 start = System.currentTimeMillis();
+                Performance irisDiscreteUnknown = IrisDiscrete.kFoldUnknown(treshold);
+                printResults(start, irisDiscreteUnknown, treshold, CSV);
+
+
+                start = System.currentTimeMillis();
                 Performance irisManualUnknown = IrisManual.kFoldUnknown(treshold);
                 printResults(start, irisManualUnknown, treshold, CSV);
 
@@ -200,6 +213,10 @@ public class TestPerformance {
                 start = System.currentTimeMillis();
                 Performance diabetesUnknown = Diabetes.kFoldUnknown(treshold);
                 printResults(start, diabetesUnknown, treshold, CSV);
+
+                start = System.currentTimeMillis();
+                Performance diabetesDiscreteUnknown = DiabetesDiscrete.kFoldUnknown(treshold);
+                printResults(start, diabetesDiscreteUnknown, treshold, CSV);
 
                 start = System.currentTimeMillis();
                 Performance alarmUnknown = Alarm.kFoldUnknown(treshold);
@@ -232,6 +249,11 @@ public class TestPerformance {
             printResults(start, p, 0.0, CSV);
 
             start = System.currentTimeMillis();
+            p = IrisDiscrete.testVertiBayesFullDataSet();
+            p.setName("IrisDiscrete");
+            printResults(start, p, 0.0, CSV);
+
+            start = System.currentTimeMillis();
             p = DiabetesFewestBins.testVertiBayesFullDataSet();
             p.setName("Diabetes fewest bins");
             printResults(start, p, 0.0, CSV);
@@ -240,6 +262,11 @@ public class TestPerformance {
             start = System.currentTimeMillis();
             p = DiabetesFewBins.testVertiBayesFullDataSet();
             p.setName("Diabetes few bins");
+            printResults(start, p, 0.0, CSV);
+
+            start = System.currentTimeMillis();
+            p = DiabetesDiscrete.testVertiBayesFullDataSet();
+            p.setName("Diabetes discrete");
             printResults(start, p, 0.0, CSV);
 
             start = System.currentTimeMillis();
@@ -264,6 +291,11 @@ public class TestPerformance {
                 printResults(start, p, d, CSV);
 
                 start = System.currentTimeMillis();
+                p = IrisDiscrete.testVertiBayesFullDataSetMissing(d);
+                p.setName("IrisDiscrete");
+                printResults(start, p, d, CSV);
+
+                start = System.currentTimeMillis();
                 p = IrisAutomatic.testVertiBayesFullDataSetMissing(d);
                 p.setName("IrisAutomatic");
                 printResults(start, p, d, CSV);
@@ -271,6 +303,11 @@ public class TestPerformance {
                 start = System.currentTimeMillis();
                 p = DiabetesFewestBins.testVertiBayesFullDataSetMissing(d);
                 p.setName("Diabetes fewest bins");
+                printResults(start, p, d, CSV);
+
+                start = System.currentTimeMillis();
+                p = DiabetesDiscrete.testVertiBayesFullDataSetMissing(d);
+                p.setName("Diabetes discrete");
                 printResults(start, p, d, CSV);
 
                 start = System.currentTimeMillis();

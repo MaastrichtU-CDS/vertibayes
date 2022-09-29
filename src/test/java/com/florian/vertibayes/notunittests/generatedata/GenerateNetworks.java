@@ -90,6 +90,44 @@ public class GenerateNetworks {
                              age, outcome);
     }
 
+    public static List<WebNode> buildDiabetesNetworkDiscrete() {
+        WebNode outcome = createWebNode("Outcome", Attribute.AttributeType.string, new ArrayList<>());
+        WebNode glucose = createWebNode("Glucose", Attribute.AttributeType.string, Arrays.asList(outcome.getName()));
+        WebNode bloodPressure = createWebNode("BloodPressure", Attribute.AttributeType.string,
+                                              Arrays.asList(outcome.getName()));
+        WebNode skinThickness = createWebNode("SkinThickness", Attribute.AttributeType.string,
+                                              Arrays.asList(outcome.getName()));
+        WebNode diabetesPedigreeFunction = createWebNode("DiabetesPedigreeFunction", Attribute.AttributeType.string,
+                                                         Arrays.asList(outcome.getName()));
+        WebNode insulin = createWebNode("Insulin", Attribute.AttributeType.string,
+                                        Arrays.asList(outcome.getName(), glucose.getName()));
+        WebNode pregnancies = createWebNode("Pregnancies", Attribute.AttributeType.string,
+                                            Arrays.asList(outcome.getName()));
+        WebNode bmi = createWebNode("BMI", Attribute.AttributeType.string,
+                                    Arrays.asList(outcome.getName(), insulin.getName()));
+        WebNode age = createWebNode("Age", Attribute.AttributeType.string,
+                                    Arrays.asList(outcome.getName(), insulin.getName(), pregnancies.getName()));
+
+        //list nodes in the order you want the attributes printed
+        return Arrays.asList(pregnancies, glucose, bloodPressure, skinThickness, insulin, bmi, diabetesPedigreeFunction,
+                             age, outcome);
+    }
+
+    public static List<WebNode> buildIrisNetworkDiscrete() {
+        WebNode label = createWebNode("label", Attribute.AttributeType.string, new ArrayList<>());
+        WebNode petallength = createWebNode("petallength", Attribute.AttributeType.string,
+                                            Arrays.asList(label.getName()));
+        WebNode petalwidth = createWebNode("petalwidth", Attribute.AttributeType.string,
+                                           Arrays.asList(label.getName()));
+        WebNode sepallength = createWebNode("sepallength", Attribute.AttributeType.string,
+                                            Arrays.asList(label.getName()));
+        WebNode sepalwidth = createWebNode("sepalwidth", Attribute.AttributeType.string,
+                                           Arrays.asList(label.getName()));
+
+        //list nodes in the order you want the attributes printed
+        return Arrays.asList(sepallength, sepalwidth, petallength, petalwidth, label);
+    }
+
     public static List<WebNode> buildIrisNetworkNoBins() {
         WebNode label = createWebNode("label", Attribute.AttributeType.string, new ArrayList<>());
         WebNode petallength = createWebNode("petallength", Attribute.AttributeType.real,

@@ -17,6 +17,10 @@ public class GenerateTestData {
     private static final String CSV_PATH_IRIS_MISSING = "resources/Experiments/iris/irisMissing.csv";
     private static final String CSV_PATH_IRIS_TARGET = "resources/Experiments/iris/folds/iris";
 
+    private static final String CSV_PATH_IRIS_DISCRETE_ORIGINAL = "resources/Experiments/IrisDiscrete/iris.csv";
+    private static final String CSV_PATH_IRIS_DISCRETE_MISSING = "resources/Experiments/IrisDiscrete/irisMissing.csv";
+    private static final String CSV_PATH_IRIS_DISCRETE_TARGET = "resources/Experiments/IrisDiscrete/folds/iris";
+
     private static final String CSV_PATH_ASIA_ORIGINAL = "resources/Experiments/asia/Asia10k.csv";
     private static final String CSV_PATH_ASIA_MISSING = "resources/Experiments/asia/Asia10kMissing.csv";
     private static final String CSV_PATH_ASIA_TARGET = "resources/Experiments/asia/folds/asia";
@@ -24,6 +28,13 @@ public class GenerateTestData {
     private static final String CSV_PATH_ALARM_ORIGINAL = "resources/Experiments/alarm/ALARM10k.csv";
     private static final String CSV_PATH_ALARM_MISSING = "resources/Experiments/alarm/ALARM10kMissing.csv";
     private static final String CSV_PATH_ALARM_TARGET = "resources/Experiments/alarm/folds/alarm";
+
+    private static final String CSV_PATH_DIABETES_DISCRETE_ORIGINAL = "resources/Experiments/diabetesDiscrete" +
+            "/diabetes.csv";
+    private static final String CSV_PATH_DIABETES_DISCRETE_MISSING = "resources/Experiments/diabetesDiscrete" +
+            "/diabetesMissing.csv";
+    private static final String CSV_PATH_DIABETES_DISCRETE_TARGET = "resources/Experiments/diabetesDiscrete/folds" +
+            "/diabetes";
 
     private static final String CSV_PATH_DIABETES_ORIGINAL = "resources/Experiments/diabetes/DIABETES.csv";
     private static final String CSV_PATH_DIABETES_MISSING = "resources/Experiments/diabetes/DIABETESMissing.csv";
@@ -33,17 +44,32 @@ public class GenerateTestData {
     private static final Integer FOLDS = 10;
 
     @Test
+    public void generateDiscrete() {
+        for (double d : TRESHHOLDS) {
+            generateMissingData(CSV_PATH_DIABETES_DISCRETE_ORIGINAL, CSV_PATH_DIABETES_DISCRETE_MISSING, d);
+            String t = String.valueOf(d).replace(".", "_");
+            generateFolds(CSV_PATH_DIABETES_DISCRETE_MISSING.replace(".csv", "Treshold" + t + ".csv"),
+                          CSV_PATH_DIABETES_DISCRETE_TARGET + "Treshold" + t, FOLDS, true);
+            generateFolds(CSV_PATH_DIABETES_DISCRETE_ORIGINAL, CSV_PATH_DIABETES_DISCRETE_TARGET, FOLDS, false);
+        }
+    }
+
+    @Test
     public void generateMissingData() {
         //IMPORTANT NOTE: GENERATED DATA MAY NOT HAVE THE SAME FORM AS THE FINAL WEKA MODEL
         //CHECK IF ALL ATTRIBUTES ARE IN THE SAME ORDER, IDEM FOR ATTRIBUTE-VALUES IN THE CASE OF NOMINAL ATTRIBUTES
 
         for (double d : TRESHHOLDS) {
 
+            generateMissingData(CSV_PATH_IRIS_DISCRETE_ORIGINAL, CSV_PATH_IRIS_DISCRETE_MISSING, d);
             generateMissingData(CSV_PATH_IRIS_ORIGINAL, CSV_PATH_IRIS_MISSING, d);
             generateMissingData(CSV_PATH_ASIA_ORIGINAL, CSV_PATH_ASIA_MISSING, d);
             generateMissingData(CSV_PATH_ALARM_ORIGINAL, CSV_PATH_ALARM_MISSING, d);
             generateMissingData(CSV_PATH_DIABETES_ORIGINAL, CSV_PATH_DIABETES_MISSING, d);
+            generateMissingData(CSV_PATH_DIABETES_DISCRETE_ORIGINAL, CSV_PATH_DIABETES_DISCRETE_MISSING, d);
             String t = String.valueOf(d).replace(".", "_");
+            generateFolds(CSV_PATH_IRIS_DISCRETE_MISSING.replace(".csv", "Treshold" + t + ".csv"),
+                          CSV_PATH_IRIS_DISCRETE_TARGET + "Treshold" + t, FOLDS, true);
             generateFolds(CSV_PATH_IRIS_MISSING.replace(".csv", "Treshold" + t + ".csv"),
                           CSV_PATH_IRIS_TARGET + "Treshold" + t, FOLDS, true);
             generateFolds(CSV_PATH_ASIA_MISSING.replace(".csv", "Treshold" + t + ".csv"),
@@ -52,11 +78,15 @@ public class GenerateTestData {
                           CSV_PATH_ALARM_TARGET + "Treshold" + t, FOLDS, true);
             generateFolds(CSV_PATH_DIABETES_MISSING.replace(".csv", "Treshold" + t + ".csv"),
                           CSV_PATH_DIABETES_TARGET + "Treshold" + t, FOLDS, true);
+            generateFolds(CSV_PATH_DIABETES_DISCRETE_MISSING.replace(".csv", "Treshold" + t + ".csv"),
+                          CSV_PATH_DIABETES_DISCRETE_TARGET + "Treshold" + t, FOLDS, true);
 
+            generateFolds(CSV_PATH_IRIS_DISCRETE_ORIGINAL, CSV_PATH_IRIS_DISCRETE_TARGET, FOLDS, false);
             generateFolds(CSV_PATH_IRIS_ORIGINAL, CSV_PATH_IRIS_TARGET, FOLDS, false);
             generateFolds(CSV_PATH_ASIA_ORIGINAL, CSV_PATH_ASIA_TARGET, FOLDS, false);
             generateFolds(CSV_PATH_ALARM_ORIGINAL, CSV_PATH_ALARM_TARGET, FOLDS, false);
             generateFolds(CSV_PATH_DIABETES_ORIGINAL, CSV_PATH_DIABETES_TARGET, FOLDS, false);
+            generateFolds(CSV_PATH_DIABETES_DISCRETE_ORIGINAL, CSV_PATH_DIABETES_DISCRETE_TARGET, FOLDS, false);
         }
 
     }

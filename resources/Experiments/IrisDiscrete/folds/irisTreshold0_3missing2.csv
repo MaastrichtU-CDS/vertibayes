@@ -1,0 +1,17 @@
+real,string,string,string,string,string
+ID,sepallength,sepalwidth,petallength,petalwidth,label
+12,4.3_4.9,3.3_3.5,?,0.1_0.3,Iris-setosa
+23,4.3_4.9,3.5_4.444000000000001,1.0_1.5,0.1_0.3,Iris-setosa
+26,4.9_5.1,?,1.5_1.7,?,?
+33,5.1_5.5,?,1.5_1.7,0.1_0.3,Iris-setosa
+38,?,3.1_3.3,1.5_1.7,?,Iris-setosa
+71,5.8_6.1,?,4.8_5.2,?,Iris-versicolor
+84,?,2.6_2.9,?,1.5_1.7,Iris-versicolor
+93,5.8_6.1,2.6_2.9,4.0_4.5,0.6_1.3,?
+114,5.5_5.8,?,4.8_5.2,2.0_2.525,Iris-virginica
+115,5.8_6.1,?,?,2.0_2.525,Iris-virginica
+119,?,2.6_2.9,5.7_6.969,?,Iris-virginica
+123,?,2.6_2.9,5.7_6.969,2.0_2.525,Iris-virginica
+127,?,2.6_2.9,4.8_5.2,?,Iris-virginica
+128,6.1_6.4,2.9_3.1,4.8_5.2,1.7_2.0,Iris-virginica
+133,?,2.6_2.9,5.2_5.7,2.0_2.525,Iris-virginica
