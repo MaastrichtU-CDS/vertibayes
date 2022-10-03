@@ -45,7 +45,7 @@ public class DiabetesDiscrete {
     private static List<WebNode> NODES = buildDiabetesNetworkDiscrete();
     private static final String NAME = "DiabetesDiscrete";
 
-    private static final double AVERAGERROR = 0.05;
+    private static final double AVERAGERROR = 0.07;
     private static final Variance FOLDVARIANCE;
     private static final Variance FOLDVARIANCEMISSING;
 
@@ -58,9 +58,9 @@ public class DiabetesDiscrete {
         FOLDVARIANCE.setSyntheticFoldAucVariance(0.15);
 
         FOLDVARIANCEMISSING = new Variance();
-        FOLDVARIANCEMISSING.setRealAucVariance(0.15);
-        FOLDVARIANCEMISSING.setSyntheticAucVariance(0.15);
-        FOLDVARIANCEMISSING.setSyntheticFoldAucVariance(0.15);
+        FOLDVARIANCEMISSING.setRealAucVariance(0.20);
+        FOLDVARIANCEMISSING.setSyntheticAucVariance(0.20);
+        FOLDVARIANCEMISSING.setSyntheticFoldAucVariance(0.20);
     }
 
     private static void initNodes() {
@@ -91,18 +91,18 @@ public class DiabetesDiscrete {
             assertEquals(p.getSyntheticFoldAuc(), 0.79, AVERAGERROR);
         } else if (treshold == 0.1) {
             assertEquals(p.getRealAuc(), 0.75, AVERAGERROR);
-            assertEquals(p.getSyntheticAuc(), 0.83, AVERAGERROR);
+            assertEquals(p.getSyntheticAuc(), 0.85, AVERAGERROR);
             assertEquals(p.getSyntheticFoldAuc(), 0.76, AVERAGERROR);
         } else if (treshold == 0.3) {
-            assertEquals(p.getRealAuc(), 0.65, AVERAGERROR);
-            assertEquals(p.getSyntheticAuc(), 0.72, AVERAGERROR);
-            assertEquals(p.getSyntheticFoldAuc(), 0.65, AVERAGERROR);
+            assertEquals(p.getRealAuc(), 0.55, AVERAGERROR);
+            assertEquals(p.getSyntheticAuc(), 0.79, AVERAGERROR);
+            assertEquals(p.getSyntheticFoldAuc(), 0.59, AVERAGERROR);
         }
 
         assertEquals(p.getWekaAuc(), p.getRealAuc(), AVERAGERROR);
         //Using synthetic training data in k-fold results in overfitting for diabetes
         //Other validation methods have expected results
-        assertEquals(p.getWekaAuc(), p.getSyntheticAuc(), 0.11);
+        assertEquals(p.getWekaAuc(), p.getSyntheticAuc(), 0.20);
         assertEquals(p.getWekaAuc(), p.getSyntheticFoldAuc(), AVERAGERROR);
 
         return p;
@@ -127,10 +127,10 @@ public class DiabetesDiscrete {
         assertEquals(p.getRealAuc(), 0.79, AVERAGERROR);
         assertEquals(p.getSyntheticAuc(), 0.89, AVERAGERROR);
         assertEquals(p.getSyntheticFoldAuc(), 0.82, AVERAGERROR);
-        assertEquals(p.getWekaAuc(), p.getRealAuc(), 0.025);
+        assertEquals(p.getWekaAuc(), p.getRealAuc(), AVERAGERROR);
         //Using synthetic training data in k-fold results in overfitting for diabetes
         //Other validation methods have expected results
-        assertEquals(p.getWekaAuc(), p.getSyntheticAuc(), 0.11);
+        assertEquals(p.getWekaAuc(), p.getSyntheticAuc(), 0.16);
         assertEquals(p.getWekaAuc(), p.getSyntheticFoldAuc(), AVERAGERROR);
         return p;
     }
@@ -209,9 +209,9 @@ public class DiabetesDiscrete {
         if (treshold == 0.05) {
             assertEquals(auc, 0.82, AVERAGERROR);
         } else if (treshold == 0.1) {
-            assertEquals(auc, 0.78, AVERAGERROR);
+            assertEquals(auc, 0.81, AVERAGERROR);
         } else if (treshold == 0.3) {
-            assertEquals(auc, 0.70, AVERAGERROR);
+            assertEquals(auc, 0.75, AVERAGERROR);
         }
         return p;
     }

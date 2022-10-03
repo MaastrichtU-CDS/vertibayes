@@ -31,7 +31,7 @@ public class TestPerformance {
     // OCCASIONAL TERRIBLE PERFORMANCE, ESPECIALLY ON INDIVIDUAL FOLDS. RERUN THE TEST AND SEE IF IT HAPPENS AGAIN.
     private static final List<Double> TRESHHOLDS = Arrays.asList(0.05, 0.1, 0.3);
     private static final boolean SMALL_TEST = true;
-    private static final boolean CSV = false;
+    private static final boolean CSV = true;
 
     @Test
     public void smallTest() throws Exception {

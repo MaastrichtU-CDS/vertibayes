@@ -41,7 +41,7 @@ public class IrisDiscrete {
     public static final String IRIS_WEKA_BIF = "resources/Experiments/IrisDiscrete/irisWekaBif.xml";
 
     private static final String LABEL = "label";
-    private static final String NAME = "IrisManual";
+    private static final String NAME = "IrisDiscrete";
 
     private static List<WebNode> NODES = buildIrisNetworkDiscrete();
 
