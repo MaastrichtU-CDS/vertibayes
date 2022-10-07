@@ -9,10 +9,11 @@ import com.florian.nscalarproduct.webservice.domain.AttributeRequirement;
 import com.florian.nscalarproduct.webservice.domain.AttributeRequirementsRequest;
 import com.florian.vertibayes.bayes.Bin;
 import com.florian.vertibayes.bayes.Node;
+import com.florian.vertibayes.webservice.domain.InitDataResponse;
 import com.florian.vertibayes.webservice.domain.NodesResponse;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -216,11 +217,22 @@ public class BayesServer extends Server {
         return bin;
     }
 
+    @GetMapping ("getCount")
+    public BigInteger getCount() {
+        BigInteger count = BigInteger.ZERO;
+        for (int i = 0; i < localData.length; i++) {
+            count = count.add(localData[i]);
+        }
+        return count;
+    }
 
-    @PutMapping ("initK2Data")
-    public void initK2Data(@RequestBody AttributeRequirementsRequest request) {
+
+    @PostMapping ("initK2Data")
+    public InitDataResponse initK2Data(@RequestBody AttributeRequirementsRequest request) {
         reset();
         readData();
+        InitDataResponse response = new InitDataResponse();
+
         List<AttributeRequirement> requirements = request.getRequirements() == null ? new ArrayList<>()
                 : request.getRequirements();
         int population = data.getNumberOfIndividuals();
@@ -236,6 +248,8 @@ public class BayesServer extends Server {
                 // attribute not locally available, skip
                 continue;
             }
+            //if you get here local data contains one of the attributes, ergo this endpoint is relevant.
+            response.setRelevant(true);
             for (int i = 0; i < population; i++) {
                 if (!req.checkRequirement(values.get(data.getAttributeCollumn(req.getName())).get(i))) {
                     localData[i] = BigInteger.ZERO;
@@ -247,6 +261,8 @@ public class BayesServer extends Server {
 
         this.population = localData.length;
         this.dataStations.put("start", new DataStation(this.serverId, this.localData));
+
+        return response;
     }
 
     private void checkHorizontalSplit(Data data) {

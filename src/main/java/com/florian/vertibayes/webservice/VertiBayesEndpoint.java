@@ -7,8 +7,10 @@ import com.florian.nscalarproduct.webservice.domain.AttributeRequirement;
 import com.florian.nscalarproduct.webservice.domain.AttributeRequirementsRequest;
 import com.florian.vertibayes.bayes.Bin;
 import com.florian.vertibayes.bayes.Node;
+import com.florian.vertibayes.webservice.domain.InitDataResponse;
 import com.florian.vertibayes.webservice.domain.NodesResponse;
 
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
 
@@ -22,13 +24,13 @@ public class VertiBayesEndpoint extends ServerEndpoint {
         super(url);
     }
 
-    public void initK2Data(List<AttributeRequirement> req) {
+    public InitDataResponse initK2Data(List<AttributeRequirement> req) {
         AttributeRequirementsRequest request = new AttributeRequirementsRequest();
         request.setRequirements(req);
         if (testing) {
-            ((BayesServer) (server)).initK2Data(request);
+            return ((BayesServer) (server)).initK2Data(request);
         } else {
-            REST_TEMPLATE.put(serverUrl + "/initK2Data", request);
+            return REST_TEMPLATE.postForEntity(serverUrl + "/initK2Data", request, InitDataResponse.class).getBody();
         }
     }
 
@@ -53,6 +55,14 @@ public class VertiBayesEndpoint extends ServerEndpoint {
         }
         return REST_TEMPLATE.getForEntity(serverUrl + "/getBins?attribute=" + attributeName
                                                   + "&minPercentage=" + minPercentage, Set.class)
+                .getBody();
+    }
+
+    public BigInteger getCount() {
+        if (testing) {
+            return ((BayesServer) (server)).getCount();
+        }
+        return REST_TEMPLATE.getForEntity(serverUrl + "/getCount", BigInteger.class)
                 .getBody();
     }
 }

@@ -8,6 +8,7 @@ import com.florian.nscalarproduct.webservice.ServerEndpoint;
 import com.florian.nscalarproduct.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.bayes.*;
 import com.florian.vertibayes.webservice.domain.InitCentralServerRequest;
+import com.florian.vertibayes.webservice.domain.InitDataResponse;
 import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationResponse;
 import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationTestResponse;
 import com.florian.vertibayes.webservice.domain.external.WebBayesNetwork;
@@ -55,7 +56,7 @@ public class VertiBayesCentralServer extends CentralServer {
     public WebBayesNetwork buildNetwork() {
         initEndpoints();
         endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initK2Data(new ArrayList<>()));
-        network = new Network(endpoints, secretEndpoint, this);
+        network = new Network(endpoints, secretEndpoint, this, endpoints.get(0).getPopulation());
         network.createNetwork();
         WebBayesNetwork response = new WebBayesNetwork();
         response.setNodes(mapWebNodeFromNode(network.getNodes()));
@@ -293,13 +294,22 @@ public class VertiBayesCentralServer extends CentralServer {
     }
 
     private BigInteger countValue(List<AttributeRequirement> attributes) {
-        for (ServerEndpoint endpoint : endpoints) {
-            ((VertiBayesEndpoint) endpoint).initK2Data(attributes);
-        }
+        List<ServerEndpoint> relevantEndpoints = new ArrayList<>();
 
-        secretEndpoint.addSecretStation("start", endpoints.stream().map(x -> x.getServerId()).collect(
-                Collectors.toList()), endpoints.get(0).getPopulation());
-        return nparty(endpoints, secretEndpoint);
+        for (ServerEndpoint endpoint : endpoints) {
+            InitDataResponse response = ((VertiBayesEndpoint) endpoint).initK2Data(attributes);
+            if (response.isRelevant()) {
+                // keep track of relevant endpoints to keep the n-party protocols as small as possible
+                relevantEndpoints.add(endpoint);
+            }
+        }
+        if (relevantEndpoints.size() == 1) {
+            return ((VertiBayesEndpoint) relevantEndpoints.get(0)).getCount();
+        } else {
+            secretEndpoint.addSecretStation("start", relevantEndpoints.stream().map(x -> x.getServerId()).collect(
+                    Collectors.toList()), relevantEndpoints.get(0).getPopulation());
+            return nparty(relevantEndpoints, secretEndpoint);
+        }
     }
 
     private void alignSliblings(Node node) {

@@ -1395,6 +1395,100 @@ public class VertiBayesCentralServerTest {
         }
     }
 
+    @Test
+    public void testMaximumLikelyhoodAsia3Parties() throws Exception {
+        //Small test with 3 parties.
+        //1 node has no parents, so requires only 1 party
+        //1 node has 1 parent, requires 2 parties
+        //1 node has 2 parents, requires all 3 parties
+
+        //Using maximumlikelyhood because the small network size means EM/synthetic generation fluctuates wildly
+        // between runs, but maximumlikelyhood is stable, and the point of htis test is to test the federated bit
+
+        BayesServer station1 = new BayesServer("resources/Experiments/threeParty/Asia10k_first.csv", "1");
+        BayesServer station2 = new BayesServer("resources/Experiments/threeParty/Asia10k_second.csv", "2");
+        BayesServer station3 = new BayesServer("resources/Experiments/threeParty/Asia10k_third.csv", "3");
+
+        VertiBayesEndpoint endpoint1 = new VertiBayesEndpoint(station1);
+        VertiBayesEndpoint endpoint2 = new VertiBayesEndpoint(station2);
+        VertiBayesEndpoint endpoint3 = new VertiBayesEndpoint(station3);
+        BayesServer secret = new BayesServer("4", Arrays.asList(endpoint1, endpoint2, endpoint3));
+
+        ServerEndpoint secretEnd = new ServerEndpoint(secret);
+
+        List<ServerEndpoint> all = new ArrayList<>();
+        all.add(endpoint1);
+        all.add(endpoint2);
+        all.add(endpoint3);
+        all.add(secretEnd);
+        secret.setEndpoints(all);
+        station1.setEndpoints(all);
+        station2.setEndpoints(all);
+        station3.setEndpoints(all);
+
+        List<WebNode> WebNodes = buildSmallAsiaNetwork();
+        WebBayesNetwork req = new WebBayesNetwork();
+        req.setNodes(WebNodes);
+        req.setTarget("asia");
+
+        VertiBayesCentralServer central = new VertiBayesCentralServer();
+        central.initEndpoints(Arrays.asList(endpoint1, endpoint2, endpoint3), secretEnd);
+
+        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
+
+        // find the ventlung node, it's the one with three parents
+        Node asia = null;
+        for (Node n : nodes) {
+            if (n.getName().equals("asia")) {
+                asia = n;
+                break;
+            }
+        }
+
+        assertEquals(asia.getParents().size(), 0);
+        assertEquals(asia.getUniquevalues().size(), 2);
+        assertEquals(asia.getProbabilities().size(), 2);
+        assertEquals(asia.getProbabilities().get(0).getP(), 0.98, 0.01);
+        assertEquals(asia.getProbabilities().get(1).getP(), 0.02, 0.01);
+
+        Node either = null;
+        for (Node n : nodes) {
+            if (n.getName().equals("either")) {
+                either = n;
+                break;
+            }
+        }
+
+        assertEquals(either.getParents().size(), 1);
+        assertEquals(either.getUniquevalues().size(), 2);
+        assertEquals(either.getProbabilities().size(), 4);
+        assertEquals(either.getProbabilities().get(0).getP(), 0.94, 0.01);
+        assertEquals(either.getProbabilities().get(1).getP(), 0.06, 0.01);
+        assertEquals(either.getProbabilities().get(2).getP(), 0.84, 0.01);
+        assertEquals(either.getProbabilities().get(3).getP(), 0.16, 0.01);
+
+        Node lung = null;
+        for (Node n : nodes) {
+            if (n.getName().equals("lung")) {
+                lung = n;
+                break;
+            }
+        }
+
+        assertEquals(lung.getParents().size(), 2);
+        assertEquals(lung.getUniquevalues().size(), 2);
+        assertEquals(lung.getProbabilities().size(), 8);
+        assertEquals(lung.getProbabilities().get(0).getP(), 0.999, 0.001);
+        assertEquals(lung.getProbabilities().get(1).getP(), 0.001, 0.001);
+        assertEquals(lung.getProbabilities().get(2).getP(), 0.13, 0.01);
+        assertEquals(lung.getProbabilities().get(3).getP(), 0.87, 0.01);
+        assertEquals(lung.getProbabilities().get(4).getP(), 0.999, 0.001);
+        assertEquals(lung.getProbabilities().get(5).getP(), 0.001, 0.001);
+        assertEquals(lung.getProbabilities().get(6).getP(), 0.36, 0.01);
+        assertEquals(lung.getProbabilities().get(7).getP(), 0.64, 0.01);
+
+    }
+
     private List<WebNode> buildSmallAlarmNetwork() {
         WebNode vtub = createWebNode("VENTTUBE", Attribute.AttributeType.string, new ArrayList<>());
         WebNode kink = createWebNode("KINKEDTUBE", Attribute.AttributeType.string, new ArrayList<>());
@@ -1403,6 +1497,16 @@ public class VertiBayesCentralServerTest {
                                      Arrays.asList(inT.getName(), kink.getName(), vtub.getName()));
         //list nodes in the order you want the attributes printed
         return Arrays.asList(vtub, kink, inT, vlng);
+    }
+
+    private List<WebNode> buildSmallAsiaNetwork() {
+        WebNode asia = createWebNode("asia", Attribute.AttributeType.string, new ArrayList<>());
+        WebNode either = createWebNode("either", Attribute.AttributeType.string, Arrays.asList(asia.getName()));
+        WebNode lung = createWebNode("lung", Attribute.AttributeType.string,
+                                     Arrays.asList(either.getName(), asia.getName()));
+
+        //list nodes in the order you want the attributes printed
+        return Arrays.asList(asia, either, lung);
     }
 
     private WebNode createWebNode(String name, Attribute.AttributeType type, List<String> parents) {

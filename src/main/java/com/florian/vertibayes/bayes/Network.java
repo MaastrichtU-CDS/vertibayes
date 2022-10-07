@@ -20,14 +20,30 @@ public class Network {
     private List<Node> nodes = new ArrayList<>();
     private VertiBayesCentralServer central;
     private static final int MAX_PARENTS = 3;
-    private static final int ROUNDING = 100;
+    private final int rounding;
     private List<ServerEndpoint> endpoints;
     private ServerEndpoint secretServer;
 
-    public Network(List<ServerEndpoint> endpoints, ServerEndpoint secretServer, VertiBayesCentralServer central) {
+    private static final int TEN = 10;
+    private static final int HUNDRED = 100;
+
+    public Network(List<ServerEndpoint> endpoints, ServerEndpoint secretServer, VertiBayesCentralServer central,
+                   int population) {
         for (ServerEndpoint endpoint : endpoints) {
             nodes.addAll(((VertiBayesEndpoint) endpoint).createNode());
         }
+
+        int r = HUNDRED;
+        if (population > HUNDRED * TEN) {
+            while (r < population) {
+                // set ROUNDING decimals based on populationsize, with a minimum of 100 decimals because
+                //K2 involves calculations like 1/(POPULATION!) which needs more decimals with a larger population
+                // Only start doing this for populations > 1000
+                r *= TEN;
+            }
+            r *= TEN;
+        }
+        rounding = r;
 
         removeDoubles();
         this.endpoints = endpoints;
@@ -100,7 +116,7 @@ public class Network {
                     prodaijk = prodaijk.multiply(factorial(aijk));
                 }
             }
-            return (ri1factorial.divide(factorial(sumaijk.add(ri).subtract(BigDecimal.ONE)), ROUNDING,
+            return (ri1factorial.divide(factorial(sumaijk.add(ri).subtract(BigDecimal.ONE)), rounding,
                                         RoundingMode.HALF_UP))
                     .multiply(prodaijk);
         } else {
@@ -130,7 +146,7 @@ public class Network {
                     }
                 }
                 partial = partial.multiply(
-                        (ri1factorial.divide(factorial(sumaijk.add(ri).subtract(BigDecimal.ONE)), ROUNDING,
+                        (ri1factorial.divide(factorial(sumaijk.add(ri).subtract(BigDecimal.ONE)), rounding,
                                              RoundingMode.HALF_UP))
                                 .multiply(prodaijk));
             }
@@ -139,10 +155,19 @@ public class Network {
     }
 
     private BigDecimal calculateAijk(List<AttributeRequirement> req) {
-        endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initK2Data(req));
-        secretServer.addSecretStation("start", endpoints.stream().map(x -> x.getServerId()).collect(
-                Collectors.toList()), endpoints.get(0).getPopulation());
-        return new BigDecimal(central.nparty(endpoints, secretServer));
+        List<ServerEndpoint> relevantEndpoints = new ArrayList<>();
+        endpoints.stream().forEach(x -> {
+            if (((VertiBayesEndpoint) x).initK2Data(req).isRelevant()) {
+                relevantEndpoints.add(x);
+            }
+        });
+        if (relevantEndpoints.size() == 1) {
+            return new BigDecimal(((VertiBayesEndpoint) relevantEndpoints.get(0)).getCount());
+        } else {
+            secretServer.addSecretStation("start", relevantEndpoints.stream().map(x -> x.getServerId()).collect(
+                    Collectors.toList()), relevantEndpoints.get(0).getPopulation());
+            return new BigDecimal(central.nparty(relevantEndpoints, secretServer));
+        }
     }
 
     public List<List<AttributeRequirement>> determineRequirements(List<Node> nodes) {

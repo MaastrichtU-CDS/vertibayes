@@ -36,7 +36,8 @@ public class WebNodeMapperTest {
         station1.setEndpoints(all);
         station2.setEndpoints(all);
 
-        Network network = new Network(Arrays.asList(endpoint1, endpoint2), secretEnd, new VertiBayesCentralServer());
+        Network network = new Network(Arrays.asList(endpoint1, endpoint2), secretEnd, new VertiBayesCentralServer(),
+                                      100);
         network.createNetwork();
         List<Node> nodes = network.getNodes();
 
@@ -114,7 +115,7 @@ public class WebNodeMapperTest {
         station1.setEndpoints(all);
         station2.setEndpoints(all);
 
-        Network network = new Network(Arrays.asList(endpoint1, endpoint2), secretEnd, new VertiBayesCentralServer());
+        Network network = new Network(Arrays.asList(endpoint1, endpoint2), secretEnd, new VertiBayesCentralServer(), 0);
         network.createNetwork();
         List<Node> nodes = network.getNodes();
         //make it so node x3 has 2 parents
