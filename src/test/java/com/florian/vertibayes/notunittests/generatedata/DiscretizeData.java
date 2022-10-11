@@ -2,6 +2,7 @@ package com.florian.vertibayes.notunittests.generatedata;
 
 import com.florian.nscalarproduct.data.Attribute;
 import com.florian.nscalarproduct.data.Data;
+import com.florian.nscalarproduct.error.InvalidDataFormatException;
 import com.florian.nscalarproduct.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.bayes.Bin;
 import com.florian.vertibayes.bayes.Node;
@@ -10,12 +11,13 @@ import com.florian.vertibayes.webservice.domain.external.WebNode;
 import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
-import static com.florian.nscalarproduct.data.Parser.parseCsv;
+import static com.florian.nscalarproduct.data.Parser.parseData;
 import static com.florian.vertibayes.notunittests.generatedata.GenerateNetworks.buildDiabetesNetwork;
 import static com.florian.vertibayes.util.PrintingPress.printARFF;
 import static com.florian.vertibayes.util.PrintingPress.printCSV;
@@ -149,7 +151,14 @@ public class DiscretizeData {
     }
 
     private List<List<Attribute>> discretize(String path, List<Node> network) {
-        Data d = parseCsv(path, 0);
+        Data d = null;
+        try {
+            d = parseData(path, 0);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InvalidDataFormatException e) {
+            e.printStackTrace();
+        }
         List<List<Attribute>> original = d.getData();
         List<List<Attribute>> copy = new ArrayList<>();
         for (int i = 0; i < original.size(); i++) {

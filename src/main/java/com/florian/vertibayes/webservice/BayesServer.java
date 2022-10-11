@@ -2,6 +2,7 @@ package com.florian.vertibayes.webservice;
 
 import com.florian.nscalarproduct.data.Attribute;
 import com.florian.nscalarproduct.data.Data;
+import com.florian.nscalarproduct.error.InvalidDataFormatException;
 import com.florian.nscalarproduct.station.DataStation;
 import com.florian.nscalarproduct.webservice.Server;
 import com.florian.nscalarproduct.webservice.ServerEndpoint;
@@ -17,11 +18,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.florian.nscalarproduct.data.Parser.parseCsv;
+import static com.florian.nscalarproduct.data.Parser.parseData;
 
 @RestController
 public class BayesServer extends Server {
@@ -61,7 +63,13 @@ public class BayesServer extends Server {
             // Check if running in vantage6 by looking for system env, if yes change to database_uri system env for path
             this.path = System.getenv("DATABASE_URI");
         }
-        this.data = parseCsv(path, 0);
+        try {
+            this.data = parseData(path, 0);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InvalidDataFormatException e) {
+            e.printStackTrace();
+        }
         for (String name : data.getCollumnIds().keySet()) {
             uniqueValues.put(name, Data.getUniqueValues(data.getAttributeValues(name)));
         }

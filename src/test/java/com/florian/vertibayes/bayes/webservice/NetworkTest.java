@@ -118,6 +118,73 @@ public class NetworkTest {
     }
 
     @Test
+    public void testCreateDifferentFileTypeNetwork() {
+        BayesServer station1 = new BayesServer("resources/Experiments/mixedFiles/allTypes.csv", "1");
+        BayesServer station2 = new BayesServer("resources/Experiments/mixedFiles/allTypes.arff", "2");
+        BayesServer station3 = new BayesServer("resources/Experiments/mixedFiles/allTypes.parquet", "3");
+
+        VertiBayesEndpoint endpoint1 = new VertiBayesEndpoint(station1);
+        VertiBayesEndpoint endpoint2 = new VertiBayesEndpoint(station2);
+        VertiBayesEndpoint endpoint3 = new VertiBayesEndpoint(station3);
+        BayesServer secret = new BayesServer("4", Arrays.asList(endpoint1, endpoint2, endpoint3));
+
+        ServerEndpoint secretEnd = new ServerEndpoint(secret);
+
+        List<ServerEndpoint> all = new ArrayList<>();
+        all.add(endpoint1);
+        all.add(endpoint2);
+        all.add(endpoint3);
+        all.add(secretEnd);
+        secret.setEndpoints(all);
+        station1.setEndpoints(all);
+        station2.setEndpoints(all);
+        station3.setEndpoints(all);
+
+        Network network = new Network(Arrays.asList(endpoint3, endpoint2, endpoint1), secretEnd,
+                                      new VertiBayesCentralServer(), 10000);
+        network.createNetwork();
+        List<Node> nodes = network.getNodes();
+
+        // check if it matches expected network
+        assertEquals(nodes.size(), 12);
+        assertEquals(nodes.get(0).getName(), "numeric_parquet");
+        assertEquals(nodes.get(0).getType(), Attribute.AttributeType.numeric);
+
+        assertEquals(nodes.get(1).getName(), "real_parquet");
+        assertEquals(nodes.get(1).getType(), Attribute.AttributeType.real);
+
+        assertEquals(nodes.get(2).getName(), "string_parquet");
+        assertEquals(nodes.get(2).getType(), Attribute.AttributeType.string);
+
+        assertEquals(nodes.get(3).getName(), "bool_parquet");
+        assertEquals(nodes.get(3).getType(), Attribute.AttributeType.bool);
+
+        assertEquals(nodes.get(4).getName(), "numeric_arff");
+        assertEquals(nodes.get(4).getType(), Attribute.AttributeType.numeric);
+
+        assertEquals(nodes.get(5).getName(), "real_arff");
+        assertEquals(nodes.get(5).getType(), Attribute.AttributeType.real);
+
+        assertEquals(nodes.get(6).getName(), "string_arff");
+        assertEquals(nodes.get(6).getType(), Attribute.AttributeType.string);
+
+        assertEquals(nodes.get(7).getName(), "bool_arff");
+        assertEquals(nodes.get(7).getType(), Attribute.AttributeType.bool);
+
+        assertEquals(nodes.get(8).getName(), "numeric_csv");
+        assertEquals(nodes.get(8).getType(), Attribute.AttributeType.numeric);
+
+        assertEquals(nodes.get(9).getName(), "real_csv");
+        assertEquals(nodes.get(9).getType(), Attribute.AttributeType.real);
+
+        assertEquals(nodes.get(10).getName(), "string_csv");
+        assertEquals(nodes.get(10).getType(), Attribute.AttributeType.string);
+
+        assertEquals(nodes.get(11).getName(), "bool_csv");
+        assertEquals(nodes.get(11).getType(), Attribute.AttributeType.bool);
+    }
+
+    @Test
     public void testDetermineRequirements() {
         List<Node> nodes = new ArrayList<>();
         nodes.add(new Node("1", new HashSet<String>() {{

@@ -2,13 +2,15 @@ package com.florian.vertibayes.notunittests.generatedata;
 
 import com.florian.nscalarproduct.data.Attribute;
 import com.florian.nscalarproduct.data.Data;
+import com.florian.nscalarproduct.error.InvalidDataFormatException;
 import org.apache.commons.collections.map.HashedMap;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.florian.nscalarproduct.data.Parser.parseCsv;
+import static com.florian.nscalarproduct.data.Parser.parseData;
 import static com.florian.vertibayes.util.PrintingPress.printARFF;
 import static com.florian.vertibayes.util.PrintingPress.printCSV;
 
@@ -92,7 +94,14 @@ public class GenerateTestData {
     }
 
     private void generateFolds(String path, String target, int folds, boolean missing) {
-        Data d = parseCsv(path, 0);
+        Data d = null;
+        try {
+            d = parseData(path, 0);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InvalidDataFormatException e) {
+            e.printStackTrace();
+        }
 
         Map<Integer, List<Attribute>> folded = new HashedMap();
         List<Attribute> ids = d.getIds();
@@ -291,7 +300,14 @@ public class GenerateTestData {
     private void generateMissingData(String path, String target, double treshold) {
         String t = String.valueOf(treshold).replace(".", "_");
         target = target.replace(".csv", "Treshold" + t + ".csv");
-        Data d = parseCsv(path, 0);
+        Data d = null;
+        try {
+            d = parseData(path, 0);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InvalidDataFormatException e) {
+            e.printStackTrace();
+        }
         Random r = new Random();
         for (List<Attribute> attribute : d.getData()) {
             for (Attribute a : attribute) {
