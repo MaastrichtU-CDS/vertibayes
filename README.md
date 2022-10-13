@@ -346,3 +346,8 @@ empty in the request.
   "syntheticTrainingAuc": 0.49951998702044903
 }
 ```
+
+### Additional input/output:
+
+If the field ```"openMarkovResponse":"true"``` is included in the input JSON the output will contain a
+field ```openMarkov``` which contains the network in BIF format as used by the openMarkov library.
