@@ -7,6 +7,15 @@ public class WebBayesNetwork {
     private List<WebNode> nodes;
     private String target;
     private double minPercentage;
+    private boolean openMarkovResponse = false;
+
+    public boolean isOpenMarkovResponse() {
+        return openMarkovResponse;
+    }
+
+    public void setOpenMarkovResponse(boolean openMarkovResponse) {
+        this.openMarkovResponse = openMarkovResponse;
+    }
 
     public double getMinPercentage() {
         return minPercentage;

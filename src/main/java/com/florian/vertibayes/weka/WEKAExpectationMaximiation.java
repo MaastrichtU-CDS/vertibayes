@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 
 import static com.florian.vertibayes.util.DataGeneration.generateDataARRF;
 import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNodeToNode;
-import static com.florian.vertibayes.weka.BifMapper.fromBif;
+import static com.florian.vertibayes.weka.BifMapper.fromWekaBif;
 import static com.florian.vertibayes.weka.BifMapper.toBIF;
 
 public final class WEKAExpectationMaximiation {
@@ -63,7 +63,7 @@ public final class WEKAExpectationMaximiation {
         response.setSyntheticAuc(eval.weightedAreaUnderROC());
 
         response.setWeka(network);
-        response.setNodes(fromBif(network.graph()));
+        response.setNodes(fromWekaBif(network.graph()));
         return response;
     }
 
