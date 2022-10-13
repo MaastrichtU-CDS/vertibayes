@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ProbModelXML formatVersion="0.2.0">
+  <ProbNet type="InfluenceDiagram">
+    <DecisionCriteria>
+      <Criterion name="---" unit="---" />
+    </DecisionCriteria>
+    <Properties />
+<Variables>
+<Variable name="x1" type="finiteStates" role="chance">
+<States>
+</States>
+</Variable>
+<Variable name="x2" type="finiteStates" role="chance">
+<States>
+</States>
+</Variable>
+<Variable name="x3" type="finiteStates" role="chance">
+<States>
+</States>
+</Variable>
+</Variables>
+<Links>
+<Link directed="true">
+<Variable name="x1" />
+<Variable name="x2" />
+</Link>
+<Link directed="true">
+<Variable name="x2" />
+<Variable name="x3" />
+</Link>
+</Links>
+<Potentials>
+<Potential type="Table" role="conditionalProbability">
+<Variables>
+<Variable name="x1" />
+</Variables>
+<Values></Values>
+</Potential>
+<Potential type="Table" role="conditionalProbability">
+<Variables>
+<Variable name="x2" />
+<Variable name="x1" />
+</Variables>
+<Values></Values>
+</Potential>
+<Potential type="Table" role="conditionalProbability">
+<Variables>
+<Variable name="x3" />
+<Variable name="x2" />
+</Variables>
+<Values></Values>
+</Potential>
+</Potentials>
+</ProbNet>
+<InferenceOptions>
+    <MulticriteriaOptions>
+      <SelectedAnalysisType>UNICRITERION</SelectedAnalysisType>
+      <Unicriterion>
+        <Scales>
+          <Scale Criterion="---" Value="1.0" />
+        </Scales>
+      </Unicriterion>
+      <CostEffectiveness>
+        <Scales>
+          <Scale Criterion="---" Value="1.0" />
+        </Scales>
+        <CE_Criteria>
+          <CE_Criterion Criterion="---" Value="Cost" />
+        </CE_Criteria>
+      </CostEffectiveness>
+    </MulticriteriaOptions>
+  </InferenceOptions>
+</ProbModelXML>

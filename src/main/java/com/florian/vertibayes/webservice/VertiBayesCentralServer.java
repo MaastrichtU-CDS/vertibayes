@@ -9,6 +9,7 @@ import com.florian.nscalarproduct.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.bayes.*;
 import com.florian.vertibayes.webservice.domain.InitCentralServerRequest;
 import com.florian.vertibayes.webservice.domain.InitDataResponse;
+import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationOpenMarkovResponse;
 import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationResponse;
 import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationTestResponse;
 import com.florian.vertibayes.webservice.domain.external.WebBayesNetwork;
@@ -26,6 +27,7 @@ import java.util.stream.Collectors;
 
 import static com.florian.vertibayes.bayes.Node.findSliblings;
 import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNodeFromNode;
+import static com.florian.vertibayes.weka.BifMapper.toOpenMarkovBif;
 import static com.florian.vertibayes.weka.WEKAExpectationMaximiation.wekaExpectationMaximization;
 
 @RestController
@@ -86,8 +88,13 @@ public class VertiBayesCentralServer extends CentralServer {
                                                                               req.getTarget());
         if (!testing) {
             ExpectationMaximizationResponse response = new ExpectationMaximizationResponse();
+            if (req.isOpenMarkovResponse()) {
+                response = new ExpectationMaximizationOpenMarkovResponse();
+                ((ExpectationMaximizationOpenMarkovResponse) response).setOpenMarkov(toOpenMarkovBif(res.getNodes()));
+            }
             response.setNodes(res.getNodes());
             response.setSyntheticTrainingAuc(res.getSyntheticAuc());
+
             return response;
         }
         return res;

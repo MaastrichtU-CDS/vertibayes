@@ -20,24 +20,49 @@ public final class BifMapper {
     private BifMapper() {
     }
 
+    public static String toOpenMarkovBif(List<WebNode> nodes) {
+        String bif = "";
+        bif += MARKOVHEADER;
+        String variables = "";
+        String potentials = "";
+        String links = "";
+
+        for (WebNode node : nodes) {
+            variables += createMarkovVariable(node);
+            links += createMarkovLink(node);
+            potentials += createMarkovPotential(node);
+        }
+        bif += "<Variables>\n";
+        bif += variables;
+        bif += "</Variables>\n";
+        bif += "<Links>\n";
+        bif += links;
+        bif += "</Links>\n";
+        bif += "<Potentials>\n";
+        bif += potentials;
+        bif += "</Potentials>\n";
+        bif += MARKOVFOOTER;
+        return bif;
+    }
+
     public static String toBIF(List<WebNode> nodes) {
         String bif = "";
-        bif += HEADER;
+        bif += WEKAHEADER;
         bif += NAME;
         String variables = "";
         String tables = "";
 
         for (WebNode node : nodes) {
-            variables += createVariable(node);
-            tables += createTables(node);
+            variables += createWekaVariable(node);
+            tables += createWekaTables(node);
         }
         bif += variables;
         bif += tables;
-        bif += FOOTER;
+        bif += WEKAFOOTER;
         return bif;
     }
 
-    private static String createTables(WebNode node) {
+    private static String createWekaTables(WebNode node) {
         String s = "";
         s += "<DEFINITION>\n";
         s += "<FOR>" + node.getName() + "</FOR>\n";
@@ -63,7 +88,7 @@ public final class BifMapper {
 
     }
 
-    private static String createVariable(WebNode node) {
+    private static String createWekaVariable(WebNode node) {
         String s = "";
         s += "<VARIABLE TYPE=\"nature\">\n";
         s += "<NAME>" + node.getName() + "</NAME>\n";
@@ -89,6 +114,69 @@ public final class BifMapper {
         return s;
     }
 
+
+    private static String createMarkovPotential(WebNode node) {
+        String s = "<Potential type=\"Table\" role=\"conditionalProbability\">\n";
+        s += "<Variables>\n";
+        s += "<Variable name=\"" + node.getName() + "\" />\n";
+        for (String parent : node.getParents()) {
+            s += "<Variable name=\"" + parent + "\" />\n";
+        }
+        s += "</Variables>\n";
+        s += "<Values>";
+        for (int i = 0; i < node.getProbabilities().size(); i++) {
+            s += node.getProbabilities().get(i).getP();
+            if (i != node.getProbabilities().size() - 1) {
+                s += " ";
+            }
+        }
+        s += "</Values>\n";
+        s += "</Potential>\n";
+
+        return s;
+
+    }
+
+    private static String createMarkovVariable(WebNode node) {
+        String s = "";
+        s += "<Variable name=\"" + node.getName() + "\" type=\"finiteStates\" role=\"chance\">\n";
+        s += "<States>\n";
+        s += addMarkovStates(node);
+        s += "</States>\n";
+        s += "</Variable>\n";
+        return s;
+    }
+
+    private static String addMarkovStates(WebNode node) {
+        String s = "";
+        Set<String> unique = countUnique(node.getProbabilities());
+        for (int i = 0; i < unique.size(); i++) {
+            WebTheta t = node.getProbabilities().get(i);
+
+            if (!t.getLocalValue().isRange()) {
+                s += "<State name=\"" + t.getLocalValue().getLocalValue() + "\"/>\n";
+            } else {
+                s += "<State name=\"" + t.getLocalValue().getLowerLimit() + "-" + t.getLocalValue()
+                        .getUpperLimit() + "\"/>\n";
+            }
+        }
+        return s;
+    }
+
+    private static String createMarkovLink(WebNode node) {
+        if (node.getParents().size() == 0) {
+            return "";
+        }
+        String s = "<Link directed=\"true\">\n";
+        for (String parent : node.getParents()) {
+            s += "<Variable name=\"" + parent + "\" />\n";
+        }
+        s += "<Variable name=\"" + node.getName() + "\" />\n";
+        s += "</Link>\n";
+        return s;
+    }
+
+
     private static Set<String> countUnique(List<WebTheta> probabilites) {
         Set<String> unique = new HashSet<>();
         for (WebTheta t : probabilites) {
@@ -101,8 +189,8 @@ public final class BifMapper {
         return unique;
     }
 
-    public static List<WebNode> fromBif(String bif) {
-        bif = bif.replace(HEADER, "").replace(FOOTER, "");
+    public static List<WebNode> fromWekaBif(String bif) {
+        bif = bif.replace(WEKAHEADER, "").replace(WEKAFOOTER, "");
 
         String[] split = bif.split("</NAME>", 2)[1].split("</VARIABLE>");
         String tableString = split[split.length - 1];
@@ -251,10 +339,41 @@ public final class BifMapper {
         return n;
     }
 
+    private static final String MARKOVHEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+            "<ProbModelXML formatVersion=\"0.2.0\">\n" +
+            "  <ProbNet type=\"InfluenceDiagram\">\n" +
+            "    <DecisionCriteria>\n" +
+            "      <Criterion name=\"---\" unit=\"---\" />\n" +
+            "    </DecisionCriteria>\n" +
+            "    <Properties />\n";
+
+
+    private static final String MARKOVFOOTER = "</ProbNet>\n" +
+            "<InferenceOptions>\n" +
+            "    <MulticriteriaOptions>\n" +
+            "      <SelectedAnalysisType>UNICRITERION</SelectedAnalysisType>\n" +
+            "      <Unicriterion>\n" +
+            "        <Scales>\n" +
+            "          <Scale Criterion=\"---\" Value=\"1.0\" />\n" +
+            "        </Scales>\n" +
+            "      </Unicriterion>\n" +
+            "      <CostEffectiveness>\n" +
+            "        <Scales>\n" +
+            "          <Scale Criterion=\"---\" Value=\"1.0\" />\n" +
+            "        </Scales>\n" +
+            "        <CE_Criteria>\n" +
+            "          <CE_Criterion Criterion=\"---\" Value=\"Cost\" />\n" +
+            "        </CE_Criteria>\n" +
+            "      </CostEffectiveness>\n" +
+            "    </MulticriteriaOptions>\n" +
+            "  </InferenceOptions>\n" +
+            "</ProbModelXML>\n";
+
+
     private static final String NAME = "<NAME>genericBIFF-weka.filters.unsupervised.attribute" +
             ".ReplaceMissingValues</NAME>\n";
 
-    private static final String HEADER = "<?xml version=\"1.0\"?>\n" +
+    private static final String WEKAHEADER = "<?xml version=\"1.0\"?>\n" +
             "<!-- DTD for the XMLBIF 0.3 format -->\n" +
             "<!DOCTYPE BIF [\n" +
             "\t<!ELEMENT BIF ( NETWORK )*>\n" +
@@ -275,5 +394,5 @@ public final class BifMapper {
             "<BIF VERSION=\"0.3\">\n" +
             "<NETWORK>\n";
 
-    private static final String FOOTER = "</NETWORK>\n" + "</BIF>\n";
+    private static final String WEKAFOOTER = "</NETWORK>\n" + "</BIF>\n";
 }

@@ -12,13 +12,13 @@ import weka.core.Instances;
 import java.util.List;
 
 import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNodeToNode;
-import static com.florian.vertibayes.weka.BifMapper.fromBif;
+import static com.florian.vertibayes.weka.BifMapper.fromWekaBif;
 
 public class Score {
 
     public static double calculateAIC(Instances instances, BayesNet network) throws Exception {
         double score = 0;
-        List<Node> nodes = mapWebNodeToNode(fromBif(network.graph()));
+        List<Node> nodes = mapWebNodeToNode(fromWekaBif(network.graph()));
         for (Node node : nodes) {
             for (Theta t : node.getProbabilities()) {
                 double fP = t.getP();
