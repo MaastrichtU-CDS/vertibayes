@@ -41,19 +41,11 @@ public class TestPerformance {
             Performance asia = Asia.kFold();
             printResults(start, asia, 0, CSV);
 
-            start = System.currentTimeMillis();
-            Performance diabetes = DiabetesFewBins.kFold();
-            printResults(start, diabetes, 0, CSV);
-
             System.out.println("Treshold: " + 0.05);
 
             start = System.currentTimeMillis();
             Performance asiaUnknown = Asia.kFoldUnknown(0.05);
             printResults(start, asiaUnknown, 0.05, CSV);
-
-            start = System.currentTimeMillis();
-            Performance diabetesUnknown = DiabetesFewBins.kFoldUnknown(0.05);
-            printResults(start, diabetesUnknown, 0.05, CSV);
 
             start = System.currentTimeMillis();
             Asia.testVertiBayesFullDataSet();
