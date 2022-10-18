@@ -352,4 +352,12 @@ public class VertiBayesCentralServer extends CentralServer {
             }
         }
     }
+
+    protected List<ServerEndpoint> getEndpoints() {
+        return endpoints;
+    }
+
+    protected ServerEndpoint getSecretEndpoint() {
+        return secretEndpoint;
+    }
 }

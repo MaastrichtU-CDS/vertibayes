@@ -59,7 +59,6 @@ public class Network {
         }
     }
 
-
     private void determineParent(Node node, List<Node> pred) {
         List<Node> possibleParents = new ArrayList<>(pred);
         BigDecimal ri = BigDecimal.valueOf(node.getUniquevalues().size());
@@ -215,6 +214,10 @@ public class Network {
 
     public List<Node> getNodes() {
         return nodes;
+    }
+
+    public void setNodes(List<Node> nodes) {
+        this.nodes = nodes;
     }
 
     private void removeDoubles() {

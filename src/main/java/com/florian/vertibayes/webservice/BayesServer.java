@@ -58,7 +58,7 @@ public class BayesServer extends Server {
         readData();
     }
 
-    private void readData() {
+    protected void readData() {
         if (System.getenv("DATABASE_URI") != null) {
             // Check if running in vantage6 by looking for system env, if yes change to database_uri system env for path
             this.path = System.getenv("DATABASE_URI");
@@ -323,4 +323,11 @@ public class BayesServer extends Server {
         }
     }
 
+    protected Data getData() {
+        return data;
+    }
+
+    protected Map<String, Set<String>> getUniqueValues() {
+        return uniqueValues;
+    }
 }
