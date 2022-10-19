@@ -9,10 +9,7 @@ import com.florian.nscalarproduct.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.bayes.*;
 import com.florian.vertibayes.webservice.domain.InitCentralServerRequest;
 import com.florian.vertibayes.webservice.domain.InitDataResponse;
-import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationOpenMarkovResponse;
-import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationResponse;
-import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationTestResponse;
-import com.florian.vertibayes.webservice.domain.external.WebBayesNetwork;
+import com.florian.vertibayes.webservice.domain.external.*;
 import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -91,13 +88,17 @@ public class VertiBayesCentralServer extends CentralServer {
             if (req.isOpenMarkovResponse()) {
                 response = new ExpectationMaximizationOpenMarkovResponse();
                 ((ExpectationMaximizationOpenMarkovResponse) response).setOpenMarkov(toOpenMarkovBif(res.getNodes()));
+            } else if (req.isWekaResponse()) {
+                response = new ExpectationMaximizationWekaResponse();
+                ((ExpectationMaximizationWekaResponse) response).setWeka(res.getWeka());
             }
             response.setNodes(res.getNodes());
             response.setSyntheticTrainingAuc(res.getSyntheticAuc());
-
             return response;
+        } else {
+            return res;
         }
-        return res;
+
     }
 
     @PostMapping ("initCentralServer")

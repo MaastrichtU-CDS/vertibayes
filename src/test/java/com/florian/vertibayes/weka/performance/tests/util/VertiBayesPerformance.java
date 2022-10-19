@@ -48,6 +48,7 @@ public class VertiBayesPerformance {
         req.setMinPercentage(minPercentage);
         req.setNodes(input);
         req.setTarget(target);
+        req.setWekaResponse(true);
         return central.expectationMaximization(req);
     }
 

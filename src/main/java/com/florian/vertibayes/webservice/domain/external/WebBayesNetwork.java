@@ -8,6 +8,7 @@ public class WebBayesNetwork {
     private String target;
     private double minPercentage;
     private boolean openMarkovResponse = false;
+    private boolean wekaResponse = false;
 
     public boolean isOpenMarkovResponse() {
         return openMarkovResponse;
@@ -39,5 +40,13 @@ public class WebBayesNetwork {
 
     public String getTarget() {
         return target;
+    }
+
+    public boolean isWekaResponse() {
+        return wekaResponse;
+    }
+
+    public void setWekaResponse(boolean wekaResponse) {
+        this.wekaResponse = wekaResponse;
     }
 }

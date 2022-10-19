@@ -10,6 +10,8 @@ public class test {
     public void test() throws Exception {
         long start = System.currentTimeMillis();
         Performance p = Asia.testVertiBayesFullDataSet();
+        p = Asia.kFold();
+        p = Asia.kFoldUnknown(0.05);
         p.setName("test");
         printResults(start, p, 0.05, true);
 
