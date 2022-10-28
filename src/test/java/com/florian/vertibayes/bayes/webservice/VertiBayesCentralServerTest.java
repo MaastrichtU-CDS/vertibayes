@@ -11,14 +11,73 @@ import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
 import com.florian.vertibayes.webservice.domain.external.WebBayesNetwork;
 import com.florian.vertibayes.webservice.domain.external.WebNode;
-import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
+import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNodeToNode;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class VertiBayesCentralServerTest {
+
+    @Test
+    public void testCreateNetworkHybrid() {
+        BayesServer station1 = new BayesServer("resources/Experiments/hybridsplit/smallK2Example_firsthalf_hybrid1.csv",
+                                               "1");
+        BayesServer station2 = new BayesServer("resources/Experiments/hybridsplit/smallK2Example_firsthalf_hybrid2.csv",
+                                               "2");
+        BayesServer station3 = new BayesServer("resources/Experiments/hybridsplit/smallK2Example_secondhalf.csv", "3");
+
+        VertiBayesEndpoint endpoint1 = new VertiBayesEndpoint(station1);
+        VertiBayesEndpoint endpoint2 = new VertiBayesEndpoint(station2);
+        VertiBayesEndpoint endpoint3 = new VertiBayesEndpoint(station3);
+        BayesServer secret = new BayesServer("4", Arrays.asList(endpoint1, endpoint2, endpoint3));
+
+        ServerEndpoint secretEnd = new ServerEndpoint(secret);
+
+        List<ServerEndpoint> all = new ArrayList<>();
+        all.add(endpoint1);
+        all.add(endpoint2);
+        all.add(endpoint3);
+        all.add(secretEnd);
+        secret.setEndpoints(all);
+        station1.setEndpoints(all);
+        station2.setEndpoints(all);
+        station3.setEndpoints(all);
+
+        //hybrid
+        VertiBayesCentralServer central = new VertiBayesCentralServer();
+        central.initEndpoints(Arrays.asList(endpoint1, endpoint3), secretEnd);
+        endpoint1.setUseLocalOnly(true);
+        List<Node> webNodesHybrid = mapWebNodeToNode(central.maximumLikelyhood(central.buildNetwork()).getNodes());
+
+        // check if it matches expected network
+        assertEquals(webNodesHybrid.size(), 3);
+        assertEquals(webNodesHybrid.get(0).getParents().size(), 0);
+        assertEquals(webNodesHybrid.get(1).getParents().size(), 1);
+        assertTrue(webNodesHybrid.get(1).getParents().contains(webNodesHybrid.get(0)));
+        assertEquals(webNodesHybrid.get(2).getParents().size(), 1);
+        assertTrue(webNodesHybrid.get(2).getParents().contains(webNodesHybrid.get(1)));
+
+        //normal
+        central = new VertiBayesCentralServer();
+        central.initEndpoints(Arrays.asList(endpoint1, endpoint2, endpoint3), secretEnd);
+        endpoint1.setUseLocalOnly(false);
+        List<Node> webNodes = mapWebNodeToNode(central.maximumLikelyhood(central.buildNetwork()).getNodes());
+
+        // check if it matches expected network
+        assertEquals(webNodes.size(), 3);
+        assertEquals(webNodes.get(0).getParents().size(), 0);
+        assertEquals(webNodes.get(1).getParents().size(), 1);
+        assertTrue(webNodes.get(1).getParents().contains(webNodes.get(0)));
+        assertEquals(webNodes.get(2).getParents().size(), 1);
+        assertTrue(webNodes.get(2).getParents().contains(webNodes.get(1)));
+        //expected network an example are based on the example in "resources/k2_algorithm.pdf"
+
+        //The structures were the same, but the probabilities are different, check the first probability to make sure.
+        assertEquals(webNodes.get(0).getProbabilities().get(0).getP(), 0.5);
+        assertEquals(webNodesHybrid.get(0).getProbabilities().get(0).getP(), 0.4);
+    }
 
     @Test
     public void testDoubleSplitManuallyBinned() {
@@ -67,7 +126,7 @@ public class VertiBayesCentralServerTest {
         WebBayesNetwork req = new WebBayesNetwork();
         req.setNodes(webNodes);
 
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
+        List<Node> nodes = mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
 
         // check if it matches expected network
         assertEquals(nodes.size(), 3);
@@ -278,7 +337,7 @@ public class VertiBayesCentralServerTest {
         WebBayesNetwork req = new WebBayesNetwork();
         req.setNodes(webNodes);
 
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
+        List<Node> nodes = mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
 
         // check if it matches expected network
         assertEquals(nodes.size(), 3);
@@ -473,7 +532,7 @@ public class VertiBayesCentralServerTest {
         WebBayesNetwork req = new WebBayesNetwork();
         req.setNodes(webNodes);
 
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
+        List<Node> nodes = mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
 
         // check if it matches expected network
         assertEquals(nodes.size(), 3);
@@ -593,7 +652,7 @@ public class VertiBayesCentralServerTest {
         WebBayesNetwork req = new WebBayesNetwork();
         req.setNodes(webNodes);
 
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
+        List<Node> nodes = mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
 
         // check if it matches expected network
         assertEquals(nodes.size(), 3);
@@ -765,7 +824,7 @@ public class VertiBayesCentralServerTest {
         List<WebNode> WebNodes = buildSmallAlarmNetwork();
         WebBayesNetwork req = new WebBayesNetwork();
         req.setNodes(WebNodes);
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
+        List<Node> nodes = mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
 
         // find the ventlung node, it's the one with three parents
         Node vntl = null;
@@ -860,7 +919,7 @@ public class VertiBayesCentralServerTest {
         req.setTarget("x3");
 
 
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.expectationMaximization(req).getNodes());
+        List<Node> nodes = mapWebNodeToNode(central.expectationMaximization(req).getNodes());
 
         // check if it matches expected network
         assertEquals(nodes.size(), 3);
@@ -1026,7 +1085,7 @@ public class VertiBayesCentralServerTest {
         req.setNodes(webNodes);
         req.setTarget("x3");
 
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.expectationMaximization(req).getNodes());
+        List<Node> nodes = mapWebNodeToNode(central.expectationMaximization(req).getNodes());
 
         // check if it matches expected network
         assertEquals(nodes.size(), 3);
@@ -1173,7 +1232,7 @@ public class VertiBayesCentralServerTest {
         req.setNodes(webNodes);
         req.setTarget("x3");
 
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.expectationMaximization(req).getNodes());
+        List<Node> nodes = mapWebNodeToNode(central.expectationMaximization(req).getNodes());
 
         // check if it matches expected network
         assertEquals(nodes.size(), 3);
@@ -1347,7 +1406,7 @@ public class VertiBayesCentralServerTest {
         req.setNodes(WebNodes);
         req.setTarget("VENTTUBE");
 
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.expectationMaximization(req).getNodes());
+        List<Node> nodes = mapWebNodeToNode(central.expectationMaximization(req).getNodes());
 
         // find the ventlung node, it's the one with three parents
         Node vntl = null;
@@ -1434,7 +1493,7 @@ public class VertiBayesCentralServerTest {
         VertiBayesCentralServer central = new VertiBayesCentralServer();
         central.initEndpoints(Arrays.asList(endpoint1, endpoint2, endpoint3), secretEnd);
 
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
+        List<Node> nodes = mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
 
         // find the ventlung node, it's the one with three parents
         Node asia = null;

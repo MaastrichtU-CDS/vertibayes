@@ -56,6 +56,50 @@ public class NetworkTest {
     }
 
     @Test
+    public void testCreateNetworkHybrid() {
+        BayesServer station1 = new BayesServer("resources/Experiments/hybridsplit/smallK2Example_firsthalf_hybrid1.csv",
+                                               "1");
+        BayesServer station2 = new BayesServer("resources/Experiments/hybridsplit/smallK2Example_firsthalf_hybrid2.csv",
+                                               "2");
+        BayesServer station3 = new BayesServer("resources/Experiments/hybridsplit/smallK2Example_secondhalf.csv", "3");
+
+        VertiBayesEndpoint endpoint1 = new VertiBayesEndpoint(station1);
+        VertiBayesEndpoint endpoint2 = new VertiBayesEndpoint(station2);
+        VertiBayesEndpoint endpoint3 = new VertiBayesEndpoint(station3);
+        BayesServer secret = new BayesServer("4", Arrays.asList(endpoint1, endpoint2, endpoint3));
+
+        ServerEndpoint secretEnd = new ServerEndpoint(secret);
+
+        List<ServerEndpoint> all = new ArrayList<>();
+        all.add(endpoint1);
+        all.add(endpoint2);
+        all.add(endpoint3);
+        all.add(secretEnd);
+        secret.setEndpoints(all);
+        station1.setEndpoints(all);
+        station2.setEndpoints(all);
+        station3.setEndpoints(all);
+
+        Network network = new Network(Arrays.asList(endpoint1, endpoint3), secretEnd,
+                                      new VertiBayesCentralServer(),
+                                      100);
+        endpoint1.setUseLocalOnly(true);
+        network.createNetwork();
+
+        List<Node> nodes = network.getNodes();
+
+        // check if it matches expected network
+        assertEquals(nodes.size(), 3);
+        assertEquals(nodes.get(0).getParents().size(), 0);
+        assertEquals(nodes.get(1).getParents().size(), 1);
+        assertTrue(nodes.get(1).getParents().contains(nodes.get(0)));
+        assertEquals(nodes.get(2).getParents().size(), 1);
+        assertTrue(nodes.get(2).getParents().contains(nodes.get(1)));
+
+        //expected network an example are based on the example in "resources/k2_algorithm.pdf"
+    }
+
+    @Test
     public void testCreateThreePartyNetwork() {
         BayesServer station1 = new BayesServer("resources/Experiments/threeParty/Asia10k_first.csv", "1");
         BayesServer station2 = new BayesServer("resources/Experiments/threeParty/Asia10k_second.csv", "2");

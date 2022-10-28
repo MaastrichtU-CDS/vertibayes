@@ -34,6 +34,9 @@ public class BayesServer extends Server {
     private static final double MINPERCENTAGE_DEFAULT = 0.1;
     private double minPercentage = MINPERCENTAGE_DEFAULT;
     private static final List<Double> VALID_PERCENTAGES = Arrays.asList(0.1, 0.2, 0.25, 0.3, 0.4);
+    private boolean useLocalOnly = false; //flag to indicate if a hybrid distribution is to be assumed
+    // if you only use local data records with "locallyPresent" = false will be set to 0 for n-party protocols
+    // default = false, locallyPresent are treated as 1.
 
 
     public BigInteger count() {
@@ -72,6 +75,26 @@ public class BayesServer extends Server {
         }
         for (String name : data.getCollumnIds().keySet()) {
             uniqueValues.put(name, Data.getUniqueValues(data.getAttributeValues(name)));
+        }
+    }
+
+    @GetMapping ("setUseLocalOnly")
+    public void setUseLocalOnly(boolean useLocalOnly) {
+        this.useLocalOnly = useLocalOnly;
+    }
+
+    @GetMapping ("getPopulation")
+    public int getLocalPopulation() {
+        if (useLocalOnly) {
+            int count = 0;
+            for (int i = 0; i < population; i++) {
+                if (recordIsLocallyPresent(i)) {
+                    count++;
+                }
+            }
+            return count;
+        } else {
+            return super.getPopulation();
         }
     }
 
@@ -265,12 +288,24 @@ public class BayesServer extends Server {
             }
         }
 
-        checkHorizontalSplit(data, localData);
+        if (!useLocalOnly) {
+            checkHorizontalSplit(data, localData);
+        } else {
+            markLocallyPresent(data, localData);
+        }
 
         this.population = localData.length;
         this.dataStations.put("start", new DataStation(this.serverId, this.localData));
 
         return response;
+    }
+
+    private void markLocallyPresent(Data data, BigInteger[] localData) {
+        for (int i = 0; i < localData.length; i++) {
+            if (!recordIsLocallyPresent(i)) {
+                localData[i] = BigInteger.ZERO;
+            }
+        }
     }
 
     private void checkHorizontalSplit(Data data) {
@@ -329,5 +364,12 @@ public class BayesServer extends Server {
 
     protected Map<String, Set<String>> getUniqueValues() {
         return uniqueValues;
+    }
+
+    private boolean recordIsLocallyPresent(int record) {
+        AttributeRequirement req = new AttributeRequirement(
+                new Attribute(Attribute.AttributeType.bool, "true", "locallyPresent"));
+        List<Attribute> isLocallyPresent = getData().getAttributeValues("locallyPresent");
+        return req.checkRequirement(isLocallyPresent.get(record));
     }
 }

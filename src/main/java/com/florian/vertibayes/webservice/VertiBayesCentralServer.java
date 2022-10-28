@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -253,7 +254,10 @@ public class VertiBayesCentralServer extends CentralServer {
             } else {
                 BigInteger count = countValue(
                         new ArrayList<>(Arrays.asList(t.getLocalRequirement())));
-                t.setP(count.doubleValue() / (double) endpoints.get(0).getPopulation());
+                List<Integer> population = endpoints.stream().map(x -> ((VertiBayesEndpoint) x).getLocalPopulation())
+                        .collect(
+                                Collectors.toList());
+                t.setP(count.doubleValue() / ((double) Collections.min(population)));
             }
         }
     }

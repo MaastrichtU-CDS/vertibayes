@@ -41,6 +41,24 @@ public class VertiBayesEndpoint extends ServerEndpoint {
         return REST_TEMPLATE.getForEntity(serverUrl + "/createNodes", NodesResponse.class).getBody().getNodes();
     }
 
+    public void setUseLocalOnly(boolean useLocalOnly) {
+        if (testing) {
+            ((BayesServer) (server)).setUseLocalOnly(useLocalOnly);
+        } else {
+            REST_TEMPLATE.getForEntity(serverUrl + "/setLocalOnly?localonly=" + useLocalOnly, Set.class)
+                    .getBody();
+        }
+    }
+
+    public Integer getLocalPopulation() {
+        if (testing) {
+            return ((BayesServer) (server)).getLocalPopulation();
+        } else {
+            return REST_TEMPLATE.getForEntity(serverUrl + "/getLocalPopulation", Integer.class)
+                    .getBody();
+        }
+    }
+
     public Set<String> getUniqueValues(String attributeName) {
         if (testing) {
             return ((BayesServer) (server)).getUniqueValues(attributeName);
