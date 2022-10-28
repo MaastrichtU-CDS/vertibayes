@@ -9,6 +9,7 @@ import com.florian.vertibayes.bayes.Theta;
 import com.florian.vertibayes.webservice.BayesServer;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
+import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationResponse;
 import com.florian.vertibayes.webservice.domain.external.WebBayesNetwork;
 import com.florian.vertibayes.webservice.domain.external.WebNode;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,131 @@ import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNode
 import static org.junit.jupiter.api.Assertions.*;
 
 public class VertiBayesCentralServerTest {
+
+    @Test
+    public void testMaximumLikelyhoodAsia3PartiesKFold() throws Exception {
+        //Small test with 3 parties.
+        //1 node has no parents, so requires only 1 party
+        //1 node has 1 parent, requires 2 parties
+        //1 node has 2 parents, requires all 3 parties
+
+        //Using maximumlikelyhood because the small network size means EM/synthetic generation fluctuates wildly
+        // between runs, but maximumlikelyhood is stable, and the point of htis test is to test the federated bit
+
+        BayesServer station1 = new BayesServer("resources/Experiments/threeParty/Asia10k_first.csv", "1");
+        BayesServer station2 = new BayesServer("resources/Experiments/threeParty/Asia10k_second.csv", "2");
+        BayesServer station3 = new BayesServer("resources/Experiments/threeParty/Asia10k_third.csv", "3");
+
+        VertiBayesEndpoint endpoint1 = new VertiBayesEndpoint(station1);
+        VertiBayesEndpoint endpoint2 = new VertiBayesEndpoint(station2);
+        VertiBayesEndpoint endpoint3 = new VertiBayesEndpoint(station3);
+        BayesServer secret = new BayesServer("4", Arrays.asList(endpoint1, endpoint2, endpoint3));
+
+        ServerEndpoint secretEnd = new ServerEndpoint(secret);
+
+        List<ServerEndpoint> all = new ArrayList<>();
+        all.add(endpoint1);
+        all.add(endpoint2);
+        all.add(endpoint3);
+        all.add(secretEnd);
+        secret.setEndpoints(all);
+        station1.setEndpoints(all);
+        station2.setEndpoints(all);
+        station3.setEndpoints(all);
+
+        List<WebNode> WebNodes = buildSmallAsiaNetwork();
+        WebBayesNetwork req = new WebBayesNetwork();
+        req.setNodes(WebNodes);
+        req.setTarget("asia");
+        req.setFolds(3);
+
+        VertiBayesCentralServer central = new VertiBayesCentralServer();
+        central.initEndpoints(Arrays.asList(endpoint1, endpoint2, endpoint3), secretEnd);
+        ExpectationMaximizationResponse res = central.expectationMaximization(
+                req);
+        req.setFolds(1);
+        ExpectationMaximizationResponse resNoFolds =
+                central.expectationMaximization(
+                        req);
+
+        //assert the averageAUC, which is bad cuz it's a model with 3 random nodes.
+        assertEquals(res.getSvdgAuc(), 0.50, 0.1);
+
+        List<Node> nodes = mapWebNodeToNode(res.getNodes());
+        List<Node> nodesNoFolds = mapWebNodeToNode(resNoFolds.getNodes());
+
+        // find the ventlung node, it's the one with three parents
+        Node asia = null;
+        for (Node n : nodes) {
+            if (n.getName().equals("asia")) {
+                asia = n;
+                break;
+            }
+        }
+
+        Node asiaNoFold = null;
+        for (Node n : nodesNoFolds) {
+            if (n.getName().equals("asia")) {
+                asiaNoFold = n;
+                break;
+            }
+        }
+
+        assertEquals(asia.getParents().size(), 0);
+        assertEquals(asia.getUniquevalues().size(), 2);
+        assertEquals(asia.getProbabilities().size(), 2);
+        //assert the final probabilities are the same between the final model and a model trained with no folds
+        assertEquals(asia.getProbabilities().get(0).getP(), asiaNoFold.getProbabilities().get(0).getP(), 0.01);
+        assertEquals(asia.getProbabilities().get(1).getP(), asiaNoFold.getProbabilities().get(1).getP(), 0.01);
+
+
+        Node either = null;
+        for (Node n : nodes) {
+            if (n.getName().equals("either")) {
+                either = n;
+                break;
+            }
+        }
+
+        Node eitherNoFold = null;
+        for (Node n : nodes) {
+            if (n.getName().equals("either")) {
+                eitherNoFold = n;
+                break;
+            }
+        }
+
+        assertEquals(either.getParents().size(), 1);
+        assertEquals(either.getUniquevalues().size(), 2);
+        assertEquals(either.getProbabilities().size(), 4);
+        for (int i = 0; i < 4; i++) {
+            assertEquals(either.getProbabilities().get(i).getP(), eitherNoFold.getProbabilities().get(i).getP(), 0.01);
+        }
+
+
+        Node lung = null;
+        for (Node n : nodes) {
+            if (n.getName().equals("lung")) {
+                lung = n;
+                break;
+            }
+        }
+
+        Node lungNoFold = null;
+        for (Node n : nodes) {
+            if (n.getName().equals("lung")) {
+                lungNoFold = n;
+                break;
+            }
+        }
+
+        assertEquals(lung.getParents().size(), 2);
+        assertEquals(lung.getUniquevalues().size(), 2);
+        assertEquals(lung.getProbabilities().size(), 8);
+        for (int i = 0; i < 8; i++) {
+            assertEquals(lung.getProbabilities().get(i).getP(), lungNoFold.getProbabilities().get(i).getP(), 0.01);
+        }
+    }
 
     @Test
     public void testCreateNetworkHybrid() {

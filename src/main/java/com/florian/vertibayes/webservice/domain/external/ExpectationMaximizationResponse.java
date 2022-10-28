@@ -4,14 +4,23 @@ import java.util.List;
 
 public class ExpectationMaximizationResponse {
     private List<WebNode> nodes;
-    private double syntheticTrainingAuc;
+    private double scvAuc;
+    private double svdgAuc;
 
-    public double getSyntheticTrainingAuc() {
-        return syntheticTrainingAuc;
+    public double getSvdgAuc() {
+        return svdgAuc;
     }
 
-    public void setSyntheticTrainingAuc(double syntheticTrainingAuc) {
-        this.syntheticTrainingAuc = syntheticTrainingAuc;
+    public void setSvdgAuc(double svdgAuc) {
+        this.svdgAuc = svdgAuc;
+    }
+
+    public double getScvAuc() {
+        return scvAuc;
+    }
+
+    public void setScvAuc(double scvAuc) {
+        this.scvAuc = scvAuc;
     }
 
     public List<WebNode> getNodes() {

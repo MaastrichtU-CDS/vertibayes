@@ -9,6 +9,15 @@ public class WebBayesNetwork {
     private double minPercentage;
     private boolean openMarkovResponse = false;
     private boolean wekaResponse = false;
+    private int folds = 1;
+
+    public int getFolds() {
+        return folds;
+    }
+
+    public void setFolds(int folds) {
+        this.folds = folds;
+    }
 
     public boolean isOpenMarkovResponse() {
         return openMarkovResponse;

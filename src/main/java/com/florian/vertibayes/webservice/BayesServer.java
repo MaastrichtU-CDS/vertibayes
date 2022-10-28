@@ -10,6 +10,7 @@ import com.florian.nscalarproduct.webservice.domain.AttributeRequirement;
 import com.florian.nscalarproduct.webservice.domain.AttributeRequirementsRequest;
 import com.florian.vertibayes.bayes.Bin;
 import com.florian.vertibayes.bayes.Node;
+import com.florian.vertibayes.webservice.domain.ActiveRecordRequest;
 import com.florian.vertibayes.webservice.domain.InitDataResponse;
 import com.florian.vertibayes.webservice.domain.NodesResponse;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +38,8 @@ public class BayesServer extends Server {
     private boolean useLocalOnly = false; //flag to indicate if a hybrid distribution is to be assumed
     // if you only use local data records with "locallyPresent" = false will be set to 0 for n-party protocols
     // default = false, locallyPresent are treated as 1.
+
+    private boolean[] activeRecords;
 
 
     public BigInteger count() {
@@ -83,12 +86,16 @@ public class BayesServer extends Server {
         this.useLocalOnly = useLocalOnly;
     }
 
-    @GetMapping ("getPopulation")
+    @GetMapping ("getLocalPopulation")
     public int getLocalPopulation() {
         if (useLocalOnly) {
             int count = 0;
             for (int i = 0; i < population; i++) {
-                if (recordIsLocallyPresent(i)) {
+                if (activeRecords != null && activeRecords.length > 0) {
+                    if (recordIsLocallyPresent(i)) {
+                        count++;
+                    }
+                } else if (recordIsLocallyPresent(i)) {
                     count++;
                 }
             }
@@ -96,6 +103,11 @@ public class BayesServer extends Server {
         } else {
             return super.getPopulation();
         }
+    }
+
+    @PostMapping ("setActiveRecords")
+    public void setActiveRecords(ActiveRecordRequest req) {
+        this.activeRecords = req.getActiveRecords();
     }
 
     @GetMapping ("getUniqueValues")
@@ -293,11 +305,22 @@ public class BayesServer extends Server {
         } else {
             markLocallyPresent(data, localData);
         }
+        markActiveRecords(localData);
 
         this.population = localData.length;
         this.dataStations.put("start", new DataStation(this.serverId, this.localData));
 
         return response;
+    }
+
+    private void markActiveRecords(BigInteger[] localData) {
+        if (activeRecords != null && activeRecords.length > 0) {
+            for (int i = 0; i < localData.length; i++) {
+                if (!activeRecords[i]) {
+                    localData[i] = BigInteger.ZERO;
+                }
+            }
+        }
     }
 
     private void markLocallyPresent(Data data, BigInteger[] localData) {

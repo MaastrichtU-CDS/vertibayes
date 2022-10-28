@@ -28,6 +28,33 @@ public final class WEKAExpectationMaximiation {
     private WEKAExpectationMaximiation() {
     }
 
+    public static double validate(List<WebNode> trainModel, List<WebNode> validationModel, String target)
+            throws Exception {
+        generateDataARRF(mapWebNodeToNode(validationModel), SAMPLE_SIZE, ARFF);
+        printBIF(toBIF(trainModel));
+        FromFile search = new FromFile();
+        search.setBIFFile(BIFF);
+
+        BayesNet network = new BayesNet();
+        network.setSearchAlgorithm(search);
+        Instances data = new Instances(
+                new BufferedReader(new FileReader(ARFF)));
+
+        for (int i = 0; i < data.numAttributes(); i++) {
+            if (data.attribute(i).name().equals(target)) {
+                data.setClassIndex(i);
+                break;
+            }
+        }
+
+        network.setEstimator(new SimpleEstimator());
+
+        network.buildClassifier(data);
+        Evaluation eval = new Evaluation(data);
+        eval.crossValidateModel(network, data, FOLDS, new Random(1));
+        return eval.weightedAreaUnderROC();
+    }
+
     public static ExpectationMaximizationTestResponse wekaExpectationMaximization(List<WebNode> nodes,
                                                                                   String target)
             throws Exception {

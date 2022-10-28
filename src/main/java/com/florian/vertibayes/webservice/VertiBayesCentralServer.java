@@ -17,15 +17,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.florian.vertibayes.bayes.Node.findSliblings;
 import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNodeFromNode;
 import static com.florian.vertibayes.weka.BifMapper.toOpenMarkovBif;
+import static com.florian.vertibayes.weka.WEKAExpectationMaximiation.validate;
 import static com.florian.vertibayes.weka.WEKAExpectationMaximiation.wekaExpectationMaximization;
 
 @RestController
@@ -78,6 +76,74 @@ public class VertiBayesCentralServer extends CentralServer {
     @PostMapping ("ExpectationMaximization")
     public ExpectationMaximizationResponse expectationMaximization(@RequestBody WebBayesNetwork req) throws Exception {
         initEndpoints();
+        int[] folds = createFolds(req);
+        if (req.getFolds() > 1) {
+            return kfoldExpectationMaximization(req, folds);
+        } else {
+            return performExpectationMaximization(req);
+        }
+    }
+
+    private ExpectationMaximizationResponse kfoldExpectationMaximization(WebBayesNetwork req, int[] folds)
+            throws Exception {
+        //it is possible to include a round of k-fold cross-validation here.
+        //This will perform SVDG validation
+        double auc = 0;
+        for (int i = 0; i < req.getFolds(); i++) {
+            initFold(folds, i);
+            req.setWekaResponse(true);
+            ExpectationMaximizationResponse trainModel = performExpectationMaximization(req);
+            initValidationFold(folds, i);
+            ExpectationMaximizationResponse validationModel = performExpectationMaximization(req);
+            auc += validate(trainModel.getNodes(), validationModel.getNodes(), req.getTarget());
+        }
+        auc /= req.getFolds();
+
+        boolean[] activeRecords = new boolean[endpoints.get(0).getPopulation()];
+        for (int j = 0; j < folds.length; j++) {
+            activeRecords[j] = true;
+        }
+        endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).setActiveRecords(activeRecords));
+        ExpectationMaximizationResponse response = performExpectationMaximization(req);
+        response.setSvdgAuc(auc);
+        return response;
+    }
+
+    private void initValidationFold(int[] folds, int i) {
+        boolean[] activeRecords = new boolean[endpoints.get(0).getPopulation()];
+        for (int j = 0; j < folds.length; j++) {
+            if (folds[j] == i) {
+                activeRecords[j] = true;
+            } else {
+                activeRecords[j] = false;
+            }
+        }
+        endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).setActiveRecords(activeRecords));
+    }
+
+    private void initFold(int[] folds, int i) {
+        boolean[] activeRecords = new boolean[endpoints.get(0).getPopulation()];
+        for (int j = 0; j < folds.length; j++) {
+            if (folds[j] != i) {
+                activeRecords[j] = true;
+            } else {
+                activeRecords[j] = false;
+            }
+        }
+        endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).setActiveRecords(activeRecords));
+    }
+
+    private int[] createFolds(WebBayesNetwork req) {
+        int[] folds = new int[endpoints.get(0).getPopulation()];
+        Random r = new Random();
+        for (int i = 0; i < folds.length; i++) {
+            folds[i] = r.nextInt(req.getFolds());
+        }
+        return folds;
+    }
+
+    private ExpectationMaximizationResponse performExpectationMaximization(WebBayesNetwork req)
+            throws Exception {
         List<Node> nodes = WebNodeMapper.mapWebNodeToNode(req.getNodes());
         initNodesMaximumLikelyhood(nodes, req.getMinPercentage());
         initThetas(nodes);
@@ -88,18 +154,18 @@ public class VertiBayesCentralServer extends CentralServer {
             ExpectationMaximizationResponse response = new ExpectationMaximizationResponse();
             if (req.isOpenMarkovResponse()) {
                 response = new ExpectationMaximizationOpenMarkovResponse();
-                ((ExpectationMaximizationOpenMarkovResponse) response).setOpenMarkov(toOpenMarkovBif(res.getNodes()));
+                ((ExpectationMaximizationOpenMarkovResponse) response).setOpenMarkov(
+                        toOpenMarkovBif(res.getNodes()));
             } else if (req.isWekaResponse()) {
                 response = new ExpectationMaximizationWekaResponse();
                 ((ExpectationMaximizationWekaResponse) response).setWeka(res.getWeka());
             }
             response.setNodes(res.getNodes());
-            response.setSyntheticTrainingAuc(res.getSyntheticAuc());
+            response.setScvAuc(res.getSyntheticAuc());
             return response;
         } else {
             return res;
         }
-
     }
 
     @PostMapping ("initCentralServer")

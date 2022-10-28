@@ -7,6 +7,7 @@ import com.florian.nscalarproduct.webservice.domain.AttributeRequirement;
 import com.florian.nscalarproduct.webservice.domain.AttributeRequirementsRequest;
 import com.florian.vertibayes.bayes.Bin;
 import com.florian.vertibayes.bayes.Node;
+import com.florian.vertibayes.webservice.domain.ActiveRecordRequest;
 import com.florian.vertibayes.webservice.domain.InitDataResponse;
 import com.florian.vertibayes.webservice.domain.NodesResponse;
 
@@ -31,6 +32,16 @@ public class VertiBayesEndpoint extends ServerEndpoint {
             return ((BayesServer) (server)).initK2Data(request);
         } else {
             return REST_TEMPLATE.postForEntity(serverUrl + "/initK2Data", request, InitDataResponse.class).getBody();
+        }
+    }
+
+    public void setActiveRecords(boolean[] activeRecords) {
+        ActiveRecordRequest request = new ActiveRecordRequest();
+        request.setActiveRecords(activeRecords);
+        if (testing) {
+            ((BayesServer) (server)).setActiveRecords(request);
+        } else {
+            REST_TEMPLATE.postForEntity(serverUrl + "/setActiveRecords", request, void.class);
         }
     }
 
