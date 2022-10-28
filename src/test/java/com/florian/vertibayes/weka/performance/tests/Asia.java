@@ -13,6 +13,7 @@ import static com.florian.vertibayes.notunittests.generatedata.GenerateNetworks.
 import static com.florian.vertibayes.weka.performance.tests.util.Performance.averagePerformance;
 import static com.florian.vertibayes.weka.performance.tests.util.Performance.checkVariance;
 import static com.florian.vertibayes.weka.performance.tests.util.Util.readData;
+import static com.florian.vertibayes.weka.performance.tests.util.VertiBayesKFoldPerformance.buildAndValidateFold;
 import static com.florian.vertibayes.weka.performance.tests.util.VertiBayesPerformance.buildAndValidate;
 import static com.florian.vertibayes.weka.performance.tests.util.WekaPerformance.wekaGenerateErrors;
 import static com.florian.vertibayes.weka.performance.tests.util.WekaPerformance.wekaTest;
@@ -164,6 +165,27 @@ public class Asia {
         res.getWekaErrors().putAll(errors.getWekaErrors());
         res.setWekaAuc(wekaTest(LABEL, ASIA_WEKA_BIF, TEST_FULL, res));
         return res;
+    }
+
+    public static Performance testVertiBayesFullDataSetSVDG() throws Exception {
+        initNodes();
+        Instances fullData = readData(LABEL, TEST_FULL);
+        Performance p = buildAndValidateFold(FIRSTHALF, SECONDHALF, readData(LABEL, TEST_FULL),
+                                             LABEL, TEST_FULL.replace("WEKA.arff", ".csv"),
+                                             NODES, MINPERCENTAGE, fullData, 10);
+
+
+        //this unit test should lead to overfitting as testset = trainingset and there are no k-folds or anything.
+        //So performance should be high
+        //However, due to the random factors there is some variance possible
+        double auc = p.getRealAuc();
+        //the AIC here is the full AIC
+        p.setFullAIC(p.getAIC());
+        p.setAIC(0);
+
+        assertEquals(p.getRealAuc(), 0.98, AVERAGERROR);
+        assertEquals(p.getSvdgAuc(), 0.98, AVERAGERROR);
+        return p;
     }
 
     public static Performance testVertiBayesFullDataSet() throws Exception {

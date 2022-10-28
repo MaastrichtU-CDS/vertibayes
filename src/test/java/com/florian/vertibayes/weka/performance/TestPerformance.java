@@ -70,6 +70,10 @@ public class TestPerformance {
             start = System.currentTimeMillis();
             DiabetesFewBins.testVertiBayesFullDataSetMissing(0.05);
             System.out.println("Time: " + (System.currentTimeMillis() - start));
+
+            start = System.currentTimeMillis();
+            Performance asiaSvdg = Asia.testVertiBayesFullDataSetSVDG();
+            System.out.println("Time: " + (System.currentTimeMillis() - start));
         }
     }
 

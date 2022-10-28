@@ -9,7 +9,10 @@ import com.florian.nscalarproduct.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.bayes.*;
 import com.florian.vertibayes.webservice.domain.InitCentralServerRequest;
 import com.florian.vertibayes.webservice.domain.InitDataResponse;
-import com.florian.vertibayes.webservice.domain.external.*;
+import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationOpenMarkovResponse;
+import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationResponse;
+import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationWekaResponse;
+import com.florian.vertibayes.webservice.domain.external.WebBayesNetwork;
 import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -92,10 +95,12 @@ public class VertiBayesCentralServer extends CentralServer {
         for (int i = 0; i < req.getFolds(); i++) {
             initFold(folds, i);
             req.setWekaResponse(true);
-            ExpectationMaximizationResponse trainModel = performExpectationMaximization(req);
+            ExpectationMaximizationWekaResponse trainModel =
+                    (ExpectationMaximizationWekaResponse) performExpectationMaximization(
+                            req);
             initValidationFold(folds, i);
-            ExpectationMaximizationResponse validationModel = performExpectationMaximization(req);
-            auc += validate(trainModel.getNodes(), validationModel.getNodes(), req.getTarget());
+            WebBayesNetwork validationModel = maximumLikelyhood(req);
+            auc += validate(trainModel.getWeka(), validationModel.getNodes(), req.getTarget());
         }
         auc /= req.getFolds();
 
@@ -122,6 +127,8 @@ public class VertiBayesCentralServer extends CentralServer {
     }
 
     private void initFold(int[] folds, int i) {
+        // make sure at least 1 endpoint is active so we can actually get the proper population size
+        ((VertiBayesEndpoint) endpoints.get(0)).initK2Data(new ArrayList<>());
         boolean[] activeRecords = new boolean[endpoints.get(0).getPopulation()];
         for (int j = 0; j < folds.length; j++) {
             if (folds[j] != i) {
@@ -134,6 +141,8 @@ public class VertiBayesCentralServer extends CentralServer {
     }
 
     private int[] createFolds(WebBayesNetwork req) {
+        // make sure at least 1 endpoint is active so we can actually get the proper population size
+        ((VertiBayesEndpoint) endpoints.get(0)).initK2Data(new ArrayList<>());
         int[] folds = new int[endpoints.get(0).getPopulation()];
         Random r = new Random();
         for (int i = 0; i < folds.length; i++) {
@@ -148,7 +157,7 @@ public class VertiBayesCentralServer extends CentralServer {
         initNodesMaximumLikelyhood(nodes, req.getMinPercentage());
         initThetas(nodes);
 
-        ExpectationMaximizationTestResponse res = wekaExpectationMaximization(mapWebNodeFromNode(nodes),
+        ExpectationMaximizationWekaResponse res = wekaExpectationMaximization(mapWebNodeFromNode(nodes),
                                                                               req.getTarget());
         if (!testing) {
             ExpectationMaximizationResponse response = new ExpectationMaximizationResponse();
@@ -161,7 +170,7 @@ public class VertiBayesCentralServer extends CentralServer {
                 ((ExpectationMaximizationWekaResponse) response).setWeka(res.getWeka());
             }
             response.setNodes(res.getNodes());
-            response.setScvAuc(res.getSyntheticAuc());
+            response.setScvAuc(res.getScvAuc());
             return response;
         } else {
             return res;

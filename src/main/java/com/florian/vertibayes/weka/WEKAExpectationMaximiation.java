@@ -1,6 +1,6 @@
 package com.florian.vertibayes.weka;
 
-import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationTestResponse;
+import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationWekaResponse;
 import com.florian.vertibayes.webservice.domain.external.WebNode;
 import weka.classifiers.Evaluation;
 import weka.classifiers.bayes.BayesNet;
@@ -22,24 +22,21 @@ import static com.florian.vertibayes.weka.BifMapper.toBIF;
 public final class WEKAExpectationMaximiation {
     private static final String BIFF = "test.xml";
     private static final String ARFF = "test.arff";
+    private static final String VALIDATE_ARFF = "validate.arff";
     private static final int SAMPLE_SIZE = 10000;
     public static final int FOLDS = 10;
 
     private WEKAExpectationMaximiation() {
     }
 
-    public static double validate(List<WebNode> trainModel, List<WebNode> validationModel, String target)
+    public static double validate(BayesNet trainModel, List<WebNode> validationModel, String target)
             throws Exception {
-        generateDataARRF(mapWebNodeToNode(validationModel), SAMPLE_SIZE, ARFF);
-        printBIF(toBIF(trainModel));
+        generateDataARRF(mapWebNodeToNode(validationModel), SAMPLE_SIZE, VALIDATE_ARFF);
         FromFile search = new FromFile();
         search.setBIFFile(BIFF);
 
-        BayesNet network = new BayesNet();
-        network.setSearchAlgorithm(search);
         Instances data = new Instances(
-                new BufferedReader(new FileReader(ARFF)));
-
+                new BufferedReader(new FileReader(VALIDATE_ARFF)));
         for (int i = 0; i < data.numAttributes(); i++) {
             if (data.attribute(i).name().equals(target)) {
                 data.setClassIndex(i);
@@ -47,15 +44,13 @@ public final class WEKAExpectationMaximiation {
             }
         }
 
-        network.setEstimator(new SimpleEstimator());
-
-        network.buildClassifier(data);
         Evaluation eval = new Evaluation(data);
-        eval.crossValidateModel(network, data, FOLDS, new Random(1));
+        eval.evaluateModel(trainModel, data);
+
         return eval.weightedAreaUnderROC();
     }
 
-    public static ExpectationMaximizationTestResponse wekaExpectationMaximization(List<WebNode> nodes,
+    public static ExpectationMaximizationWekaResponse wekaExpectationMaximization(List<WebNode> nodes,
                                                                                   String target)
             throws Exception {
 
@@ -83,11 +78,11 @@ public final class WEKAExpectationMaximiation {
         network.buildClassifier(data);
 
 
-        ExpectationMaximizationTestResponse response = new ExpectationMaximizationTestResponse();
+        ExpectationMaximizationWekaResponse response = new ExpectationMaximizationWekaResponse();
 
         Evaluation eval = new Evaluation(data);
         eval.crossValidateModel(network, data, FOLDS, new Random(1));
-        response.setSyntheticAuc(eval.weightedAreaUnderROC());
+        response.setScvAuc(eval.weightedAreaUnderROC());
 
         response.setWeka(network);
         response.setNodes(fromWekaBif(network.graph()));

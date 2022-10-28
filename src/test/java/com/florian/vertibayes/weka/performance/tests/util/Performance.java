@@ -8,6 +8,7 @@ public class Performance {
     private double realAuc;
     private double syntheticAuc;
     private double syntheticFoldAuc;
+    private double svdgAuc;
     private double wekaAuc;
     private double AIC;
     private double wekaAIC;
@@ -16,6 +17,14 @@ public class Performance {
     private Map<String, List<Integer>> errors = new HashMap<>();
     private Map<String, List<Integer>> wekaErrors = new HashMap<>();
     private int[] uniqueErrors = new int[3]; // 0 = fed, 1 = weka, 2 = error in both
+
+    public double getSvdgAuc() {
+        return svdgAuc;
+    }
+
+    public void setSvdgAuc(double svdgAuc) {
+        this.svdgAuc = svdgAuc;
+    }
 
     public double getFullAIC() {
         return fullAIC;

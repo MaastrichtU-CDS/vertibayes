@@ -88,14 +88,19 @@ public class BayesServer extends Server {
 
     @GetMapping ("getLocalPopulation")
     public int getLocalPopulation() {
-        if (useLocalOnly) {
+        if (useLocalOnly || useKfold()) {
             int count = 0;
             for (int i = 0; i < population; i++) {
-                if (activeRecords != null && activeRecords.length > 0) {
-                    if (recordIsLocallyPresent(i)) {
+                if (useKfold() && useLocalOnly) {
+                    //both kfold and hybrid split
+                    if (recordIsLocallyPresent(i) && activeRecords[i]) {
                         count++;
                     }
-                } else if (recordIsLocallyPresent(i)) {
+                } else if (useLocalOnly && recordIsLocallyPresent(i)) {
+                    //only hybrid split
+                    count++;
+                } else if (useKfold() && activeRecords[i]) {
+                    // only kfold
                     count++;
                 }
             }
@@ -103,6 +108,10 @@ public class BayesServer extends Server {
         } else {
             return super.getPopulation();
         }
+    }
+
+    private boolean useKfold() {
+        return activeRecords != null && activeRecords.length > 0;
     }
 
     @PostMapping ("setActiveRecords")
