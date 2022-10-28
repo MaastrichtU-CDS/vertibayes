@@ -366,10 +366,14 @@ public class BayesServer extends Server {
         return uniqueValues;
     }
 
-    private boolean recordIsLocallyPresent(int record) {
+    protected boolean recordIsLocallyPresent(int record) {
         AttributeRequirement req = new AttributeRequirement(
                 new Attribute(Attribute.AttributeType.bool, "true", "locallyPresent"));
-        List<Attribute> isLocallyPresent = getData().getAttributeValues("locallyPresent");
-        return req.checkRequirement(isLocallyPresent.get(record));
+        if (data.hasHorizontalSplit()) {
+            List<Attribute> isLocallyPresent = getData().getAttributeValues("locallyPresent");
+            return req.checkRequirement(isLocallyPresent.get(record));
+        } else {
+            return true;
+        }
     }
 }
