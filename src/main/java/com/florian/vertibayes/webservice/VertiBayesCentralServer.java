@@ -7,13 +7,13 @@ import com.florian.nscalarproduct.webservice.Protocol;
 import com.florian.nscalarproduct.webservice.ServerEndpoint;
 import com.florian.nscalarproduct.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.bayes.*;
+import com.florian.vertibayes.webservice.domain.CreateNetworkRequest;
 import com.florian.vertibayes.webservice.domain.InitCentralServerRequest;
 import com.florian.vertibayes.webservice.domain.InitDataResponse;
 import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationOpenMarkovResponse;
 import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationResponse;
 import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationWekaResponse;
 import com.florian.vertibayes.webservice.domain.external.WebBayesNetwork;
-import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 import static com.florian.vertibayes.bayes.Node.findSliblings;
 import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNodeFromNode;
+import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNodeToNode;
 import static com.florian.vertibayes.weka.BifMapper.toOpenMarkovBif;
 import static com.florian.vertibayes.weka.WEKAExpectationMaximiation.validate;
 import static com.florian.vertibayes.weka.WEKAExpectationMaximiation.wekaExpectationMaximization;
@@ -54,11 +55,14 @@ public class VertiBayesCentralServer extends CentralServer {
     }
 
     @GetMapping ("buildNetwork")
-    public WebBayesNetwork buildNetwork() {
+    public WebBayesNetwork buildNetwork(CreateNetworkRequest req) {
         initEndpoints();
         endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initK2Data(new ArrayList<>()));
         network = new Network(endpoints, secretEndpoint, this, endpoints.get(0).getPopulation());
-        network.createNetwork();
+        if (req.getNodes() != null) {
+            network.setNodes(mapWebNodeToNode(req.getNodes()));
+        }
+        network.createNetwork(req);
         WebBayesNetwork response = new WebBayesNetwork();
         response.setNodes(mapWebNodeFromNode(network.getNodes()));
         return response;
@@ -68,7 +72,7 @@ public class VertiBayesCentralServer extends CentralServer {
     @PostMapping ("maximumLikelyhood")
     public WebBayesNetwork maximumLikelyhood(@RequestBody WebBayesNetwork req) {
         initEndpoints();
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(req.getNodes());
+        List<Node> nodes = mapWebNodeToNode(req.getNodes());
         initNodesMaximumLikelyhood(nodes, req.getMinPercentage());
         initThetas(nodes);
         WebBayesNetwork response = new WebBayesNetwork();
@@ -160,7 +164,7 @@ public class VertiBayesCentralServer extends CentralServer {
 
     private ExpectationMaximizationResponse performExpectationMaximization(WebBayesNetwork req)
             throws Exception {
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(req.getNodes());
+        List<Node> nodes = mapWebNodeToNode(req.getNodes());
         initNodesMaximumLikelyhood(nodes, req.getMinPercentage());
         initThetas(nodes);
 
@@ -217,7 +221,7 @@ public class VertiBayesCentralServer extends CentralServer {
         this.secretEndpoint = secretServer;
     }
 
-    private void initNodesMaximumLikelyhood(List<Node> nodes, double minPercentage) {
+    protected void initNodesMaximumLikelyhood(List<Node> nodes, double minPercentage) {
         for (Node n : nodes) {
             if (n.getType() != Attribute.AttributeType.real && n.getType() != Attribute.AttributeType.numeric) {
                 initNode(n);

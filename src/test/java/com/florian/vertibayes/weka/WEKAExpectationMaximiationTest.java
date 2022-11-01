@@ -6,6 +6,7 @@ import com.florian.vertibayes.bayes.Node;
 import com.florian.vertibayes.webservice.BayesServer;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
+import com.florian.vertibayes.webservice.domain.CreateNetworkRequest;
 import com.florian.vertibayes.webservice.domain.external.WebBayesNetwork;
 import com.florian.vertibayes.webservice.domain.external.WebNode;
 import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
@@ -84,7 +85,9 @@ public class WEKAExpectationMaximiationTest {
 
         VertiBayesCentralServer central = new VertiBayesCentralServer();
         central.initEndpoints(Arrays.asList(endpoint1, endpoint2), secretEnd);
-        List<WebNode> webNodes = central.buildNetwork().getNodes();
+        CreateNetworkRequest networkRequest = new CreateNetworkRequest();
+        networkRequest.setMinPercentage(10);
+        List<WebNode> webNodes = central.buildNetwork(networkRequest).getNodes();
         //add simple bins"to all nodes expect X3. The bins will essentially just form the binary division again
         // Since the bins will follow the same distribution we know the expected probabilities
         Bin zero = new Bin();

@@ -3,11 +3,14 @@ package com.florian.vertibayes.bayes.webservice;
 import com.florian.nscalarproduct.data.Attribute;
 import com.florian.nscalarproduct.webservice.ServerEndpoint;
 import com.florian.nscalarproduct.webservice.domain.AttributeRequirement;
+import com.florian.vertibayes.bayes.Bin;
 import com.florian.vertibayes.bayes.Network;
 import com.florian.vertibayes.bayes.Node;
 import com.florian.vertibayes.webservice.BayesServer;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
+import com.florian.vertibayes.webservice.domain.CreateNetworkRequest;
+import com.florian.vertibayes.webservice.domain.external.WebNode;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -41,7 +44,10 @@ public class NetworkTest {
 
         Network network = new Network(Arrays.asList(endpoint1, endpoint2), secretEnd, new VertiBayesCentralServer(),
                                       100);
-        network.createNetwork();
+        CreateNetworkRequest req = new CreateNetworkRequest();
+        req.setMinPercentage(10);
+        req.setNodes(createK2Nodes());
+        network.createNetwork(req);
         List<Node> nodes = network.getNodes();
 
         // check if it matches expected network
@@ -84,7 +90,10 @@ public class NetworkTest {
                                       new VertiBayesCentralServer(),
                                       100);
         endpoint1.setUseLocalOnly(true);
-        network.createNetwork();
+        CreateNetworkRequest req = new CreateNetworkRequest();
+        req.setMinPercentage(10);
+        req.setNodes(createK2Nodes());
+        network.createNetwork(req);
 
         List<Node> nodes = network.getNodes();
 
@@ -124,7 +133,9 @@ public class NetworkTest {
 
         Network network = new Network(Arrays.asList(endpoint3, endpoint2, endpoint1), secretEnd,
                                       new VertiBayesCentralServer(), 10000);
-        network.createNetwork();
+        CreateNetworkRequest req = new CreateNetworkRequest();
+        req.setMinPercentage(10);
+        network.createNetwork(req);
         List<Node> nodes = network.getNodes();
 
         // check if it matches expected network
@@ -186,7 +197,9 @@ public class NetworkTest {
 
         Network network = new Network(Arrays.asList(endpoint3, endpoint2, endpoint1), secretEnd,
                                       new VertiBayesCentralServer(), 10000);
-        network.createNetwork();
+        CreateNetworkRequest req = new CreateNetworkRequest();
+        req.setMinPercentage(10);
+        network.createNetwork(req);
         List<Node> nodes = network.getNodes();
 
         // check if it matches expected network
@@ -293,5 +306,40 @@ public class NetworkTest {
         for (List<AttributeRequirement> ex : expected) {
             assertTrue(requirements.contains(ex));
         }
+    }
+
+    public static List<WebNode> createK2Nodes() {
+        List<WebNode> nodes = new ArrayList<>();
+        WebNode x1 = new WebNode();
+        x1.setType(Attribute.AttributeType.numeric);
+        x1.setName("x1");
+        WebNode x2 = new WebNode();
+        x2.setType(Attribute.AttributeType.numeric);
+        x2.setName("x2");
+        WebNode x3 = new WebNode();
+        x3.setType(Attribute.AttributeType.string);
+        x3.setName("x3");
+
+        nodes.add(x1);
+        nodes.add(x2);
+        nodes.add(x3);
+
+        Bin one = new Bin();
+        one.setUpperLimit("1.5");
+        one.setLowerLimit("0.5");
+
+        Bin zero = new Bin();
+        zero.setUpperLimit("0.5");
+        zero.setLowerLimit("-0.5");
+
+        for (WebNode node : nodes) {
+            if (!node.getName().equals("x3")) {
+                node.getBins().add(zero);
+                node.getBins().add(one);
+            }
+        }
+
+        return nodes;
+
     }
 }
