@@ -79,10 +79,12 @@ public class VertiBayesCentralServer extends CentralServer {
     @PostMapping ("ExpectationMaximization")
     public ExpectationMaximizationResponse expectationMaximization(@RequestBody WebBayesNetwork req) throws Exception {
         initEndpoints();
-        int[] folds = createFolds(req);
+        int[] folds = createFolds(req.getFolds());
         if (req.getFolds() > 1) {
             return kfoldExpectationMaximization(req, folds);
         } else {
+            // make sure everything is activated.
+            activateAll(folds);
             return performExpectationMaximization(req);
         }
     }
@@ -104,17 +106,22 @@ public class VertiBayesCentralServer extends CentralServer {
         }
         auc /= req.getFolds();
 
-        boolean[] activeRecords = new boolean[endpoints.get(0).getPopulation()];
-        for (int j = 0; j < folds.length; j++) {
-            activeRecords[j] = true;
-        }
-        endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).setActiveRecords(activeRecords));
+        //train final model using everything
+        activateAll(folds);
         ExpectationMaximizationResponse response = performExpectationMaximization(req);
         response.setSvdgAuc(auc);
         return response;
     }
 
-    private void initValidationFold(int[] folds, int i) {
+    protected void activateAll(int[] folds) {
+        boolean[] activeRecords = new boolean[endpoints.get(0).getPopulation()];
+        for (int j = 0; j < folds.length; j++) {
+            activeRecords[j] = true;
+        }
+        endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).setActiveRecords(activeRecords));
+    }
+
+    protected void initValidationFold(int[] folds, int i) {
         boolean[] activeRecords = new boolean[endpoints.get(0).getPopulation()];
         for (int j = 0; j < folds.length; j++) {
             if (folds[j] == i) {
@@ -126,7 +133,7 @@ public class VertiBayesCentralServer extends CentralServer {
         endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).setActiveRecords(activeRecords));
     }
 
-    private void initFold(int[] folds, int i) {
+    protected void initFold(int[] folds, int i) {
         // make sure at least 1 endpoint is active so we can actually get the proper population size
         ((VertiBayesEndpoint) endpoints.get(0)).initK2Data(new ArrayList<>());
         boolean[] activeRecords = new boolean[endpoints.get(0).getPopulation()];
@@ -140,13 +147,13 @@ public class VertiBayesCentralServer extends CentralServer {
         endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).setActiveRecords(activeRecords));
     }
 
-    private int[] createFolds(WebBayesNetwork req) {
+    protected int[] createFolds(int fold) {
         // make sure at least 1 endpoint is active so we can actually get the proper population size
         ((VertiBayesEndpoint) endpoints.get(0)).initK2Data(new ArrayList<>());
         int[] folds = new int[endpoints.get(0).getPopulation()];
         Random r = new Random();
         for (int i = 0; i < folds.length; i++) {
-            folds[i] = r.nextInt(req.getFolds());
+            folds[i] = r.nextInt(fold);
         }
         return folds;
     }

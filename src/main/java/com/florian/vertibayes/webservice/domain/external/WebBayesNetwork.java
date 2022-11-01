@@ -11,12 +11,22 @@ public class WebBayesNetwork {
     private boolean wekaResponse = false;
     private int folds = 1;
 
+    private static final int MIN_FOLDS = 1;
+    private static final int MAX_FOLDS = 10;
+
     public int getFolds() {
         return folds;
     }
 
     public void setFolds(int folds) {
-        this.folds = folds;
+        if (folds > MAX_FOLDS) {
+            // max folds = 10
+            this.folds = MAX_FOLDS;
+        } else if (folds < MIN_FOLDS) {
+            this.folds = MIN_FOLDS;
+        } else {
+            this.folds = folds;
+        }
     }
 
     public boolean isOpenMarkovResponse() {
