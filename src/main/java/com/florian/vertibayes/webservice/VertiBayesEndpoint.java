@@ -35,6 +35,17 @@ public class VertiBayesEndpoint extends ServerEndpoint {
         }
     }
 
+    public InitDataResponse initMaximumLikelyhoodData(List<AttributeRequirement> req) {
+        AttributeRequirementsRequest request = new AttributeRequirementsRequest();
+        request.setRequirements(req);
+        if (testing) {
+            return ((BayesServer) (server)).initMaximumLikelyhoodData(request);
+        } else {
+            return REST_TEMPLATE.postForEntity(serverUrl + "/initMaximumLikelyhoodData", request,
+                                               InitDataResponse.class).getBody();
+        }
+    }
+
     public void setActiveRecords(boolean[] activeRecords) {
         ActiveRecordRequest request = new ActiveRecordRequest();
         request.setActiveRecords(activeRecords);

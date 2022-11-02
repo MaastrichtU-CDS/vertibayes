@@ -303,6 +303,98 @@ public class BayesServer extends Server {
             //if you get here local data contains one of the attributes, ergo this endpoint is relevant.
             response.setRelevant(true);
             for (int i = 0; i < population; i++) {
+                if (values.get(data.getAttributeCollumn(req.getName())).get(i).isUnknown()) {
+                    if (!req.checkRequirement(getMeanOrMode(req.getName()))) {
+                        localData[i] = BigInteger.ZERO;
+                    }
+                }
+                if (!req.checkRequirement(values.get(data.getAttributeCollumn(req.getName())).get(i))) {
+                    localData[i] = BigInteger.ZERO;
+                }
+            }
+        }
+
+        if (!useLocalOnly) {
+            checkHorizontalSplit(data, localData);
+        } else {
+            markLocallyPresent(data, localData);
+        }
+        markActiveRecords(localData);
+
+        this.population = localData.length;
+        this.dataStations.put("start", new DataStation(this.serverId, this.localData));
+
+        return response;
+    }
+
+    private Attribute getMeanOrMode(String attributeName) {
+        List<Attribute> attribute = data.getAttributeValues(attributeName);
+        Attribute.AttributeType type = data.getAttributeType(attributeName);
+        if (type == Attribute.AttributeType.string || type == Attribute.AttributeType.bool) {
+            //nominal value so get mode
+            Map<String, Integer> counts = new HashMap<>();
+            for (Attribute a : attribute) {
+                if (!a.getValue().equals("?")) {
+                    if (counts.get(a.getValue()) == null) {
+                        counts.put(a.getValue(), 1);
+                    } else {
+                        counts.put(a.getValue(), counts.get(a.getValue()) + 1);
+                    }
+                }
+            }
+            int max = 0;
+            String modevalue = "";
+            for (String key : counts.keySet()) {
+                if (counts.get(key) > max) {
+                    max = counts.get(key);
+                    modevalue = key;
+                }
+            }
+            return new Attribute(type, modevalue, attributeName);
+        } else {
+            //numeric value so get mean
+            double sum = 0;
+            int count = 0;
+            for (Attribute a : attribute) {
+                if (!a.getValue().equals("?")) {
+                    sum += Double.parseDouble(a.getValue());
+                    count++;
+                }
+            }
+            sum /= count;
+            if (type == Attribute.AttributeType.numeric) {
+                return new Attribute(type, String.valueOf((int) sum), attributeName);
+            } else {
+                return new Attribute(type, String.valueOf(sum), attributeName);
+            }
+        }
+
+    }
+
+    @PostMapping ("initMaximumLikelyhoodData")
+    public InitDataResponse initMaximumLikelyhoodData(@RequestBody AttributeRequirementsRequest request) {
+        reset();
+        readData();
+        InitDataResponse response = new InitDataResponse();
+
+        List<AttributeRequirement> requirements = request.getRequirements() == null ? new ArrayList<>()
+                : request.getRequirements();
+        int population = data.getNumberOfIndividuals();
+        localData = new BigInteger[population];
+        for (int i = 0; i < population; i++) {
+            localData[i] = BigInteger.ONE;
+        }
+
+
+        List<List<Attribute>> values = data.getData();
+        for (AttributeRequirement req : requirements) {
+            if (data.getAttributeCollumn(req.getName()) == null) {
+                // attribute not locally available, skip
+                continue;
+            }
+            //if you get here local data contains one of the attributes, ergo this endpoint is relevant.
+            response.setRelevant(true);
+            for (int i = 0; i < population; i++) {
                 if (!req.checkRequirement(values.get(data.getAttributeCollumn(req.getName())).get(i))) {
                     localData[i] = BigInteger.ZERO;
                 }

@@ -57,7 +57,7 @@ public class VertiBayesCentralServer extends CentralServer {
     @GetMapping ("buildNetwork")
     public WebBayesNetwork buildNetwork(CreateNetworkRequest req) {
         initEndpoints();
-        endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initK2Data(new ArrayList<>()));
+        endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initMaximumLikelyhoodData(new ArrayList<>()));
         network = new Network(endpoints, secretEndpoint, this, endpoints.get(0).getPopulation());
         if (req.getNodes() != null) {
             network.setNodes(mapWebNodeToNode(req.getNodes()));
@@ -139,7 +139,7 @@ public class VertiBayesCentralServer extends CentralServer {
 
     protected void initFold(int[] folds, int i) {
         // make sure at least 1 endpoint is active so we can actually get the proper population size
-        ((VertiBayesEndpoint) endpoints.get(0)).initK2Data(new ArrayList<>());
+        ((VertiBayesEndpoint) endpoints.get(0)).initMaximumLikelyhoodData(new ArrayList<>());
         boolean[] activeRecords = new boolean[endpoints.get(0).getPopulation()];
         for (int j = 0; j < folds.length; j++) {
             if (folds[j] != i) {
@@ -153,7 +153,7 @@ public class VertiBayesCentralServer extends CentralServer {
 
     protected int[] createFolds(int fold) {
         // make sure at least 1 endpoint is active so we can actually get the proper population size
-        ((VertiBayesEndpoint) endpoints.get(0)).initK2Data(new ArrayList<>());
+        ((VertiBayesEndpoint) endpoints.get(0)).initMaximumLikelyhoodData(new ArrayList<>());
         int[] folds = new int[endpoints.get(0).getPopulation()];
         Random r = new Random();
         for (int i = 0; i < folds.length; i++) {
@@ -395,7 +395,7 @@ public class VertiBayesCentralServer extends CentralServer {
         List<ServerEndpoint> relevantEndpoints = new ArrayList<>();
 
         for (ServerEndpoint endpoint : endpoints) {
-            InitDataResponse response = ((VertiBayesEndpoint) endpoint).initK2Data(attributes);
+            InitDataResponse response = ((VertiBayesEndpoint) endpoint).initMaximumLikelyhoodData(attributes);
             if (response.isRelevant()) {
                 // keep track of relevant endpoints to keep the n-party protocols as small as possible
                 relevantEndpoints.add(endpoint);
