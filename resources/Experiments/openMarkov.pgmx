@@ -1,112 +1,112 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <ProbModelXML formatVersion="0.2.0">
-<ProbNet type="BayesianNetwork">
-<DecisionCriteria>
-<Criterion name="---" unit="---"/>
-</DecisionCriteria>
-<Properties/>
-<Variables>
-<Variable name="A" type="discretized" role="chance">
-<Unit/>
-<Precision>0.01</Precision>
-<States>
-<State name="-inf;100"/>
-<State name="100;inf"/>
-</States>
-<Thresholds>
-<Threshold value="-Infinity" belongsTo="left"/>
-<Threshold value="100" belongsTo="right"/>
-<Threshold value="Infinity" belongsTo="right"/>
-</Thresholds>
-</Variable>
-<Variable name="B" type="finiteStates" role="chance">
-<States>
-<State name="absent"/>
-<State name="present"/>
-</States>
-</Variable>
-<Variable name="C" type="discretized" role="chance">
-<Unit/>
-<Precision>0.01</Precision>
-<States>
-<State name="1;2"/>
-<State name="2;3"/>
-<State name="3;4"/>
-</States>
-<Thresholds>
-<Threshold value="1" belongsTo="left"/>
-<Threshold value="2" belongsTo="right"/>
-<Threshold value="3" belongsTo="right"/>
-<Threshold value="4" belongsTo="right"/>
-</Thresholds>
-</Variable>
-<Variable name="E" type="finiteStates" role="chance">
-<States>
-<State name="absent"/>
-<State name="present"/>
-</States>
-</Variable>
-</Variables>
-<Links>
-<Link directed="true">
-<Variable name="A"/>
-<Variable name="B"/>
-</Link>
-<Link directed="true">
-<Variable name="B"/>
-<Variable name="E"/>
-</Link>
-<Link directed="true">
-<Variable name="C"/>
-<Variable name="E"/>
-</Link>
-</Links>
-<Potentials>
-<Potential type="Table" role="conditionalProbability">
-<Variables>
-<Variable name="A"/>
-</Variables>
-<Values>0.2 0.8</Values>
-</Potential>
-<Potential type="Table" role="conditionalProbability">
-<Variables>
-<Variable name="B"/>
-<Variable name="A"/>
-</Variables>
-<Values>0.2 0.8 0.9 0.1</Values>
-</Potential>
-<Potential type="Table" role="conditionalProbability">
-<Variables>
-<Variable name="C"/>
-</Variables>
-<Values>0.1 0.3 0.6</Values>
-</Potential>
-<Potential type="Table" role="conditionalProbability">
-<Variables>
-<Variable name="E"/>
-<Variable name="B"/>
-<Variable name="C"/>
-</Variables>
-<Values>0.9 0.1 0.6 0.4 0.8 0.2 0.5 0.5 0.7 0.3 0.35 0.65</Values>
-</Potential>
-</Potentials>
-</ProbNet>
-<InferenceOptions>
-<MulticriteriaOptions>
-<SelectedAnalysisType>UNICRITERION</SelectedAnalysisType>
-<Unicriterion>
-<Scales>
-<Scale Criterion="---" Value="1.0"/>
-</Scales>
-</Unicriterion>
-<CostEffectiveness>
-<Scales>
-<Scale Criterion="---" Value="1.0"/>
-</Scales>
-<CE_Criteria>
-<CE_Criterion Criterion="---" Value="Cost"/>
-</CE_Criteria>
-</CostEffectiveness>
-</MulticriteriaOptions>
-</InferenceOptions>
+  <ProbNet type="BayesianNetwork">
+    <DecisionCriteria>
+      <Criterion name="---" unit="---"/>
+    </DecisionCriteria>
+    <Properties/>
+    <Variables>
+      <Variable name="A" role="chance" type="discretized">
+        <Unit/>
+        <Precision>0.01</Precision>
+        <States>
+          <State name="-inf;100"/>
+          <State name="100;inf"/>
+        </States>
+        <Thresholds>
+          <Threshold belongsTo="left" value="-Infinity"/>
+          <Threshold belongsTo="right" value="100"/>
+          <Threshold belongsTo="right" value="Infinity"/>
+        </Thresholds>
+      </Variable>
+      <Variable name="B" role="chance" type="finiteStates">
+        <States>
+          <State name="absent"/>
+          <State name="present"/>
+        </States>
+      </Variable>
+      <Variable name="C" role="chance" type="discretized">
+        <Unit/>
+        <Precision>0.01</Precision>
+        <States>
+          <State name="1;2"/>
+          <State name="2;3"/>
+          <State name="3;4"/>
+        </States>
+        <Thresholds>
+          <Threshold belongsTo="left" value="1"/>
+          <Threshold belongsTo="right" value="2"/>
+          <Threshold belongsTo="right" value="3"/>
+          <Threshold belongsTo="right" value="4"/>
+        </Thresholds>
+      </Variable>
+      <Variable name="E" role="chance" type="finiteStates">
+        <States>
+          <State name="absent"/>
+          <State name="present"/>
+        </States>
+      </Variable>
+    </Variables>
+    <Links>
+      <Link directed="true">
+        <Variable name="A"/>
+        <Variable name="B"/>
+      </Link>
+      <Link directed="true">
+        <Variable name="B"/>
+        <Variable name="E"/>
+      </Link>
+      <Link directed="true">
+        <Variable name="C"/>
+        <Variable name="E"/>
+      </Link>
+    </Links>
+    <Potentials>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="A"/>
+        </Variables>
+        <Values>0.2 0.8</Values>
+      </Potential>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="B"/>
+          <Variable name="A"/>
+        </Variables>
+        <Values>0.2 0.8 0.9 0.1</Values>
+      </Potential>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="C"/>
+        </Variables>
+        <Values>0.1 0.3 0.6</Values>
+      </Potential>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="E"/>
+          <Variable name="B"/>
+          <Variable name="C"/>
+        </Variables>
+        <Values>0.9 0.1 0.6 0.4 0.8 0.2 0.5 0.5 0.7 0.3 0.35 0.65</Values>
+      </Potential>
+    </Potentials>
+  </ProbNet>
+  <InferenceOptions>
+    <MulticriteriaOptions>
+      <SelectedAnalysisType>UNICRITERION</SelectedAnalysisType>
+      <Unicriterion>
+        <Scales>
+          <Scale Criterion="---" Value="1.0"/>
+        </Scales>
+      </Unicriterion>
+      <CostEffectiveness>
+        <Scales>
+          <Scale Criterion="---" Value="1.0"/>
+        </Scales>
+        <CE_Criteria>
+          <CE_Criterion Criterion="---" Value="Cost"/>
+        </CE_Criteria>
+      </CostEffectiveness>
+    </MulticriteriaOptions>
+  </InferenceOptions>
 </ProbModelXML>

@@ -15,6 +15,7 @@ import com.florian.vertibayes.webservice.domain.external.WebValue;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.florian.vertibayes.util.PrintingPress.prettyPrintByTransformer;
 import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNodeFromNode;
 
 public final class BifMapper {
@@ -137,55 +138,6 @@ public final class BifMapper {
         }
     }
 
-
-    private static void createThetas(Node child, List<Node> parents, Map<String, List<String>> states,
-                                     Map<String, List<Bin>> bins) {
-        for (Node parent : parents) {
-            List<Theta> copies = new ArrayList<>();
-            if (parent.getType() != Attribute.AttributeType.real &&
-                    parent.getType() != Attribute.AttributeType.numeric) {
-                for (String p : states.get(parent.getName())) {
-                    // for each parent value
-                    ParentValue v = new ParentValue();
-                    v.setName(parent.getName());
-                    v.setRequirement(
-                            new AttributeRequirement(new Attribute(parent.getType(), p, parent.getName())));
-                    for (Theta t : child.getProbabilities()) {
-                        //Copy each current child, add the extra new parent
-                        Theta copy = new Theta();
-                        copy.setLocalRequirement(t.getLocalRequirement());
-                        copy.setParents(new ArrayList<>());
-                        copy.getParents().addAll(t.getParents());
-                        copy.getParents().add(v);
-                        copies.add(copy);
-                    }
-                }
-            } else {
-                for (Bin bin : bins.get(parent.getName())) {
-                    // for each parent value
-                    ParentValue v = new ParentValue();
-                    v.setName(parent.getName());
-                    Attribute lowerLimit = new Attribute(child.getType(), bin.getLowerLimit(), parent.getName());
-                    Attribute upperLimit = new Attribute(child.getType(), bin.getUpperLimit(), parent.getName());
-                    v.setRequirement(
-                            new AttributeRequirement(lowerLimit, upperLimit));
-                    for (Theta t : child.getProbabilities()) {
-                        //Copy each current child, add the extra new parent
-                        Theta copy = new Theta();
-                        copy.setLocalRequirement(t.getLocalRequirement());
-                        copy.setParents(new ArrayList<>());
-                        copy.getParents().addAll(t.getParents());
-                        copy.getParents().add(v);
-                        copies.add(copy);
-                    }
-                }
-            }
-            // remove old children, put in the new copies
-            child.getProbabilities().removeAll(child.getProbabilities());
-            child.getProbabilities().addAll(copies);
-        }
-    }
-
     private static void linkParents(List<Node> nodes, String[] links) {
         for (String l : links) {
             //take substring to skip the first symbol
@@ -245,7 +197,7 @@ public final class BifMapper {
                     }
                 }
             }
-            String name = v.replace("<Variablename=", "").split("type=")[0];
+            String name = v.replace("<Variablename=", "").split("role=")[0];
             n.setName(name);
             if (n.getType() == Attribute.AttributeType.string) {
                 uniqueValues.put(name, unique);
@@ -259,7 +211,7 @@ public final class BifMapper {
 
     public static String toOpenMarkovBif(List<WebNode> nodes) {
         String bif = "";
-        bif += MARKOVHEADER;
+        bif += WRITE_MARKOVHEADER;
         String variables = "";
         String potentials = "";
         String links = "";
@@ -278,9 +230,10 @@ public final class BifMapper {
         bif += "<Potentials>\n";
         bif += potentials;
         bif += "</Potentials>\n";
-        bif += MARKOVFOOTER;
-        return bif;
+        bif += WRITE_MARKOVFOOTER;
+        return prettyPrintByTransformer(bif.replace("\n", ""));
     }
+
 
     public static String toBIF(List<WebNode> nodes) {
         String bif = "";
@@ -638,16 +591,44 @@ public final class BifMapper {
         return n;
     }
 
-    private static final String MARKOVHEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+    private static final String WRITE_MARKOVHEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
             "<ProbModelXML formatVersion=\"0.2.0\">\n" +
             "<ProbNet type=\"BayesianNetwork\">\n" +
             "<DecisionCriteria>\n" +
             "<Criterion name=\"---\" unit=\"---\"/>\n" +
             "</DecisionCriteria>\n" +
             "<Properties/>\n";
+    private static final String MARKOVHEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
+            "<ProbModelXML formatVersion=\"0.2.0\">\n" +
+            "  <ProbNet type=\"BayesianNetwork\">\n" +
+            "    <DecisionCriteria>\n" +
+            "      <Criterion name=\"---\" unit=\"---\"/>\n" +
+            "    </DecisionCriteria>\n" +
+            "    <Properties/>\n";
 
 
-    private static final String MARKOVFOOTER = "</ProbNet>\n" +
+    private static final String MARKOVFOOTER = "  </ProbNet>\n" +
+            "  <InferenceOptions>\n" +
+            "    <MulticriteriaOptions>\n" +
+            "      <SelectedAnalysisType>UNICRITERION</SelectedAnalysisType>\n" +
+            "      <Unicriterion>\n" +
+            "        <Scales>\n" +
+            "          <Scale Criterion=\"---\" Value=\"1.0\"/>\n" +
+            "        </Scales>\n" +
+            "      </Unicriterion>\n" +
+            "      <CostEffectiveness>\n" +
+            "        <Scales>\n" +
+            "          <Scale Criterion=\"---\" Value=\"1.0\"/>\n" +
+            "        </Scales>\n" +
+            "        <CE_Criteria>\n" +
+            "          <CE_Criterion Criterion=\"---\" Value=\"Cost\"/>\n" +
+            "        </CE_Criteria>\n" +
+            "      </CostEffectiveness>\n" +
+            "    </MulticriteriaOptions>\n" +
+            "  </InferenceOptions>\n" +
+            "</ProbModelXML>\n";
+
+    private static final String WRITE_MARKOVFOOTER = "</ProbNet>\n" +
             "<InferenceOptions>\n" +
             "<MulticriteriaOptions>\n" +
             "<SelectedAnalysisType>UNICRITERION</SelectedAnalysisType>\n" +

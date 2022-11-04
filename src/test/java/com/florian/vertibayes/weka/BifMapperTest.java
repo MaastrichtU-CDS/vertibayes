@@ -55,7 +55,7 @@ public class BifMapperTest {
     public void testMapperOpenMarkovBackAndForth() throws Exception {
         String bif = readFile("resources/Experiments/openMarkov.pgmx");
         List<WebNode> nodes = fromOpenMarkovBif(bif);
-        String mapped = toOpenMarkovBif(nodes);
+        String mapped = toOpenMarkovBif(nodes).replace("\r", "");
 
         assertEquals(bif, mapped);
     }
