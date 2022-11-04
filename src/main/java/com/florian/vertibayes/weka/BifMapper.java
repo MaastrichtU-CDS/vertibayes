@@ -41,7 +41,7 @@ public final class BifMapper {
         String[] potentials = split_2[1].replace("<Potentials>", "").replace("</Potentials>", "").split("</Potential>");
 
         setProbabilities(nodes, potentials, states, bins);
-        
+
         return mapWebNodeFromNode(nodes);
     }
 
@@ -355,9 +355,9 @@ public final class BifMapper {
     private static String createMarkovPotential(WebNode node) {
         String s = "<Potential type=\"Table\" role=\"conditionalProbability\">\n";
         s += "<Variables>\n";
-        s += "<Variable name=\"" + node.getName() + "\" />\n";
+        s += "<Variable name=\"" + node.getName() + "\"/>\n";
         for (String parent : node.getParents()) {
-            s += "<Variable name=\"" + parent + "\" />\n";
+            s += "<Variable name=\"" + parent + "\"/>\n";
         }
         s += "</Variables>\n";
         s += "<Values>";
@@ -388,7 +388,7 @@ public final class BifMapper {
         }
         s += "<Variable name=\"" + node.getName() + type + " role=\"chance\">\n";
         if (isNumeric) {
-            s += "<Unit />\n";
+            s += "<Unit/>\n";
             s += "<Precision>0.01</Precision>\n";
         }
         s += "<States>\n";
@@ -411,10 +411,14 @@ public final class BifMapper {
             WebTheta t = node.getProbabilities().get(i);
             if (t.getLocalValue().getLowerLimit().equals("-inf")) {
                 tresholds.add("-Infinity");
-            } else if (t.getLocalValue().getUpperLimit().equals("inf")) {
+            }
+            if (t.getLocalValue().getUpperLimit().equals("inf")) {
                 tresholds.add("Infinity");
-            } else {
+            }
+            if (!t.getLocalValue().getLowerLimit().equals("-inf")) {
                 tresholds.add(t.getLocalValue().getLowerLimit());
+            }
+            if (!t.getLocalValue().getUpperLimit().equals("inf")) {
                 tresholds.add(t.getLocalValue().getUpperLimit());
             }
         }
@@ -422,9 +426,9 @@ public final class BifMapper {
         for (String d : tresholds) {
             if (s.length() == 0) {
                 s += header;
-                s += "<Threshold value=\"" + d + "\" belongsTo=\"left\" />\n";
+                s += "<Threshold value=\"" + d + "\" belongsTo=\"left\"/>\n";
             } else {
-                s += "<Threshold value=\"" + d + "\" belongsTo=\"right\" />\n";
+                s += "<Threshold value=\"" + d + "\" belongsTo=\"right\"/>\n";
             }
         }
         s += footer;
@@ -439,7 +443,7 @@ public final class BifMapper {
             if (!t.getLocalValue().isRange()) {
                 s += "<State name=\"" + t.getLocalValue().getLocalValue() + "\"/>\n";
             } else {
-                s += "<State name=\"" + t.getLocalValue().getLowerLimit() + "-" + t.getLocalValue()
+                s += "<State name=\"" + t.getLocalValue().getLowerLimit() + ";" + t.getLocalValue()
                         .getUpperLimit() + "\"/>\n";
             }
         }
@@ -447,15 +451,17 @@ public final class BifMapper {
     }
 
     private static String createMarkovLink(WebNode node) {
+
         if (node.getParents().size() == 0) {
             return "";
         }
-        String s = "<Link directed=\"true\">\n";
+        String s = "";
         for (String parent : node.getParents()) {
-            s += "<Variable name=\"" + parent + "\" />\n";
+            s += "<Link directed=\"true\">\n";
+            s += "<Variable name=\"" + parent + "\"/>\n";
+            s += "<Variable name=\"" + node.getName() + "\"/>\n";
+            s += "</Link>\n";
         }
-        s += "<Variable name=\"" + node.getName() + "\" />\n";
-        s += "</Link>\n";
         return s;
     }
 
@@ -634,32 +640,32 @@ public final class BifMapper {
 
     private static final String MARKOVHEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
             "<ProbModelXML formatVersion=\"0.2.0\">\n" +
-            "  <ProbNet type=\"BayesianNetwork\">\n" +
-            "    <DecisionCriteria>\n" +
-            "      <Criterion name=\"---\" unit=\"---\" />\n" +
-            "    </DecisionCriteria>\n" +
-            "    <Properties />\n";
+            "<ProbNet type=\"BayesianNetwork\">\n" +
+            "<DecisionCriteria>\n" +
+            "<Criterion name=\"---\" unit=\"---\"/>\n" +
+            "</DecisionCriteria>\n" +
+            "<Properties/>\n";
 
 
     private static final String MARKOVFOOTER = "</ProbNet>\n" +
-            "  <InferenceOptions>\n" +
-            "    <MulticriteriaOptions>\n" +
-            "      <SelectedAnalysisType>UNICRITERION</SelectedAnalysisType>\n" +
-            "      <Unicriterion>\n" +
-            "        <Scales>\n" +
-            "          <Scale Criterion=\"---\" Value=\"1.0\" />\n" +
-            "        </Scales>\n" +
-            "      </Unicriterion>\n" +
-            "      <CostEffectiveness>\n" +
-            "        <Scales>\n" +
-            "          <Scale Criterion=\"---\" Value=\"1.0\" />\n" +
-            "        </Scales>\n" +
-            "        <CE_Criteria>\n" +
-            "          <CE_Criterion Criterion=\"---\" Value=\"Cost\" />\n" +
-            "        </CE_Criteria>\n" +
-            "      </CostEffectiveness>\n" +
-            "    </MulticriteriaOptions>\n" +
-            "  </InferenceOptions>\n" +
+            "<InferenceOptions>\n" +
+            "<MulticriteriaOptions>\n" +
+            "<SelectedAnalysisType>UNICRITERION</SelectedAnalysisType>\n" +
+            "<Unicriterion>\n" +
+            "<Scales>\n" +
+            "<Scale Criterion=\"---\" Value=\"1.0\"/>\n" +
+            "</Scales>\n" +
+            "</Unicriterion>\n" +
+            "<CostEffectiveness>\n" +
+            "<Scales>\n" +
+            "<Scale Criterion=\"---\" Value=\"1.0\"/>\n" +
+            "</Scales>\n" +
+            "<CE_Criteria>\n" +
+            "<CE_Criterion Criterion=\"---\" Value=\"Cost\"/>\n" +
+            "</CE_Criteria>\n" +
+            "</CostEffectiveness>\n" +
+            "</MulticriteriaOptions>\n" +
+            "</InferenceOptions>\n" +
             "</ProbModelXML>\n";
 
 
