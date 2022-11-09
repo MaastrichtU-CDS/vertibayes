@@ -31,15 +31,15 @@ public final class BifMapper {
         bif = bif.replace(MARKOVFOOTER, "");
         bif = bif.replace("\n", "").replace("\"", "").replace("/>", "");
         List<Node> nodes = new ArrayList<>();
-        String[] split_1 = bif.split("<Links>");
-        String[] variables = split_1[0].replace("<Variables>", "").replace("</Variables>", "").split("</Variable>");
+        String[] split1 = bif.split("<Links>");
+        String[] variables = split1[0].replace("<Variables>", "").replace("</Variables>", "").split("</Variable>");
         Map<String, List<String>> states = new HashMap<>();
         Map<String, List<Bin>> bins = new HashMap<>();
         nodes.addAll(createNodes(variables, states, bins));
-        String[] split_2 = split_1[1].split("</Links>");
-        String[] links = split_2[0].replace("<Link directed=true>", "").split("</Link>");
+        String[] split2 = split1[1].split("</Links>");
+        String[] links = split2[0].replace("<Link directed=true>", "").split("</Link>");
         linkParents(nodes, links);
-        String[] potentials = split_2[1].replace("<Potentials>", "").replace("</Potentials>", "").split("</Potential>");
+        String[] potentials = split2[1].replace("<Potentials>", "").replace("</Potentials>", "").split("</Potential>");
 
         setProbabilities(nodes, potentials, states, bins);
 
@@ -358,8 +358,6 @@ public final class BifMapper {
         Set<String> tresholds = new LinkedHashSet<>();
         Set<String> unique = countUnique(node.getProbabilities());
         node.getProbabilities();
-        boolean minus_inf = false;
-        boolean inf = false;
         for (int i = 0; i < unique.size(); i++) {
             WebTheta t = node.getProbabilities().get(i);
             if (t.getLocalValue().getLowerLimit().equals("-inf")) {
