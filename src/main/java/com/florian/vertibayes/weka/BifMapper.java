@@ -366,10 +366,14 @@ public final class BifMapper {
             if (t.getLocalValue().getUpperLimit().equals("inf")) {
                 tresholds.add("Infinity");
             }
-            if (!t.getLocalValue().getLowerLimit().equals("-inf")) {
+            if (t.getLocalValue().getLowerLimit().equals("All")) {
+                tresholds.add("-Infinity");
+            } else if (!t.getLocalValue().getLowerLimit().equals("-inf")) {
                 tresholds.add(t.getLocalValue().getLowerLimit());
             }
-            if (!t.getLocalValue().getUpperLimit().equals("inf")) {
+            if (t.getLocalValue().getUpperLimit().equals("All")) {
+                tresholds.add("Infinity");
+            } else if (!t.getLocalValue().getUpperLimit().equals("inf")) {
                 tresholds.add(t.getLocalValue().getUpperLimit());
             }
         }

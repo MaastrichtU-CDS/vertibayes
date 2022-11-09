@@ -93,13 +93,13 @@ public class BayesServer extends Server {
             for (int i = 0; i < population; i++) {
                 if (useKfold() && useLocalOnly) {
                     //both kfold and hybrid split
-                    if (recordIsLocallyPresent(i) && activeRecords[i]) {
+                    if (recordIsLocallyPresent(i) && recordIsActive(i)) {
                         count++;
                     }
                 } else if (useLocalOnly && recordIsLocallyPresent(i)) {
                     //only hybrid split
                     count++;
-                } else if (useKfold() && activeRecords[i]) {
+                } else if (useKfold() && recordIsActive(i)) {
                     // only kfold
                     count++;
                 }
@@ -417,7 +417,7 @@ public class BayesServer extends Server {
     private void markActiveRecords(BigInteger[] localData) {
         if (activeRecords != null && activeRecords.length > 0) {
             for (int i = 0; i < localData.length; i++) {
-                if (!activeRecords[i]) {
+                if (!recordIsActive(i)) {
                     localData[i] = BigInteger.ZERO;
                 }
             }
@@ -499,5 +499,9 @@ public class BayesServer extends Server {
         } else {
             return true;
         }
+    }
+
+    protected boolean recordIsActive(int record) {
+        return activeRecords[record];
     }
 }
