@@ -451,4 +451,12 @@ public class VertiBayesCentralServer extends CentralServer {
     protected ServerEndpoint getSecretEndpoint() {
         return secretEndpoint;
     }
+
+    protected void setEndpoints(List<ServerEndpoint> endpoints) {
+        this.endpoints = endpoints;
+    }
+
+    protected void setSecretEndpoint(ServerEndpoint secretEndpoint) {
+        this.secretEndpoint = secretEndpoint;
+    }
 }

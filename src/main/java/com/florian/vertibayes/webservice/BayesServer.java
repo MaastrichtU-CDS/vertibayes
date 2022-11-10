@@ -115,7 +115,7 @@ public class BayesServer extends Server {
     }
 
     @PostMapping ("setActiveRecords")
-    public void setActiveRecords(ActiveRecordRequest req) {
+    public void setActiveRecords(@RequestBody ActiveRecordRequest req) {
         this.activeRecords = req.getActiveRecords();
     }
 

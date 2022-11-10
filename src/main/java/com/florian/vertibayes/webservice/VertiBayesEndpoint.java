@@ -67,7 +67,7 @@ public class VertiBayesEndpoint extends ServerEndpoint {
         if (testing) {
             ((BayesServer) (server)).setUseLocalOnly(useLocalOnly);
         } else {
-            REST_TEMPLATE.getForEntity(serverUrl + "/setLocalOnly?localonly=" + useLocalOnly, Set.class)
+            REST_TEMPLATE.getForEntity(serverUrl + "/setUseLocalOnly?localonly=" + useLocalOnly, Set.class)
                     .getBody();
         }
     }
