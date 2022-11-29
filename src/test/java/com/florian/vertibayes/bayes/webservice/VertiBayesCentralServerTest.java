@@ -9,20 +9,214 @@ import com.florian.vertibayes.bayes.Theta;
 import com.florian.vertibayes.webservice.BayesServer;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
+import com.florian.vertibayes.webservice.domain.CreateNetworkRequest;
+import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationResponse;
 import com.florian.vertibayes.webservice.domain.external.WebBayesNetwork;
 import com.florian.vertibayes.webservice.domain.external.WebNode;
-import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
+import static com.florian.vertibayes.bayes.webservice.NetworkTest.createK2Nodes;
+import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNodeToNode;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class VertiBayesCentralServerTest {
 
     @Test
+    public void testMaximumLikelyhoodAsia3PartiesKFold() throws Exception {
+        //Small test with 3 parties.
+        //1 node has no parents, so requires only 1 party
+        //1 node has 1 parent, requires 2 parties
+        //1 node has 2 parents, requires all 3 parties
+
+        //Using maximumlikelyhood because the small network size means EM/synthetic generation fluctuates wildly
+        // between runs, but maximumlikelyhood is stable, and the point of htis test is to test the federated bit
+
+        BayesServer station1 = new BayesServer("resources/Experiments/threeParty/Asia10k_first.csv", "1");
+        BayesServer station2 = new BayesServer("resources/Experiments/threeParty/Asia10k_second.csv", "2");
+        BayesServer station3 = new BayesServer("resources/Experiments/threeParty/Asia10k_third.csv", "3");
+
+        VertiBayesEndpoint endpoint1 = new VertiBayesEndpoint(station1);
+        VertiBayesEndpoint endpoint2 = new VertiBayesEndpoint(station2);
+        VertiBayesEndpoint endpoint3 = new VertiBayesEndpoint(station3);
+        BayesServer secret = new BayesServer("4", Arrays.asList(endpoint1, endpoint2, endpoint3));
+
+        ServerEndpoint secretEnd = new ServerEndpoint(secret);
+
+        List<ServerEndpoint> all = new ArrayList<>();
+        all.add(endpoint1);
+        all.add(endpoint2);
+        all.add(endpoint3);
+        all.add(secretEnd);
+        secret.setEndpoints(all);
+        station1.setEndpoints(all);
+        station2.setEndpoints(all);
+        station3.setEndpoints(all);
+
+        List<WebNode> WebNodes = buildSmallAsiaNetwork();
+        WebBayesNetwork req = new WebBayesNetwork();
+        req.setNodes(WebNodes);
+        req.setTarget("asia");
+        req.setFolds(3);
+
+        VertiBayesCentralServer central = new VertiBayesCentralServer();
+        central.initEndpoints(Arrays.asList(endpoint1, endpoint2, endpoint3), secretEnd);
+        ExpectationMaximizationResponse res = central.expectationMaximization(
+                req);
+        req.setFolds(1);
+        ExpectationMaximizationResponse resNoFolds =
+                central.expectationMaximization(
+                        req);
+
+        //assert the averageAUC, which is bad cuz it's a model with 3 random nodes.
+        assertEquals(res.getSvdgAuc(), 0.50, 0.1);
+
+        List<Node> nodes = mapWebNodeToNode(res.getNodes());
+        List<Node> nodesNoFolds = mapWebNodeToNode(resNoFolds.getNodes());
+
+        // find the ventlung node, it's the one with three parents
+        Node asia = null;
+        for (Node n : nodes) {
+            if (n.getName().equals("asia")) {
+                asia = n;
+                break;
+            }
+        }
+
+        Node asiaNoFold = null;
+        for (Node n : nodesNoFolds) {
+            if (n.getName().equals("asia")) {
+                asiaNoFold = n;
+                break;
+            }
+        }
+
+        assertEquals(asia.getParents().size(), 0);
+        assertEquals(asia.getUniquevalues().size(), 2);
+        assertEquals(asia.getProbabilities().size(), 2);
+        //assert the final probabilities are the same between the final model and a model trained with no folds
+        assertEquals(asia.getProbabilities().get(0).getP(), asiaNoFold.getProbabilities().get(0).getP(), 0.01);
+        assertEquals(asia.getProbabilities().get(1).getP(), asiaNoFold.getProbabilities().get(1).getP(), 0.01);
+
+
+        Node either = null;
+        for (Node n : nodes) {
+            if (n.getName().equals("either")) {
+                either = n;
+                break;
+            }
+        }
+
+        Node eitherNoFold = null;
+        for (Node n : nodes) {
+            if (n.getName().equals("either")) {
+                eitherNoFold = n;
+                break;
+            }
+        }
+
+        assertEquals(either.getParents().size(), 1);
+        assertEquals(either.getUniquevalues().size(), 2);
+        assertEquals(either.getProbabilities().size(), 4);
+        for (int i = 0; i < 4; i++) {
+            assertEquals(either.getProbabilities().get(i).getP(), eitherNoFold.getProbabilities().get(i).getP(), 0.01);
+        }
+
+
+        Node lung = null;
+        for (Node n : nodes) {
+            if (n.getName().equals("lung")) {
+                lung = n;
+                break;
+            }
+        }
+
+        Node lungNoFold = null;
+        for (Node n : nodes) {
+            if (n.getName().equals("lung")) {
+                lungNoFold = n;
+                break;
+            }
+        }
+
+        assertEquals(lung.getParents().size(), 2);
+        assertEquals(lung.getUniquevalues().size(), 2);
+        assertEquals(lung.getProbabilities().size(), 8);
+        for (int i = 0; i < 8; i++) {
+            assertEquals(lung.getProbabilities().get(i).getP(), lungNoFold.getProbabilities().get(i).getP(), 0.01);
+        }
+    }
+
+    @Test
+    public void testCreateNetworkHybrid() {
+        BayesServer station1 = new BayesServer("resources/Experiments/hybridsplit/smallK2Example_firsthalf_hybrid1.csv",
+                                               "1");
+        BayesServer station2 = new BayesServer("resources/Experiments/hybridsplit/smallK2Example_firsthalf_hybrid2.csv",
+                                               "2");
+        BayesServer station3 = new BayesServer("resources/Experiments/hybridsplit/smallK2Example_secondhalf.csv", "3");
+
+        VertiBayesEndpoint endpoint1 = new VertiBayesEndpoint(station1);
+        VertiBayesEndpoint endpoint2 = new VertiBayesEndpoint(station2);
+        VertiBayesEndpoint endpoint3 = new VertiBayesEndpoint(station3);
+        BayesServer secret = new BayesServer("4", Arrays.asList(endpoint1, endpoint2, endpoint3));
+
+        ServerEndpoint secretEnd = new ServerEndpoint(secret);
+
+        List<ServerEndpoint> all = new ArrayList<>();
+        all.add(endpoint1);
+        all.add(endpoint2);
+        all.add(endpoint3);
+        all.add(secretEnd);
+        secret.setEndpoints(all);
+        station1.setEndpoints(all);
+        station2.setEndpoints(all);
+        station3.setEndpoints(all);
+
+        //hybrid
+        VertiBayesCentralServer central = new VertiBayesCentralServer();
+        central.initEndpoints(Arrays.asList(endpoint1, endpoint3), secretEnd);
+        endpoint1.setUseLocalOnly(true);
+
+        CreateNetworkRequest req = new CreateNetworkRequest();
+        req.setMinPercentage(10);
+        List<Node> webNodesHybrid = mapWebNodeToNode(central.maximumLikelyhood(central.buildNetwork(req)).getNodes());
+
+        // check if it matches expected network
+        assertEquals(webNodesHybrid.size(), 3);
+        assertEquals(webNodesHybrid.get(0).getParents().size(), 0);
+        assertEquals(webNodesHybrid.get(1).getParents().size(), 1);
+        assertTrue(webNodesHybrid.get(1).getParents().contains(webNodesHybrid.get(0)));
+        assertEquals(webNodesHybrid.get(2).getParents().size(), 1);
+        assertTrue(webNodesHybrid.get(2).getParents().contains(webNodesHybrid.get(1)));
+
+        //normal
+        central = new VertiBayesCentralServer();
+        central.initEndpoints(Arrays.asList(endpoint1, endpoint2, endpoint3), secretEnd);
+        endpoint1.setUseLocalOnly(false);
+        CreateNetworkRequest networkRequest = new CreateNetworkRequest();
+        req.setMinPercentage(10);
+        List<Node> webNodes = mapWebNodeToNode(
+                central.maximumLikelyhood(central.buildNetwork(networkRequest)).getNodes());
+
+        // check if it matches expected network
+        assertEquals(webNodes.size(), 3);
+        assertEquals(webNodes.get(0).getParents().size(), 0);
+        assertEquals(webNodes.get(1).getParents().size(), 1);
+        assertTrue(webNodes.get(1).getParents().contains(webNodes.get(0)));
+        assertEquals(webNodes.get(2).getParents().size(), 1);
+        assertTrue(webNodes.get(2).getParents().contains(webNodes.get(1)));
+        //expected network an example are based on the example in "resources/k2_algorithm.pdf"
+
+        //The structures were the same, but the probabilities are different, check the first probability to make sure.
+        assertEquals(webNodes.get(0).getProbabilities().get(0).getP(), 0.5);
+        assertEquals(webNodesHybrid.get(0).getProbabilities().get(0).getP(), 0.4);
+    }
+
+    @Test
     public void testDoubleSplitManuallyBinned() {
-        BayesServer station1 = new BayesServer("resources/Experiments/doublesplit/smallK2Example_firsthalf.csv", "1");
+        BayesServer station1 = new BayesServer("resources/Experiments/doublesplit/smallK2Example_firsthalf.csv",
+                                               "1");
         BayesServer station2 = new BayesServer("resources/Experiments/doublesplit/smallK2Example_secondhalf.csv", "2");
         BayesServer station3 = new BayesServer(
                 "resources/Experiments/doublesplit/smallK2Example_secondhalf_morepopulation.csv", "3");
@@ -46,9 +240,17 @@ public class VertiBayesCentralServerTest {
 
         VertiBayesCentralServer central = new VertiBayesCentralServer();
         central.initEndpoints(Arrays.asList(endpoint1, endpoint2, endpoint3), secretEnd);
-        List<WebNode> webNodes = central.buildNetwork().getNodes();
+
+        CreateNetworkRequest networkRequest = new CreateNetworkRequest();
+        networkRequest.setMinPercentage(10);
+        networkRequest.setNodes(createK2Nodes());
+        List<WebNode> webNodes = central.buildNetwork(networkRequest).getNodes();
         //add simple bins. The bins will essentially just form the binary division again
         // Since the bins will follow the same distribution we know the expected probabilities
+
+        WebBayesNetwork req = new WebBayesNetwork();
+        req.setNodes(webNodes);
+
         Bin zero = new Bin();
         zero.setLowerLimit("-1");
         zero.setUpperLimit("0.5");
@@ -57,17 +259,15 @@ public class VertiBayesCentralServerTest {
         one.setLowerLimit("0.5");
         one.setUpperLimit("1.5");
 
-
-        // no unknown bin, as this test does not deal with unknowns
-        for (WebNode node : webNodes) {
-            node.getBins().add(zero);
-            node.getBins().add(one);
-            node.setType(Attribute.AttributeType.real);
+        for (WebNode n : webNodes) {
+            if (n.getName().equals("x3")) {
+                n.getBins().add(zero);
+                n.getBins().add(one);
+                n.setType(Attribute.AttributeType.real);
+            }
         }
-        WebBayesNetwork req = new WebBayesNetwork();
-        req.setNodes(webNodes);
 
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
+        List<Node> nodes = mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
 
         // check if it matches expected network
         assertEquals(nodes.size(), 3);
@@ -91,11 +291,11 @@ public class VertiBayesCentralServerTest {
         }
 
         // value 1 key: -1;0.5 which corresponds to the range of the first bin
-        assertEquals(map.get("-1;0.5").getP(), 0.5);
-        assertEquals(map.get("-1;0.5").getLocalRequirement().getLowerLimit().getValue(), "-1");
-        assertEquals(map.get("-1;0.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
-        assertEquals(map.get("-1;0.5").getLocalRequirement().getName(), "x1");
-        assertEquals(map.get("-1;0.5").getParents().size(), 0);
+        assertEquals(map.get("-0.5;0.5").getP(), 0.5);
+        assertEquals(map.get("-0.5;0.5").getLocalRequirement().getLowerLimit().getValue(), "-0.5");
+        assertEquals(map.get("-0.5;0.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
+        assertEquals(map.get("-0.5;0.5").getLocalRequirement().getName(), "x1");
+        assertEquals(map.get("-0.5;0.5").getParents().size(), 0);
 
         // value 2 0.5;1.5 which corresponds to the range of the first bin
         assertEquals(map.get("0.5;1.5").getP(), 0.5);
@@ -124,32 +324,38 @@ public class VertiBayesCentralServerTest {
         }
 
         //keys: <child range>p<parent range>
-        assertEquals(map.get("-1;0.5p-1;0.5").getP(), 0.8);
-        assertEquals(map.get("-1;0.5p-1;0.5").getLocalRequirement().getLowerLimit().getValue(), "-1");
-        assertEquals(map.get("-1;0.5p-1;0.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
-        assertEquals(map.get("-1;0.5p-1;0.5").getLocalRequirement().getName(), "x2");
-        assertEquals(map.get("-1;0.5p-1;0.5").getParents().size(), 1);
-        assertEquals(map.get("-1;0.5p-1;0.5").getParents().get(0).getRequirement().getLowerLimit().getValue(), "-1");
-        assertEquals(map.get("-1;0.5p-1;0.5").getParents().get(0).getRequirement().getUpperLimit().getValue(), "0.5");
-        assertEquals(map.get("-1;0.5p-1;0.5").getParents().get(0).getName(), "x1");
+        assertEquals(map.get("-0.5;0.5p-0.5;0.5").getP(), 0.8);
+        assertEquals(map.get("-0.5;0.5p-0.5;0.5").getLocalRequirement().getLowerLimit().getValue(), "-0.5");
+        assertEquals(map.get("-0.5;0.5p-0.5;0.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
+        assertEquals(map.get("-0.5;0.5p-0.5;0.5").getLocalRequirement().getName(), "x2");
+        assertEquals(map.get("-0.5;0.5p-0.5;0.5").getParents().size(), 1);
+        assertEquals(map.get("-0.5;0.5p-0.5;0.5").getParents().get(0).getRequirement().getLowerLimit().getValue(),
+                     "-0.5");
+        assertEquals(map.get("-0.5;0.5p-0.5;0.5").getParents().get(0).getRequirement().getUpperLimit().getValue(),
+                     "0.5");
+        assertEquals(map.get("-0.5;0.5p-0.5;0.5").getParents().get(0).getName(), "x1");
 
-        assertEquals(map.get("0.5;1.5p-1;0.5").getP(), 0.2);
-        assertEquals(map.get("0.5;1.5p-1;0.5").getLocalRequirement().getLowerLimit().getValue(), "0.5");
-        assertEquals(map.get("0.5;1.5p-1;0.5").getLocalRequirement().getUpperLimit().getValue(), "1.5");
-        assertEquals(map.get("0.5;1.5p-1;0.5").getLocalRequirement().getName(), "x2");
-        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().size(), 1);
-        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().get(0).getRequirement().getLowerLimit().getValue(), "-1");
-        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().get(0).getRequirement().getUpperLimit().getValue(), "0.5");
-        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().get(0).getName(), "x1");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getP(), 0.2);
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getLocalRequirement().getLowerLimit().getValue(), "0.5");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getLocalRequirement().getUpperLimit().getValue(), "1.5");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getLocalRequirement().getName(), "x2");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getParents().size(), 1);
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getParents().get(0).getRequirement().getLowerLimit().getValue(),
+                     "-0.5");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getParents().get(0).getRequirement().getUpperLimit().getValue(),
+                     "0.5");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getParents().get(0).getName(), "x1");
 
-        assertEquals(map.get("-1;0.5p0.5;1.5").getP(), 0.2);
-        assertEquals(map.get("-1;0.5p0.5;1.5").getLocalRequirement().getLowerLimit().getValue(), "-1");
-        assertEquals(map.get("-1;0.5p0.5;1.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
-        assertEquals(map.get("-1;0.5p0.5;1.5").getLocalRequirement().getName(), "x2");
-        assertEquals(map.get("-1;0.5p0.5;1.5").getParents().size(), 1);
-        assertEquals(map.get("-1;0.5p0.5;1.5").getParents().get(0).getRequirement().getLowerLimit().getValue(), "0.5");
-        assertEquals(map.get("-1;0.5p0.5;1.5").getParents().get(0).getRequirement().getUpperLimit().getValue(), "1.5");
-        assertEquals(map.get("-1;0.5p0.5;1.5").getParents().get(0).getName(), "x1");
+        assertEquals(map.get("-0.5;0.5p0.5;1.5").getP(), 0.2);
+        assertEquals(map.get("-0.5;0.5p0.5;1.5").getLocalRequirement().getLowerLimit().getValue(), "-0.5");
+        assertEquals(map.get("-0.5;0.5p0.5;1.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
+        assertEquals(map.get("-0.5;0.5p0.5;1.5").getLocalRequirement().getName(), "x2");
+        assertEquals(map.get("-0.5;0.5p0.5;1.5").getParents().size(), 1);
+        assertEquals(map.get("-0.5;0.5p0.5;1.5").getParents().get(0).getRequirement().getLowerLimit().getValue(),
+                     "0.5");
+        assertEquals(map.get("-0.5;0.5p0.5;1.5").getParents().get(0).getRequirement().getUpperLimit().getValue(),
+                     "1.5");
+        assertEquals(map.get("-0.5;0.5p0.5;1.5").getParents().get(0).getName(), "x1");
 
         assertEquals(map.get("0.5;1.5p0.5;1.5").getP(), 0.8);
         assertEquals(map.get("0.5;1.5p0.5;1.5").getLocalRequirement().getLowerLimit().getValue(), "0.5");
@@ -185,23 +391,26 @@ public class VertiBayesCentralServerTest {
                     .getValue();
             map.put(key, t);
         }
-        assertEquals(map.get("-1;0.5p-1;0.5").getP(), 0.8);
-        assertEquals(map.get("-1;0.5p-1;0.5").getLocalRequirement().getLowerLimit().getValue(), "-1");
-        assertEquals(map.get("-1;0.5p-1;0.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
-        assertEquals(map.get("-1;0.5p-1;0.5").getLocalRequirement().getName(), "x3");
-        assertEquals(map.get("-1;0.5p-1;0.5").getParents().size(), 1);
-        assertEquals(map.get("-1;0.5p-1;0.5").getParents().get(0).getRequirement().getLowerLimit().getValue(), "-1");
-        assertEquals(map.get("-1;0.5p-1;0.5").getParents().get(0).getRequirement().getUpperLimit().getValue(), "0.5");
-        assertEquals(map.get("-1;0.5p-1;0.5").getParents().get(0).getName(), "x2");
+        assertEquals(map.get("-1;0.5p-0.5;0.5").getP(), 0.8);
+        assertEquals(map.get("-1;0.5p-0.5;0.5").getLocalRequirement().getLowerLimit().getValue(), "-1");
+        assertEquals(map.get("-1;0.5p-0.5;0.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
+        assertEquals(map.get("-1;0.5p-0.5;0.5").getLocalRequirement().getName(), "x3");
+        assertEquals(map.get("-1;0.5p-0.5;0.5").getParents().size(), 1);
+        assertEquals(map.get("-1;0.5p-0.5;0.5").getParents().get(0).getRequirement().getLowerLimit().getValue(),
+                     "-0.5");
+        assertEquals(map.get("-1;0.5p-0.5;0.5").getParents().get(0).getRequirement().getUpperLimit().getValue(), "0.5");
+        assertEquals(map.get("-1;0.5p-0.5;0.5").getParents().get(0).getName(), "x2");
 
-        assertEquals(map.get("0.5;1.5p-1;0.5").getP(), 0.2);
-        assertEquals(map.get("0.5;1.5p-1;0.5").getLocalRequirement().getLowerLimit().getValue(), "0.5");
-        assertEquals(map.get("0.5;1.5p-1;0.5").getLocalRequirement().getUpperLimit().getValue(), "1.5");
-        assertEquals(map.get("0.5;1.5p-1;0.5").getLocalRequirement().getName(), "x3");
-        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().size(), 1);
-        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().get(0).getRequirement().getLowerLimit().getValue(), "-1");
-        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().get(0).getRequirement().getUpperLimit().getValue(), "0.5");
-        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().get(0).getName(), "x2");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getP(), 0.2);
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getLocalRequirement().getLowerLimit().getValue(), "0.5");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getLocalRequirement().getUpperLimit().getValue(), "1.5");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getLocalRequirement().getName(), "x3");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getParents().size(), 1);
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getParents().get(0).getRequirement().getLowerLimit().getValue(),
+                     "-0.5");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getParents().get(0).getRequirement().getUpperLimit().getValue(),
+                     "0.5");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getParents().get(0).getName(), "x2");
 
         assertEquals(map.get("-1;0.5p0.5;1.5").getP(), 0.001);
         assertEquals(map.get("-1;0.5p0.5;1.5").getLocalRequirement().getLowerLimit().getValue(), "-1");
@@ -257,7 +466,10 @@ public class VertiBayesCentralServerTest {
 
         VertiBayesCentralServer central = new VertiBayesCentralServer();
         central.initEndpoints(Arrays.asList(endpoint1, endpoint2), secretEnd);
-        List<WebNode> webNodes = central.buildNetwork().getNodes();
+        CreateNetworkRequest networkRequest = new CreateNetworkRequest();
+        networkRequest.setMinPercentage(10);
+        networkRequest.setNodes(createK2Nodes());
+        List<WebNode> webNodes = central.buildNetwork(networkRequest).getNodes();
         //add simple bins. The bins will essentially just form the binary division again
         // Since the bins will follow the same distribution we know the expected probabilities
         Bin zero = new Bin();
@@ -271,14 +483,16 @@ public class VertiBayesCentralServerTest {
 
         // no unknown bin, as this test does not deal with unknowns
         for (WebNode node : webNodes) {
-            node.getBins().add(zero);
-            node.getBins().add(one);
-            node.setType(Attribute.AttributeType.real);
+            if (node.getName().equals("x3")) {
+                node.getBins().add(zero);
+                node.getBins().add(one);
+                node.setType(Attribute.AttributeType.real);
+            }
         }
         WebBayesNetwork req = new WebBayesNetwork();
         req.setNodes(webNodes);
 
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
+        List<Node> nodes = mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
 
         // check if it matches expected network
         assertEquals(nodes.size(), 3);
@@ -302,11 +516,11 @@ public class VertiBayesCentralServerTest {
         }
 
         // value 1 key: -1;0.5 which corresponds to the range of the first bin
-        assertEquals(map.get("-1;0.5").getP(), 0.5);
-        assertEquals(map.get("-1;0.5").getLocalRequirement().getLowerLimit().getValue(), "-1");
-        assertEquals(map.get("-1;0.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
-        assertEquals(map.get("-1;0.5").getLocalRequirement().getName(), "x1");
-        assertEquals(map.get("-1;0.5").getParents().size(), 0);
+        assertEquals(map.get("-0.5;0.5").getP(), 0.5);
+        assertEquals(map.get("-0.5;0.5").getLocalRequirement().getLowerLimit().getValue(), "-0.5");
+        assertEquals(map.get("-0.5;0.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
+        assertEquals(map.get("-0.5;0.5").getLocalRequirement().getName(), "x1");
+        assertEquals(map.get("-0.5;0.5").getParents().size(), 0);
 
         // value 2 0.5;1.5 which corresponds to the range of the first bin
         assertEquals(map.get("0.5;1.5").getP(), 0.5);
@@ -335,32 +549,38 @@ public class VertiBayesCentralServerTest {
         }
 
         //keys: <child range>p<parent range>
-        assertEquals(map.get("-1;0.5p-1;0.5").getP(), 0.8);
-        assertEquals(map.get("-1;0.5p-1;0.5").getLocalRequirement().getLowerLimit().getValue(), "-1");
-        assertEquals(map.get("-1;0.5p-1;0.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
-        assertEquals(map.get("-1;0.5p-1;0.5").getLocalRequirement().getName(), "x2");
-        assertEquals(map.get("-1;0.5p-1;0.5").getParents().size(), 1);
-        assertEquals(map.get("-1;0.5p-1;0.5").getParents().get(0).getRequirement().getLowerLimit().getValue(), "-1");
-        assertEquals(map.get("-1;0.5p-1;0.5").getParents().get(0).getRequirement().getUpperLimit().getValue(), "0.5");
-        assertEquals(map.get("-1;0.5p-1;0.5").getParents().get(0).getName(), "x1");
+        assertEquals(map.get("-0.5;0.5p-0.5;0.5").getP(), 0.8);
+        assertEquals(map.get("-0.5;0.5p-0.5;0.5").getLocalRequirement().getLowerLimit().getValue(), "-0.5");
+        assertEquals(map.get("-0.5;0.5p-0.5;0.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
+        assertEquals(map.get("-0.5;0.5p-0.5;0.5").getLocalRequirement().getName(), "x2");
+        assertEquals(map.get("-0.5;0.5p-0.5;0.5").getParents().size(), 1);
+        assertEquals(map.get("-0.5;0.5p-0.5;0.5").getParents().get(0).getRequirement().getLowerLimit().getValue(),
+                     "-0.5");
+        assertEquals(map.get("-0.5;0.5p-0.5;0.5").getParents().get(0).getRequirement().getUpperLimit().getValue(),
+                     "0.5");
+        assertEquals(map.get("-0.5;0.5p-0.5;0.5").getParents().get(0).getName(), "x1");
 
-        assertEquals(map.get("0.5;1.5p-1;0.5").getP(), 0.2);
-        assertEquals(map.get("0.5;1.5p-1;0.5").getLocalRequirement().getLowerLimit().getValue(), "0.5");
-        assertEquals(map.get("0.5;1.5p-1;0.5").getLocalRequirement().getUpperLimit().getValue(), "1.5");
-        assertEquals(map.get("0.5;1.5p-1;0.5").getLocalRequirement().getName(), "x2");
-        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().size(), 1);
-        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().get(0).getRequirement().getLowerLimit().getValue(), "-1");
-        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().get(0).getRequirement().getUpperLimit().getValue(), "0.5");
-        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().get(0).getName(), "x1");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getP(), 0.2);
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getLocalRequirement().getLowerLimit().getValue(), "0.5");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getLocalRequirement().getUpperLimit().getValue(), "1.5");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getLocalRequirement().getName(), "x2");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getParents().size(), 1);
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getParents().get(0).getRequirement().getLowerLimit().getValue(),
+                     "-0.5");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getParents().get(0).getRequirement().getUpperLimit().getValue(),
+                     "0.5");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getParents().get(0).getName(), "x1");
 
-        assertEquals(map.get("-1;0.5p0.5;1.5").getP(), 0.2);
-        assertEquals(map.get("-1;0.5p0.5;1.5").getLocalRequirement().getLowerLimit().getValue(), "-1");
-        assertEquals(map.get("-1;0.5p0.5;1.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
-        assertEquals(map.get("-1;0.5p0.5;1.5").getLocalRequirement().getName(), "x2");
-        assertEquals(map.get("-1;0.5p0.5;1.5").getParents().size(), 1);
-        assertEquals(map.get("-1;0.5p0.5;1.5").getParents().get(0).getRequirement().getLowerLimit().getValue(), "0.5");
-        assertEquals(map.get("-1;0.5p0.5;1.5").getParents().get(0).getRequirement().getUpperLimit().getValue(), "1.5");
-        assertEquals(map.get("-1;0.5p0.5;1.5").getParents().get(0).getName(), "x1");
+        assertEquals(map.get("-0.5;0.5p0.5;1.5").getP(), 0.2);
+        assertEquals(map.get("-0.5;0.5p0.5;1.5").getLocalRequirement().getLowerLimit().getValue(), "-0.5");
+        assertEquals(map.get("-0.5;0.5p0.5;1.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
+        assertEquals(map.get("-0.5;0.5p0.5;1.5").getLocalRequirement().getName(), "x2");
+        assertEquals(map.get("-0.5;0.5p0.5;1.5").getParents().size(), 1);
+        assertEquals(map.get("-0.5;0.5p0.5;1.5").getParents().get(0).getRequirement().getLowerLimit().getValue(),
+                     "0.5");
+        assertEquals(map.get("-0.5;0.5p0.5;1.5").getParents().get(0).getRequirement().getUpperLimit().getValue(),
+                     "1.5");
+        assertEquals(map.get("-0.5;0.5p0.5;1.5").getParents().get(0).getName(), "x1");
 
         assertEquals(map.get("0.5;1.5p0.5;1.5").getP(), 0.8);
         assertEquals(map.get("0.5;1.5p0.5;1.5").getLocalRequirement().getLowerLimit().getValue(), "0.5");
@@ -396,31 +616,37 @@ public class VertiBayesCentralServerTest {
                     .getValue();
             map.put(key, t);
         }
-        assertEquals(map.get("-1;0.5p-1;0.5").getP(), 0.8);
-        assertEquals(map.get("-1;0.5p-1;0.5").getLocalRequirement().getLowerLimit().getValue(), "-1");
-        assertEquals(map.get("-1;0.5p-1;0.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
-        assertEquals(map.get("-1;0.5p-1;0.5").getLocalRequirement().getName(), "x3");
-        assertEquals(map.get("-1;0.5p-1;0.5").getParents().size(), 1);
-        assertEquals(map.get("-1;0.5p-1;0.5").getParents().get(0).getRequirement().getLowerLimit().getValue(), "-1");
-        assertEquals(map.get("-1;0.5p-1;0.5").getParents().get(0).getRequirement().getUpperLimit().getValue(), "0.5");
-        assertEquals(map.get("-1;0.5p-1;0.5").getParents().get(0).getName(), "x2");
+        assertEquals(map.get("-1;0.5p-0.5;0.5").getP(), 0.8);
+        assertEquals(map.get("-1;0.5p-0.5;0.5").getLocalRequirement().getLowerLimit().getValue(), "-1");
+        assertEquals(map.get("-1;0.5p-0.5;0.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
+        assertEquals(map.get("-1;0.5p-0.5;0.5").getLocalRequirement().getName(), "x3");
+        assertEquals(map.get("-1;0.5p-0.5;0.5").getParents().size(), 1);
+        assertEquals(map.get("-1;0.5p-0.5;0.5").getParents().get(0).getRequirement().getLowerLimit().getValue(),
+                     "-0.5");
+        assertEquals(map.get("-1;0.5p-0.5;0.5").getParents().get(0).getRequirement().getUpperLimit().getValue(),
+                     "0.5");
+        assertEquals(map.get("-1;0.5p-0.5;0.5").getParents().get(0).getName(), "x2");
 
-        assertEquals(map.get("0.5;1.5p-1;0.5").getP(), 0.2);
-        assertEquals(map.get("0.5;1.5p-1;0.5").getLocalRequirement().getLowerLimit().getValue(), "0.5");
-        assertEquals(map.get("0.5;1.5p-1;0.5").getLocalRequirement().getUpperLimit().getValue(), "1.5");
-        assertEquals(map.get("0.5;1.5p-1;0.5").getLocalRequirement().getName(), "x3");
-        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().size(), 1);
-        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().get(0).getRequirement().getLowerLimit().getValue(), "-1");
-        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().get(0).getRequirement().getUpperLimit().getValue(), "0.5");
-        assertEquals(map.get("0.5;1.5p-1;0.5").getParents().get(0).getName(), "x2");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getP(), 0.2);
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getLocalRequirement().getLowerLimit().getValue(), "0.5");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getLocalRequirement().getUpperLimit().getValue(), "1.5");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getLocalRequirement().getName(), "x3");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getParents().size(), 1);
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getParents().get(0).getRequirement().getLowerLimit().getValue(),
+                     "-0.5");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getParents().get(0).getRequirement().getUpperLimit().getValue(),
+                     "0.5");
+        assertEquals(map.get("0.5;1.5p-0.5;0.5").getParents().get(0).getName(), "x2");
 
         assertEquals(map.get("-1;0.5p0.5;1.5").getP(), 0.001);
         assertEquals(map.get("-1;0.5p0.5;1.5").getLocalRequirement().getLowerLimit().getValue(), "-1");
         assertEquals(map.get("-1;0.5p0.5;1.5").getLocalRequirement().getUpperLimit().getValue(), "0.5");
         assertEquals(map.get("-1;0.5p0.5;1.5").getLocalRequirement().getName(), "x3");
         assertEquals(map.get("-1;0.5p0.5;1.5").getParents().size(), 1);
-        assertEquals(map.get("-1;0.5p0.5;1.5").getParents().get(0).getRequirement().getLowerLimit().getValue(), "0.5");
-        assertEquals(map.get("-1;0.5p0.5;1.5").getParents().get(0).getRequirement().getUpperLimit().getValue(), "1.5");
+        assertEquals(map.get("-1;0.5p0.5;1.5").getParents().get(0).getRequirement().getLowerLimit().getValue(),
+                     "0.5");
+        assertEquals(map.get("-1;0.5p0.5;1.5").getParents().get(0).getRequirement().getUpperLimit().getValue(),
+                     "1.5");
         assertEquals(map.get("-1;0.5p0.5;1.5").getParents().get(0).getName(), "x2");
 
         assertEquals(map.get("0.5;1.5p0.5;1.5").getP(), 0.999);
@@ -469,11 +695,17 @@ public class VertiBayesCentralServerTest {
 
         VertiBayesCentralServer central = new VertiBayesCentralServer();
         central.initEndpoints(Arrays.asList(endpoint1, endpoint2), secretEnd);
-        List<WebNode> webNodes = central.buildNetwork().getNodes();
+        CreateNetworkRequest networkRequest = new CreateNetworkRequest();
+        networkRequest.setMinPercentage(10);
+        networkRequest.setNodes(createK2Nodes());
+        List<WebNode> webNodes = central.buildNetwork(networkRequest).getNodes();
         WebBayesNetwork req = new WebBayesNetwork();
         req.setNodes(webNodes);
+        for (WebNode n : webNodes) {
+            n.setBins(new HashSet<>());
+        }
 
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
+        List<Node> nodes = mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
 
         // check if it matches expected network
         assertEquals(nodes.size(), 3);
@@ -588,12 +820,14 @@ public class VertiBayesCentralServerTest {
 
         VertiBayesCentralServer central = new VertiBayesCentralServer();
         central.initEndpoints(Arrays.asList(endpoint1, endpoint2), secretEnd);
-        List<WebNode> webNodes = central.buildNetwork().getNodes();
+        CreateNetworkRequest networkRequest = new CreateNetworkRequest();
+        networkRequest.setMinPercentage(10);
+        List<WebNode> webNodes = central.buildNetwork(networkRequest).getNodes();
 
         WebBayesNetwork req = new WebBayesNetwork();
         req.setNodes(webNodes);
 
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
+        List<Node> nodes = mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
 
         // check if it matches expected network
         assertEquals(nodes.size(), 3);
@@ -765,7 +999,7 @@ public class VertiBayesCentralServerTest {
         List<WebNode> WebNodes = buildSmallAlarmNetwork();
         WebBayesNetwork req = new WebBayesNetwork();
         req.setNodes(WebNodes);
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
+        List<Node> nodes = mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
 
         // find the ventlung node, it's the one with three parents
         Node vntl = null;
@@ -834,24 +1068,18 @@ public class VertiBayesCentralServerTest {
 
         VertiBayesCentralServer central = new VertiBayesCentralServer();
         central.initEndpoints(Arrays.asList(endpoint1, endpoint2), secretEnd);
-        List<WebNode> webNodes = central.buildNetwork().getNodes();
+        CreateNetworkRequest networkRequest = new CreateNetworkRequest();
+        networkRequest.setMinPercentage(10);
+        networkRequest.setNodes(createK2Nodes());
+        List<WebNode> webNodes = central.buildNetwork(networkRequest).getNodes();
         //add simple bins"to all nodes expect X3. The bins will essentially just form the binary division again
         // Since the bins will follow the same distribution we know the expected probabilities
-        Bin zero = new Bin();
-        zero.setLowerLimit("-1");
-        zero.setUpperLimit("0.5");
-
-        Bin one = new Bin();
-        one.setLowerLimit("0.5");
-        one.setUpperLimit("1.5");
 
         Bin unknown = new Bin();
         unknown.setLowerLimit("?");
         unknown.setUpperLimit("?");
         for (WebNode node : webNodes) {
             if (!node.getName().equals("x3")) {
-                node.getBins().add(zero);
-                node.getBins().add(one);
                 node.getBins().add(unknown);
             }
         }
@@ -860,7 +1088,7 @@ public class VertiBayesCentralServerTest {
         req.setTarget("x3");
 
 
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.expectationMaximization(req).getNodes());
+        List<Node> nodes = mapWebNodeToNode(central.expectationMaximization(req).getNodes());
 
         // check if it matches expected network
         assertEquals(nodes.size(), 3);
@@ -1001,32 +1229,27 @@ public class VertiBayesCentralServerTest {
 
         VertiBayesCentralServer central = new VertiBayesCentralServer();
         central.initEndpoints(Arrays.asList(endpoint1, endpoint2), secretEnd);
-        List<WebNode> webNodes = central.buildNetwork().getNodes();
-        //add simple bins"to all nodes expect X3. The bins will essentially just form the binary division again
-        // Since the bins will follow the same distribution we know the expected probabilities
-        Bin zero = new Bin();
-        zero.setLowerLimit("-1");
-        zero.setUpperLimit("0.5");
-
-        Bin one = new Bin();
-        one.setLowerLimit("0.5");
-        one.setUpperLimit("1.5");
+        CreateNetworkRequest networkRequest = new CreateNetworkRequest();
+        networkRequest.setMinPercentage(10);
+        networkRequest.setNodes(createK2Nodes());
 
         Bin unknown = new Bin();
         unknown.setLowerLimit("?");
         unknown.setUpperLimit("?");
-        for (WebNode node : webNodes) {
+        for (WebNode node : networkRequest.getNodes()) {
             if (!node.getName().equals("x3")) {
-                node.getBins().add(zero);
-                node.getBins().add(one);
                 node.getBins().add(unknown);
             }
         }
+        List<WebNode> webNodes = central.buildNetwork(networkRequest).getNodes();
+        //add simple bins"to all nodes expect X3. The bins will essentially just form the binary division again
+        // Since the bins will follow the same distribution we know the expected probabilities
+
         WebBayesNetwork req = new WebBayesNetwork();
         req.setNodes(webNodes);
         req.setTarget("x3");
 
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.expectationMaximization(req).getNodes());
+        List<Node> nodes = mapWebNodeToNode(central.expectationMaximization(req).getNodes());
 
         // check if it matches expected network
         assertEquals(nodes.size(), 3);
@@ -1168,12 +1391,14 @@ public class VertiBayesCentralServerTest {
 
         VertiBayesCentralServer central = new VertiBayesCentralServer();
         central.initEndpoints(Arrays.asList(endpoint1, endpoint2), secretEnd);
-        List<WebNode> webNodes = central.buildNetwork().getNodes();
+        CreateNetworkRequest networkRequest = new CreateNetworkRequest();
+        networkRequest.setMinPercentage(10);
+        List<WebNode> webNodes = central.buildNetwork(networkRequest).getNodes();
         WebBayesNetwork req = new WebBayesNetwork();
         req.setNodes(webNodes);
         req.setTarget("x3");
 
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.expectationMaximization(req).getNodes());
+        List<Node> nodes = mapWebNodeToNode(central.expectationMaximization(req).getNodes());
 
         // check if it matches expected network
         assertEquals(nodes.size(), 3);
@@ -1347,7 +1572,7 @@ public class VertiBayesCentralServerTest {
         req.setNodes(WebNodes);
         req.setTarget("VENTTUBE");
 
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.expectationMaximization(req).getNodes());
+        List<Node> nodes = mapWebNodeToNode(central.expectationMaximization(req).getNodes());
 
         // find the ventlung node, it's the one with three parents
         Node vntl = null;
@@ -1434,7 +1659,7 @@ public class VertiBayesCentralServerTest {
         VertiBayesCentralServer central = new VertiBayesCentralServer();
         central.initEndpoints(Arrays.asList(endpoint1, endpoint2, endpoint3), secretEnd);
 
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
+        List<Node> nodes = mapWebNodeToNode(central.maximumLikelyhood(req).getNodes());
 
         // find the ventlung node, it's the one with three parents
         Node asia = null;
@@ -1516,6 +1741,4 @@ public class VertiBayesCentralServerTest {
         n.setParents(parents);
         return n;
     }
-
-
 }

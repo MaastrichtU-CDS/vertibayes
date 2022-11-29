@@ -31,6 +31,7 @@ public class Util {
                                              List<WebNode> testNetwork, String target, double minPercentage,
                                              Performance per)
             throws Exception {
+        
         VertiBayesCentralServer station = createCentral(testData, testData);
         WebBayesNetwork req = new WebBayesNetwork();
         req.setMinPercentage(minPercentage);

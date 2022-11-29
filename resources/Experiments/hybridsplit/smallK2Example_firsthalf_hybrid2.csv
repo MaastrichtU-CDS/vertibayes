@@ -1,0 +1,12 @@
+numeric,string,string,bool
+ID,x1,x2,locallyPresent
+1,1,0,false
+2,1,1,false
+3,0,0,false
+4,1,1,false
+5,0,0,false
+6,0,1,true
+7,1,1,true
+8,0,0,true
+9,1,1,true
+10,0,0,true

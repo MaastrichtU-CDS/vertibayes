@@ -1,0 +1,16 @@
+@Relation genericBIFF
+@Attribute x1 {a,b}
+@Attribute x2 {a,b}
+@Attribute x3 {a,b}
+
+@DATA
+?,b,a
+a,?,a
+b,b,a
+a,a,a
+b,b,b
+b,?,a
+a,a,a
+b,b,b
+a,a,a
+?,b,b

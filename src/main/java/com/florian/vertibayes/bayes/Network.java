@@ -6,6 +6,7 @@ import com.florian.nscalarproduct.webservice.ServerEndpoint;
 import com.florian.nscalarproduct.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
+import com.florian.vertibayes.webservice.domain.CreateNetworkRequest;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.florian.vertibayes.util.MathUtil.factorial;
+import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNodeToNode;
 
 
 public class Network {
@@ -51,14 +53,40 @@ public class Network {
         this.central = central;
     }
 
-    public void createNetwork() {
+
+    public void createNetwork(CreateNetworkRequest req) {
         List<Node> pred = new ArrayList<>();
+        if (req.getNodes() != null && req.getNodes().size() > 0) {
+            this.nodes = mapWebNodeToNode(req.getNodes());
+        }
+        initNodes(req.getMinPercentage());
         for (Node node : nodes) {
             determineParent(node, pred);
             pred.add(node);
         }
     }
 
+    private void initNodes(int minPercentage) {
+        for (Node n : nodes) {
+            if (n.getType() != Attribute.AttributeType.real && n.getType() != Attribute.AttributeType.numeric) {
+                initNode(n);
+            } else if (n.getBins().isEmpty()) {
+                initNodeBinned(n, minPercentage);
+            }
+        }
+    }
+
+    private void initNode(Node node) {
+        for (ServerEndpoint endpoint : endpoints) {
+            node.getUniquevalues().addAll(((VertiBayesEndpoint) endpoint).getUniqueValues(node.getName()));
+        }
+    }
+
+    private void initNodeBinned(Node node, double minPercentage) {
+        for (ServerEndpoint endpoint : endpoints) {
+            node.getBins().addAll(((VertiBayesEndpoint) endpoint).getBins(node.getName(), minPercentage));
+        }
+    }
 
     private void determineParent(Node node, List<Node> pred) {
         List<Node> possibleParents = new ArrayList<>(pred);
@@ -93,7 +121,7 @@ public class Network {
         BigDecimal partial = BigDecimal.ONE;
 
         if (requirements.size() == 0) {
-            if (node.getType() != Attribute.AttributeType.real) {
+            if (node.getType() != Attribute.AttributeType.real && node.getType() != Attribute.AttributeType.numeric) {
                 for (String value : node.getUniquevalues()) {
                     List<AttributeRequirement> req = new ArrayList<>();
                     req.add(new AttributeRequirement(new Attribute(node.getType(), value, node.getName())));
@@ -123,7 +151,8 @@ public class Network {
             for (List<AttributeRequirement> req : requirements) {
                 sumaijk = BigDecimal.ZERO;
                 prodaijk = BigDecimal.ONE;
-                if (node.getType() != Attribute.AttributeType.real) {
+                if (node.getType() != Attribute.AttributeType.real
+                        && node.getType() != Attribute.AttributeType.numeric) {
                     for (String value : node.getUniquevalues()) {
                         List<AttributeRequirement> r = new ArrayList<>(req);
                         r.add(new AttributeRequirement(new Attribute(node.getType(), value, node.getName())));
@@ -174,7 +203,7 @@ public class Network {
         List<List<AttributeRequirement>> requirements = new ArrayList<>();
         for (Node node : nodes) {
             List<List<AttributeRequirement>> temp = new ArrayList<>();
-            if (node.getType() != Attribute.AttributeType.real) {
+            if (node.getType() != Attribute.AttributeType.real && node.getType() != Attribute.AttributeType.numeric) {
                 for (String value : node.getUniquevalues()) {
                     if (requirements.size() == 0) {
                         List<AttributeRequirement> req = new ArrayList<>();
@@ -207,6 +236,7 @@ public class Network {
                         }
                     }
                 }
+                requirements = temp;
             }
 
         }
@@ -215,6 +245,10 @@ public class Network {
 
     public List<Node> getNodes() {
         return nodes;
+    }
+
+    public void setNodes(List<Node> nodes) {
+        this.nodes = nodes;
     }
 
     private void removeDoubles() {

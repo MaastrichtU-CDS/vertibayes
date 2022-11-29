@@ -1,16 +1,22 @@
 package com.florian.vertibayes.weka;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.florian.nscalarproduct.data.Attribute;
+import com.florian.nscalarproduct.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.bayes.Bin;
+import com.florian.vertibayes.bayes.Node;
+import com.florian.vertibayes.bayes.ParentValue;
+import com.florian.vertibayes.bayes.Theta;
 import com.florian.vertibayes.webservice.domain.external.WebNode;
 import com.florian.vertibayes.webservice.domain.external.WebParentValue;
 import com.florian.vertibayes.webservice.domain.external.WebTheta;
 import com.florian.vertibayes.webservice.domain.external.WebValue;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.florian.vertibayes.util.PrintingPress.prettyPrintByTransformer;
+import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNodeFromNode;
 
 public final class BifMapper {
     // Utility class that can turn a WEKA bif into our network structure and vice-versa
@@ -20,9 +26,192 @@ public final class BifMapper {
     private BifMapper() {
     }
 
+    public static List<WebNode> fromOpenMarkovBif(String bif) throws JsonProcessingException {
+        bif = bif.replace(MARKOVHEADER, "");
+        bif = bif.replace(MARKOVFOOTER, "");
+        bif = bif.replace("\n", "").replace("\"", "").replace("/>", "");
+        List<Node> nodes = new ArrayList<>();
+        String[] split1 = bif.split("<Links>");
+        String[] variables = split1[0].replace("<Variables>", "").replace("</Variables>", "").split("</Variable>");
+        Map<String, List<String>> states = new HashMap<>();
+        Map<String, List<Bin>> bins = new HashMap<>();
+        nodes.addAll(createNodes(variables, states, bins));
+        String[] split2 = split1[1].split("</Links>");
+        String[] links = split2[0].replace("<Link directed=true>", "").split("</Link>");
+        linkParents(nodes, links);
+        String[] potentials = split2[1].replace("<Potentials>", "").replace("</Potentials>", "").split("</Potential>");
+
+        setProbabilities(nodes, potentials, states, bins);
+
+        return mapWebNodeFromNode(nodes);
+    }
+
+    private static void setProbabilities(List<Node> nodes, String[] potentials,
+                                         Map<String, List<String>> states,
+                                         Map<String, List<Bin>> bins) {
+        for (String p : potentials) {
+            String[] split = p.replace("</Values>", "").split("<Values>");
+            split[0] = split[0].replace(" ", "")
+                    .replace("<Potentialtype=Tablerole=conditionalProbability><Variables>", "");
+            if (split[0].isEmpty()) {
+                continue;
+            }
+            String[] variables = split[0].replace("</Variables>", "").split("<Variablename=");
+            String[] probs = split[1].split(" ");
+            Node child = findNode(variables[1], nodes);
+
+            if (variables.length > 2) {
+                List<Node> parents = new ArrayList<>();
+                int count = 0;
+                if (child.getType() == Attribute.AttributeType.string) {
+                    count = states.get(child.getName()).size();
+                } else {
+                    count = bins.get(child.getName()).size();
+                }
+                for (int i = 2; i < variables.length; i++) {
+                    parents.add(findNode(variables[i], nodes));
+                }
+                List<Integer> counts = new ArrayList<>();
+                for (Node parent : parents) {
+                    counts.add(-1);
+                }
+                for (int i = 0; i < probs.length; i++) {
+                    Theta t = new Theta();
+                    t.setP(Double.parseDouble(probs[i]));
+                    createLocalRequirement(states, bins, child, i % count, t);
+                    if (i % count == 0) {
+                        for (int k = 0; k < counts.size(); k++) {
+                            counts.set(k, counts.get(k) + 1);
+                        }
+                    }
+                    for (int k = 0; k < counts.size(); k++) {
+                        ParentValue pv = new ParentValue();
+                        Node parent = parents.get(k);
+                        pv.setName(parent.getName());
+                        if (parent.getType() == Attribute.AttributeType.string) {
+                            if (counts.get(k) == states.get(parent.getName()).size()) {
+                                counts.set(k, 0);
+                            }
+                            pv.setRequirement(new AttributeRequirement(
+                                    new Attribute(parent.getType(), states.get(parent.getName())
+                                            .get(counts.get(k)), parent.getName())));
+                        } else {
+                            if (counts.get(k) == bins.get(parent.getName()).size()) {
+                                counts.set(k, 0);
+                            }
+                            Attribute lower = new Attribute(parent.getType(), bins.get(parent.getName())
+                                    .get(counts.get(k)).getLowerLimit(), parent.getName());
+                            Attribute higher = new Attribute(parent.getType(), bins.get(parent.getName())
+                                    .get(counts.get(k)).getUpperLimit(), parent.getName());
+                            pv.setRequirement(new AttributeRequirement(lower, higher));
+                        }
+                        t.getParents().add(pv);
+                    }
+                    child.getProbabilities().add(t);
+                }
+            } else {
+                for (int i = 0; i < probs.length; i++) {
+                    Theta t = new Theta();
+                    t.setP(Double.parseDouble(probs[i]));
+                    createLocalRequirement(states, bins, child, i, t);
+                    child.getProbabilities().add(t);
+                }
+            }
+        }
+    }
+
+    private static void createLocalRequirement(Map<String, List<String>> states, Map<String, List<Bin>> bins,
+                                               Node child, int i,
+                                               Theta t) {
+        if (child.getType() == Attribute.AttributeType.string) {
+            Attribute req = new Attribute(child.getType(), states.get(child.getName()).get(i),
+                                          child.getName());
+            t.setLocalRequirement(new AttributeRequirement(req));
+        } else {
+            Attribute lower = new Attribute(child.getType(),
+                                            bins.get(child.getName()).get(i).getLowerLimit(),
+                                            child.getName());
+            Attribute upper = new Attribute(child.getType(),
+                                            bins.get(child.getName()).get(i).getUpperLimit(),
+                                            child.getName());
+            t.setLocalRequirement(new AttributeRequirement(lower, upper));
+        }
+    }
+
+    private static void linkParents(List<Node> nodes, String[] links) {
+        for (String l : links) {
+            //take substring to skip the first symbol
+            l = l.replace(" ", "").replace("<Variablename=", " ");
+            if (l.isEmpty()) {
+                continue;
+            } else {
+                l = l.substring(1);
+            }
+            String[] pairs = l.split(" ");
+            Node parent = findNode(pairs[0], nodes);
+            Node child = findNode(pairs[1], nodes);
+            child.getParents().add(parent);
+        }
+    }
+
+    private static List<Node> createNodes(String[] variables, Map<String, List<String>> uniqueValues,
+                                          Map<String, List<Bin>> bins) {
+        List<Node> nodes = new ArrayList<>();
+        for (String v : variables) {
+            List<Bin> stateBins = new ArrayList<>();
+            List<String> unique = new ArrayList<>();
+            v = v.replace(" ", "").split("<Thresholds>")[0];
+            if (v.isEmpty()) {
+                continue;
+            }
+            v.replace(" />", "");
+            Node n = new Node();
+            nodes.add(n);
+            if (v.contains("discretized")) {
+                n.setType(Attribute.AttributeType.real);
+                String[] states = v.split("<States>")[1].replace("</States>", "").split("<Statename=");
+                for (String s : states) {
+                    if (s.isEmpty()) {
+                        //first string is empty due to how splitting works
+                        continue;
+                    }
+                    String[] values = s.replace("infinity", "inf").split(";");
+                    Bin b = new Bin();
+                    b.setLowerLimit(values[0]);
+                    b.setUpperLimit(values[1]);
+                    n.getBins().add(b);
+                    if (!stateBins.contains(b)) {
+                        stateBins.add(b);
+                    }
+                }
+            } else {
+                n.setType(Attribute.AttributeType.string);
+                String[] states = v.split("<States>")[1].replace("</States>", "").split("<Statename=");
+                for (String s : states) {
+                    if (s.isEmpty()) {
+                        continue;
+                    }
+                    n.getUniquevalues().add(s);
+                    if (!unique.contains(s)) {
+                        unique.add(s);
+                    }
+                }
+            }
+            String name = v.replace("<Variablename=", "").split("role=")[0];
+            n.setName(name);
+            if (n.getType() == Attribute.AttributeType.string) {
+                uniqueValues.put(name, unique);
+            } else {
+                bins.put(name, stateBins);
+            }
+        }
+        return nodes;
+
+    }
+
     public static String toOpenMarkovBif(List<WebNode> nodes) {
         String bif = "";
-        bif += MARKOVHEADER;
+        bif += WRITE_MARKOVHEADER;
         String variables = "";
         String potentials = "";
         String links = "";
@@ -41,9 +230,10 @@ public final class BifMapper {
         bif += "<Potentials>\n";
         bif += potentials;
         bif += "</Potentials>\n";
-        bif += MARKOVFOOTER;
-        return bif;
+        bif += WRITE_MARKOVFOOTER;
+        return prettyPrintByTransformer(bif.replace("\n", ""));
     }
+
 
     public static String toBIF(List<WebNode> nodes) {
         String bif = "";
@@ -118,9 +308,9 @@ public final class BifMapper {
     private static String createMarkovPotential(WebNode node) {
         String s = "<Potential type=\"Table\" role=\"conditionalProbability\">\n";
         s += "<Variables>\n";
-        s += "<Variable name=\"" + node.getName() + "\" />\n";
+        s += "<Variable name=\"" + node.getName() + "\"/>\n";
         for (String parent : node.getParents()) {
-            s += "<Variable name=\"" + parent + "\" />\n";
+            s += "<Variable name=\"" + parent + "\"/>\n";
         }
         s += "</Variables>\n";
         s += "<Values>";
@@ -139,24 +329,76 @@ public final class BifMapper {
 
     private static String createMarkovVariable(WebNode node) {
         String s = "";
-        s += "<Variable name=\"" + node.getName() + "\" type=\"finiteStates\" role=\"chance\">\n";
+        String treshholds = "";
+        String type = "";
+        boolean isNumeric = false;
+        if (node.getType() == Attribute.AttributeType.string || node.getType() == Attribute.AttributeType.bool) {
+            type = "\" type=\"finiteStates\"";
+        } else {
+            type = "\" type=\"discretized\"";
+            treshholds = createTreshHolds(node);
+            isNumeric = true;
+        }
+        s += "<Variable name=\"" + node.getName() + type + " role=\"chance\">\n";
+        if (isNumeric) {
+            s += "<Unit/>\n";
+            s += "<Precision>0.01</Precision>\n";
+        }
         s += "<States>\n";
         s += addMarkovStates(node);
         s += "</States>\n";
+        s += treshholds;
         s += "</Variable>\n";
+        return s;
+    }
+
+    private static String createTreshHolds(WebNode node) {
+        String header = "<Thresholds>\n";
+        String footer = "</Thresholds>\n";
+        Set<String> tresholds = new LinkedHashSet<>();
+        Set<String> unique = countUnique(node.getProbabilities());
+        node.getProbabilities();
+        for (int i = 0; i < unique.size(); i++) {
+            WebTheta t = node.getProbabilities().get(i);
+            if (t.getLocalValue().getLowerLimit().equals("-inf")) {
+                tresholds.add("-Infinity");
+            }
+            if (t.getLocalValue().getUpperLimit().equals("inf")) {
+                tresholds.add("Infinity");
+            }
+            if (t.getLocalValue().getLowerLimit().equals("All")) {
+                tresholds.add("-Infinity");
+            } else if (!t.getLocalValue().getLowerLimit().equals("-inf")) {
+                tresholds.add(t.getLocalValue().getLowerLimit());
+            }
+            if (t.getLocalValue().getUpperLimit().equals("All")) {
+                tresholds.add("Infinity");
+            } else if (!t.getLocalValue().getUpperLimit().equals("inf")) {
+                tresholds.add(t.getLocalValue().getUpperLimit());
+            }
+        }
+        String s = "";
+        for (String d : tresholds) {
+            if (s.length() == 0) {
+                s += header;
+                s += "<Threshold value=\"" + d + "\" belongsTo=\"left\"/>\n";
+            } else {
+                s += "<Threshold value=\"" + d + "\" belongsTo=\"right\"/>\n";
+            }
+        }
+        s += footer;
         return s;
     }
 
     private static String addMarkovStates(WebNode node) {
         String s = "";
-        Set<String> unique = countUnique(node.getProbabilities());
+        List<String> unique = countUnique(node.getProbabilities()).stream().sorted().collect(Collectors.toList());
         for (int i = 0; i < unique.size(); i++) {
             WebTheta t = node.getProbabilities().get(i);
-
             if (!t.getLocalValue().isRange()) {
                 s += "<State name=\"" + t.getLocalValue().getLocalValue() + "\"/>\n";
             } else {
-                s += "<State name=\"" + t.getLocalValue().getLowerLimit() + "-" + t.getLocalValue()
+                s += "<State name=\"" + t.getLocalValue().getLowerLimit() + ";" + t.getLocalValue()
                         .getUpperLimit() + "\"/>\n";
             }
         }
@@ -164,15 +406,17 @@ public final class BifMapper {
     }
 
     private static String createMarkovLink(WebNode node) {
+
         if (node.getParents().size() == 0) {
             return "";
         }
-        String s = "<Link directed=\"true\">\n";
+        String s = "";
         for (String parent : node.getParents()) {
-            s += "<Variable name=\"" + parent + "\" />\n";
+            s += "<Link directed=\"true\">\n";
+            s += "<Variable name=\"" + parent + "\"/>\n";
+            s += "<Variable name=\"" + node.getName() + "\"/>\n";
+            s += "</Link>\n";
         }
-        s += "<Variable name=\"" + node.getName() + "\" />\n";
-        s += "</Link>\n";
         return s;
     }
 
@@ -217,7 +461,7 @@ public final class BifMapper {
         String[] split = table.split("</FOR>");
         String name = split[0].replace("<FOR>", "").replace("\n", "");
 
-        WebNode n = findNode(name, nodes);
+        WebNode n = findWebNode(name, nodes);
         boolean hasParents = false;
 
         if (split[1].contains("</GIVEN>")) {
@@ -228,7 +472,7 @@ public final class BifMapper {
             for (int i = 0; i < parents.length - 1; i++) {
                 String parentName = parents[i].replace("<GIVEN>", "").replace("\n", "");
                 n.getParents().add(parentName);
-                WebNode parent = findNode(parentName, nodes);
+                WebNode parent = findWebNode(parentName, nodes);
                 List<WebTheta> copies = new ArrayList<>();
                 Set<String> count = countUnique(parent.getProbabilities());
                 for (int j = 0; j < count.size(); j++) {
@@ -264,7 +508,17 @@ public final class BifMapper {
         }
     }
 
-    private static WebNode findNode(String name, List<WebNode> nodes) {
+    private static Node findNode(String name, List<Node> nodes) {
+        for (Node n : nodes) {
+            if (n.getName().equals(name)) {
+                return n;
+            }
+        }
+        return null;
+    }
+
+
+    private static WebNode findWebNode(String name, List<WebNode> nodes) {
         for (WebNode n : nodes) {
             if (n.getName().equals(name)) {
                 return n;
@@ -339,34 +593,62 @@ public final class BifMapper {
         return n;
     }
 
-    private static final String MARKOVHEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+    private static final String WRITE_MARKOVHEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
             "<ProbModelXML formatVersion=\"0.2.0\">\n" +
-            "  <ProbNet type=\"InfluenceDiagram\">\n" +
+            "<ProbNet type=\"BayesianNetwork\">\n" +
+            "<DecisionCriteria>\n" +
+            "<Criterion name=\"---\" unit=\"---\"/>\n" +
+            "</DecisionCriteria>\n" +
+            "<Properties/>\n";
+    private static final String MARKOVHEADER = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n" +
+            "<ProbModelXML formatVersion=\"0.2.0\">\n" +
+            "  <ProbNet type=\"BayesianNetwork\">\n" +
             "    <DecisionCriteria>\n" +
-            "      <Criterion name=\"---\" unit=\"---\" />\n" +
+            "      <Criterion name=\"---\" unit=\"---\"/>\n" +
             "    </DecisionCriteria>\n" +
-            "    <Properties />\n";
+            "    <Properties/>\n";
 
 
-    private static final String MARKOVFOOTER = "</ProbNet>\n" +
-            "<InferenceOptions>\n" +
+    private static final String MARKOVFOOTER = "  </ProbNet>\n" +
+            "  <InferenceOptions>\n" +
             "    <MulticriteriaOptions>\n" +
             "      <SelectedAnalysisType>UNICRITERION</SelectedAnalysisType>\n" +
             "      <Unicriterion>\n" +
             "        <Scales>\n" +
-            "          <Scale Criterion=\"---\" Value=\"1.0\" />\n" +
+            "          <Scale Criterion=\"---\" Value=\"1.0\"/>\n" +
             "        </Scales>\n" +
             "      </Unicriterion>\n" +
             "      <CostEffectiveness>\n" +
             "        <Scales>\n" +
-            "          <Scale Criterion=\"---\" Value=\"1.0\" />\n" +
+            "          <Scale Criterion=\"---\" Value=\"1.0\"/>\n" +
             "        </Scales>\n" +
             "        <CE_Criteria>\n" +
-            "          <CE_Criterion Criterion=\"---\" Value=\"Cost\" />\n" +
+            "          <CE_Criterion Criterion=\"---\" Value=\"Cost\"/>\n" +
             "        </CE_Criteria>\n" +
             "      </CostEffectiveness>\n" +
             "    </MulticriteriaOptions>\n" +
             "  </InferenceOptions>\n" +
+            "</ProbModelXML>\n";
+
+    private static final String WRITE_MARKOVFOOTER = "</ProbNet>\n" +
+            "<InferenceOptions>\n" +
+            "<MulticriteriaOptions>\n" +
+            "<SelectedAnalysisType>UNICRITERION</SelectedAnalysisType>\n" +
+            "<Unicriterion>\n" +
+            "<Scales>\n" +
+            "<Scale Criterion=\"---\" Value=\"1.0\"/>\n" +
+            "</Scales>\n" +
+            "</Unicriterion>\n" +
+            "<CostEffectiveness>\n" +
+            "<Scales>\n" +
+            "<Scale Criterion=\"---\" Value=\"1.0\"/>\n" +
+            "</Scales>\n" +
+            "<CE_Criteria>\n" +
+            "<CE_Criterion Criterion=\"---\" Value=\"Cost\"/>\n" +
+            "</CE_Criteria>\n" +
+            "</CostEffectiveness>\n" +
+            "</MulticriteriaOptions>\n" +
+            "</InferenceOptions>\n" +
             "</ProbModelXML>\n";
 
 

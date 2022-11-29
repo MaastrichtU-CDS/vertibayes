@@ -7,12 +7,14 @@ import com.florian.vertibayes.bayes.Node;
 import com.florian.vertibayes.webservice.BayesServer;
 import com.florian.vertibayes.webservice.VertiBayesCentralServer;
 import com.florian.vertibayes.webservice.VertiBayesEndpoint;
+import com.florian.vertibayes.webservice.domain.CreateNetworkRequest;
 import com.florian.vertibayes.webservice.domain.external.WebNode;
 import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
 
+import static com.florian.vertibayes.bayes.webservice.NetworkTest.createK2Nodes;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class WebNodeMapperTest {
@@ -38,7 +40,10 @@ public class WebNodeMapperTest {
 
         Network network = new Network(Arrays.asList(endpoint1, endpoint2), secretEnd, new VertiBayesCentralServer(),
                                       100);
-        network.createNetwork();
+        CreateNetworkRequest req = new CreateNetworkRequest();
+        req.setMinPercentage(10);
+        req.setNodes(createK2Nodes());
+        network.createNetwork(req);
         List<Node> nodes = network.getNodes();
 
         // map from Node
@@ -116,7 +121,10 @@ public class WebNodeMapperTest {
         station2.setEndpoints(all);
 
         Network network = new Network(Arrays.asList(endpoint1, endpoint2), secretEnd, new VertiBayesCentralServer(), 0);
-        network.createNetwork();
+        CreateNetworkRequest req = new CreateNetworkRequest();
+        req.setMinPercentage(10);
+        req.setNodes(createK2Nodes());
+        network.createNetwork(req);
         List<Node> nodes = network.getNodes();
         //make it so node x3 has 2 parents
         nodes.get(2).getParents().add(nodes.get(0));

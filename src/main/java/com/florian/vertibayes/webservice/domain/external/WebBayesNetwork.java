@@ -8,6 +8,26 @@ public class WebBayesNetwork {
     private String target;
     private double minPercentage;
     private boolean openMarkovResponse = false;
+    private boolean wekaResponse = false;
+    private int folds = 1;
+
+    private static final int MIN_FOLDS = 1;
+    private static final int MAX_FOLDS = 10;
+
+    public int getFolds() {
+        return folds;
+    }
+
+    public void setFolds(int folds) {
+        if (folds > MAX_FOLDS) {
+            // max folds = 10
+            this.folds = MAX_FOLDS;
+        } else if (folds < MIN_FOLDS) {
+            this.folds = MIN_FOLDS;
+        } else {
+            this.folds = folds;
+        }
+    }
 
     public boolean isOpenMarkovResponse() {
         return openMarkovResponse;
@@ -39,5 +59,13 @@ public class WebBayesNetwork {
 
     public String getTarget() {
         return target;
+    }
+
+    public boolean isWekaResponse() {
+        return wekaResponse;
+    }
+
+    public void setWekaResponse(boolean wekaResponse) {
+        this.wekaResponse = wekaResponse;
     }
 }

@@ -7,27 +7,27 @@ import com.florian.nscalarproduct.webservice.Protocol;
 import com.florian.nscalarproduct.webservice.ServerEndpoint;
 import com.florian.nscalarproduct.webservice.domain.AttributeRequirement;
 import com.florian.vertibayes.bayes.*;
+import com.florian.vertibayes.webservice.domain.CreateNetworkRequest;
 import com.florian.vertibayes.webservice.domain.InitCentralServerRequest;
 import com.florian.vertibayes.webservice.domain.InitDataResponse;
 import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationOpenMarkovResponse;
 import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationResponse;
-import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationTestResponse;
+import com.florian.vertibayes.webservice.domain.external.ExpectationMaximizationWekaResponse;
 import com.florian.vertibayes.webservice.domain.external.WebBayesNetwork;
-import com.florian.vertibayes.webservice.mapping.WebNodeMapper;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.florian.vertibayes.bayes.Node.findSliblings;
 import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNodeFromNode;
+import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNodeToNode;
 import static com.florian.vertibayes.weka.BifMapper.toOpenMarkovBif;
+import static com.florian.vertibayes.weka.WEKAExpectationMaximiation.validate;
 import static com.florian.vertibayes.weka.WEKAExpectationMaximiation.wekaExpectationMaximization;
 
 @RestController
@@ -55,11 +55,14 @@ public class VertiBayesCentralServer extends CentralServer {
     }
 
     @GetMapping ("buildNetwork")
-    public WebBayesNetwork buildNetwork() {
+    public WebBayesNetwork buildNetwork(CreateNetworkRequest req) {
         initEndpoints();
-        endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initK2Data(new ArrayList<>()));
+        endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).initMaximumLikelyhoodData(new ArrayList<>()));
         network = new Network(endpoints, secretEndpoint, this, endpoints.get(0).getPopulation());
-        network.createNetwork();
+        if (req.getNodes() != null) {
+            network.setNodes(mapWebNodeToNode(req.getNodes()));
+        }
+        network.createNetwork(req);
         WebBayesNetwork response = new WebBayesNetwork();
         response.setNodes(mapWebNodeFromNode(network.getNodes()));
         return response;
@@ -69,7 +72,7 @@ public class VertiBayesCentralServer extends CentralServer {
     @PostMapping ("maximumLikelyhood")
     public WebBayesNetwork maximumLikelyhood(@RequestBody WebBayesNetwork req) {
         initEndpoints();
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(req.getNodes());
+        List<Node> nodes = mapWebNodeToNode(req.getNodes());
         initNodesMaximumLikelyhood(nodes, req.getMinPercentage());
         initThetas(nodes);
         WebBayesNetwork response = new WebBayesNetwork();
@@ -80,24 +83,109 @@ public class VertiBayesCentralServer extends CentralServer {
     @PostMapping ("ExpectationMaximization")
     public ExpectationMaximizationResponse expectationMaximization(@RequestBody WebBayesNetwork req) throws Exception {
         initEndpoints();
-        List<Node> nodes = WebNodeMapper.mapWebNodeToNode(req.getNodes());
+        int[] folds = createFolds(req.getFolds());
+        if (req.getFolds() > 1) {
+            return kfoldExpectationMaximization(req, folds);
+        } else {
+            // make sure everything is activated.
+            activateAll(folds);
+            return performExpectationMaximization(req);
+        }
+    }
+
+    private ExpectationMaximizationResponse kfoldExpectationMaximization(WebBayesNetwork req, int[] folds)
+            throws Exception {
+        //it is possible to include a round of k-fold cross-validation here.
+        //This will perform SVDG validation
+        double auc = 0;
+        for (int i = 0; i < req.getFolds(); i++) {
+            initFold(folds, i);
+            req.setWekaResponse(true);
+            ExpectationMaximizationWekaResponse trainModel =
+                    (ExpectationMaximizationWekaResponse) performExpectationMaximization(
+                            req);
+            initValidationFold(folds, i);
+            WebBayesNetwork validationModel = maximumLikelyhood(req);
+            auc += validate(trainModel.getWeka(), validationModel.getNodes(), req.getTarget());
+        }
+        auc /= req.getFolds();
+
+        //train final model using everything
+        activateAll(folds);
+        ExpectationMaximizationResponse response = performExpectationMaximization(req);
+        response.setSvdgAuc(auc);
+        return response;
+    }
+
+    protected void activateAll(int[] folds) {
+        boolean[] activeRecords = new boolean[endpoints.get(0).getPopulation()];
+        for (int j = 0; j < folds.length; j++) {
+            activeRecords[j] = true;
+        }
+        endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).setActiveRecords(activeRecords));
+    }
+
+    protected void initValidationFold(int[] folds, int i) {
+        boolean[] activeRecords = new boolean[endpoints.get(0).getPopulation()];
+        for (int j = 0; j < folds.length; j++) {
+            if (folds[j] == i) {
+                activeRecords[j] = true;
+            } else {
+                activeRecords[j] = false;
+            }
+        }
+        endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).setActiveRecords(activeRecords));
+    }
+
+    protected void initFold(int[] folds, int i) {
+        // make sure at least 1 endpoint is active so we can actually get the proper population size
+        ((VertiBayesEndpoint) endpoints.get(0)).initMaximumLikelyhoodData(new ArrayList<>());
+        boolean[] activeRecords = new boolean[endpoints.get(0).getPopulation()];
+        for (int j = 0; j < folds.length; j++) {
+            if (folds[j] != i) {
+                activeRecords[j] = true;
+            } else {
+                activeRecords[j] = false;
+            }
+        }
+        endpoints.stream().forEach(x -> ((VertiBayesEndpoint) x).setActiveRecords(activeRecords));
+    }
+
+    protected int[] createFolds(int fold) {
+        // make sure at least 1 endpoint is active so we can actually get the proper population size
+        ((VertiBayesEndpoint) endpoints.get(0)).initMaximumLikelyhoodData(new ArrayList<>());
+        int[] folds = new int[endpoints.get(0).getPopulation()];
+        Random r = new Random();
+        for (int i = 0; i < folds.length; i++) {
+            folds[i] = r.nextInt(fold);
+        }
+        return folds;
+    }
+
+    private ExpectationMaximizationResponse performExpectationMaximization(WebBayesNetwork req)
+            throws Exception {
+        List<Node> nodes = mapWebNodeToNode(req.getNodes());
         initNodesMaximumLikelyhood(nodes, req.getMinPercentage());
         initThetas(nodes);
 
-        ExpectationMaximizationTestResponse res = wekaExpectationMaximization(mapWebNodeFromNode(nodes),
+        ExpectationMaximizationWekaResponse res = wekaExpectationMaximization(mapWebNodeFromNode(nodes),
                                                                               req.getTarget());
         if (!testing) {
             ExpectationMaximizationResponse response = new ExpectationMaximizationResponse();
             if (req.isOpenMarkovResponse()) {
                 response = new ExpectationMaximizationOpenMarkovResponse();
-                ((ExpectationMaximizationOpenMarkovResponse) response).setOpenMarkov(toOpenMarkovBif(res.getNodes()));
+                ((ExpectationMaximizationOpenMarkovResponse) response).setOpenMarkov(
+                        toOpenMarkovBif(res.getNodes()));
+            } else if (req.isWekaResponse()) {
+                response = new ExpectationMaximizationWekaResponse();
+                ((ExpectationMaximizationWekaResponse) response).setWeka(res.getWeka());
             }
             response.setNodes(res.getNodes());
-            response.setSyntheticTrainingAuc(res.getSyntheticAuc());
-
+            response.setScvAuc(res.getScvAuc());
             return response;
+        } else {
+            return res;
         }
-        return res;
     }
 
     @PostMapping ("initCentralServer")
@@ -133,7 +221,7 @@ public class VertiBayesCentralServer extends CentralServer {
         this.secretEndpoint = secretServer;
     }
 
-    private void initNodesMaximumLikelyhood(List<Node> nodes, double minPercentage) {
+    protected void initNodesMaximumLikelyhood(List<Node> nodes, double minPercentage) {
         for (Node n : nodes) {
             if (n.getType() != Attribute.AttributeType.real && n.getType() != Attribute.AttributeType.numeric) {
                 initNode(n);
@@ -252,7 +340,10 @@ public class VertiBayesCentralServer extends CentralServer {
             } else {
                 BigInteger count = countValue(
                         new ArrayList<>(Arrays.asList(t.getLocalRequirement())));
-                t.setP(count.doubleValue() / (double) endpoints.get(0).getPopulation());
+                List<Integer> population = endpoints.stream().map(x -> ((VertiBayesEndpoint) x).getLocalPopulation())
+                        .collect(
+                                Collectors.toList());
+                t.setP(count.doubleValue() / ((double) Collections.min(population)));
             }
         }
     }
@@ -304,7 +395,7 @@ public class VertiBayesCentralServer extends CentralServer {
         List<ServerEndpoint> relevantEndpoints = new ArrayList<>();
 
         for (ServerEndpoint endpoint : endpoints) {
-            InitDataResponse response = ((VertiBayesEndpoint) endpoint).initK2Data(attributes);
+            InitDataResponse response = ((VertiBayesEndpoint) endpoint).initMaximumLikelyhoodData(attributes);
             if (response.isRelevant()) {
                 // keep track of relevant endpoints to keep the n-party protocols as small as possible
                 relevantEndpoints.add(endpoint);
@@ -351,5 +442,21 @@ public class VertiBayesCentralServer extends CentralServer {
                 }
             }
         }
+    }
+
+    protected List<ServerEndpoint> getEndpoints() {
+        return endpoints;
+    }
+
+    protected ServerEndpoint getSecretEndpoint() {
+        return secretEndpoint;
+    }
+
+    protected void setEndpoints(List<ServerEndpoint> endpoints) {
+        this.endpoints = endpoints;
+    }
+
+    protected void setSecretEndpoint(ServerEndpoint secretEndpoint) {
+        this.secretEndpoint = secretEndpoint;
     }
 }

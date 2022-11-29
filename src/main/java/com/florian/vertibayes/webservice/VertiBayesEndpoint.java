@@ -7,6 +7,7 @@ import com.florian.nscalarproduct.webservice.domain.AttributeRequirement;
 import com.florian.nscalarproduct.webservice.domain.AttributeRequirementsRequest;
 import com.florian.vertibayes.bayes.Bin;
 import com.florian.vertibayes.bayes.Node;
+import com.florian.vertibayes.webservice.domain.ActiveRecordRequest;
 import com.florian.vertibayes.webservice.domain.InitDataResponse;
 import com.florian.vertibayes.webservice.domain.NodesResponse;
 
@@ -34,11 +35,50 @@ public class VertiBayesEndpoint extends ServerEndpoint {
         }
     }
 
+    public InitDataResponse initMaximumLikelyhoodData(List<AttributeRequirement> req) {
+        AttributeRequirementsRequest request = new AttributeRequirementsRequest();
+        request.setRequirements(req);
+        if (testing) {
+            return ((BayesServer) (server)).initMaximumLikelyhoodData(request);
+        } else {
+            return REST_TEMPLATE.postForEntity(serverUrl + "/initMaximumLikelyhoodData", request,
+                                               InitDataResponse.class).getBody();
+        }
+    }
+
+    public void setActiveRecords(boolean[] activeRecords) {
+        ActiveRecordRequest request = new ActiveRecordRequest();
+        request.setActiveRecords(activeRecords);
+        if (testing) {
+            ((BayesServer) (server)).setActiveRecords(request);
+        } else {
+            REST_TEMPLATE.postForEntity(serverUrl + "/setActiveRecords", request, void.class);
+        }
+    }
+
     public List<Node> createNode() {
         if (testing) {
             return ((BayesServer) (server)).createNodes().getNodes();
         }
         return REST_TEMPLATE.getForEntity(serverUrl + "/createNodes", NodesResponse.class).getBody().getNodes();
+    }
+
+    public void setUseLocalOnly(boolean useLocalOnly) {
+        if (testing) {
+            ((BayesServer) (server)).setUseLocalOnly(useLocalOnly);
+        } else {
+            REST_TEMPLATE.getForEntity(serverUrl + "/setUseLocalOnly?localonly=" + useLocalOnly, Set.class)
+                    .getBody();
+        }
+    }
+
+    public Integer getLocalPopulation() {
+        if (testing) {
+            return ((BayesServer) (server)).getLocalPopulation();
+        } else {
+            return REST_TEMPLATE.getForEntity(serverUrl + "/getLocalPopulation", Integer.class)
+                    .getBody();
+        }
     }
 
     public Set<String> getUniqueValues(String attributeName) {

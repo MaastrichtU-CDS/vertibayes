@@ -1,7 +1,6 @@
 package com.florian.vertibayes.weka;
 
 import com.florian.vertibayes.webservice.domain.external.WebNode;
-import com.google.gson.Gson;
 import org.junit.jupiter.api.Test;
 import weka.classifiers.bayes.BayesNet;
 import weka.classifiers.bayes.net.search.fixed.FromFile;
@@ -11,7 +10,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -46,19 +44,12 @@ public class BifMapperTest {
     }
 
     @Test
-    public void testMapperOpenMarkov() throws Exception {
-
-        String bif = readFile(OPENMARKOV_BIF);
-        Gson g = new Gson();
-        List<WebNode> nodes = new ArrayList<>();
-        nodes.add(g.fromJson(FIRST_NODE, WebNode.class));
-        nodes.add(g.fromJson(SECOND_NODE, WebNode.class));
-        nodes.add(g.fromJson(THIRD_NODE, WebNode.class));
-
-        String mapped = toOpenMarkovBif(nodes);
+    public void testMapperOpenMarkovBackAndForth() throws Exception {
+        String bif = readFile("resources/Experiments/openMarkov.pgmx");
+        List<WebNode> nodes = fromOpenMarkovBif(bif);
+        String mapped = toOpenMarkovBif(nodes).replace("\r", "");
 
         assertEquals(bif, mapped);
-
     }
 
     private String readFile(String path)
@@ -73,30 +64,5 @@ public class BifMapperTest {
         myReader.close();
         return bif;
     }
-
-    private static final String FIRST_NODE = " {\n" +
-            "            \"parents\" : [ ],\n" +
-            "            \"name\" : \"x1\",\n" +
-            "            \"type\" : \"numeric\",\n" +
-            "            \"probabilities\" : [ ],\n" +
-            "            \"bins\" : [ ]\n" +
-            "            }";
-
-    private static final String SECOND_NODE = "{\n" +
-            "  \"parents\" : [ \"x1\" ],\n" +
-            "  \"name\" : \"x2\",\n" +
-            "  \"type\" : \"numeric\",\n" +
-            "  \"probabilities\" : [ ],\n" +
-            "  \"bins\" : [ ]\n" +
-            "}";
-
-    private static final String THIRD_NODE = "{\n" +
-            "  \"parents\" : [ \"x2\" ],\n" +
-            "  \"name\" : \"x3\",\n" +
-            "  \"type\" : \"string\",\n" +
-            "  \"probabilities\" : [ ],\n" +
-            "  \"bins\" : [ ]\n" +
-            "} ";
-
 
 }
