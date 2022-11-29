@@ -1,7 +1,12 @@
 # VertiBayes
 
 This project implements various bayesian network prototols using the n-party scalar project protocol
-library ( https://gitlab.com/fvandaalen/n-scalar-product-protocol )
+library ( https://github.com/MaastrichtU-CDS/n-scalar-product-protocol )
+
+## Preprint:
+
+More information about the algorithm used can be found here:
+https://arxiv.org/abs/2210.17228
 
 #### Privacy
 
@@ -34,9 +39,18 @@ server=<server id>
 
 ## Data setup:
 
-The project currently expects data to be presented in a csv. The top row is assumed to contain the typing of the
-attributes (bool, string, numeric, real). The second row is assumed to be attribute ID's. We also assume the first
-collumn to contain ID's. The assumption is that the first collumn contains the recordId's.
+The data can be presented in three formats:
+
+1) A weka .arff
+2) A .parquet file
+3) A .csv file
+
+The vantage6 wrapper assumes a .csv file. Work is currently being done to allow more flexibility within the wrapper.
+https://github.com/vantage6/vantage6/issues/398
+
+When using a csv it needs to use the following format. The top row is assumed to contain the typing of the attributes (
+bool, string, numeric, real). The second row is assumed to be attribute ID's. We also assume the first collumn to
+contain ID's. The assumption is that the first collumn contains the recordId's.
 
 ### Unknown data
 
@@ -63,24 +77,6 @@ Both the K2 and Maximum Likelyhood protocols rely on the n-party scalar product 
 Continuous data can be binned
 
 ### Input data:
-
-Input is provided using CSV-files. Collumns in these CSV files represent attributes and have the following structure:
-
-- First row: indicates attribute type (string, numeric, real, bool)
-- Second row: attribute name
-- n'th rows: attribute value for the n'th individual
-
-#### Handling decimals
-
-This implementation works with BigInteger, and thus expects integers as its input. If you want to calculate the scalar
-product protocol of vectors containing decimal-values the following approach can be used:
-
-1) Pick a precision, e.g. 5 decimals.
-2) Create your precisionMultiplier by calculating 10^precision, in our example this would be 10^5.
-3) Multiply all your data by your precisionMultiplier & then round these numbers to the nearest integer
-4) Perform the n-party-scalar-product protocol as normal on these large integers
-5) Divide the result by precisionMultiplier^n, where n is the number of parties involved in the protocol that contain
-   decimal values. This will result in the final result that is accurate up to the selected amount of decimals.
 
 #### Handling a Hybird split
 
@@ -140,7 +136,8 @@ The request for Maximum Likelyhood is similar except it does not contain a targe
     "discrete" : true
   } ],
   "target" : "x3"
-  "minPercentage"="0.1"
+  "minPercentage":"0.1",
+  "folds":1,
 }
 ```
 
@@ -351,3 +348,14 @@ empty in the request.
 
 If the field ```"openMarkovResponse":"true"``` is included in the input JSON the output will contain a
 field ```openMarkov``` which contains the network in BIF format as used by the openMarkov library.
+
+### Crossfold validation:
+
+There are 3 ways to validate the model as detailed in https://arxiv.org/abs/2210.17228
+
+1) validation against a public testset.
+2) Using SCV validation (see section 2.4)
+3) Using SVDG validation (see section 2.4)
+
+To use SVDG the field "folds" needs to be set in the request. This indicates the number of crossfolds that will be used.
+1 fold means there is no crossfold validation, and SVDG cannot be used. The maximum is 10 folds.
