@@ -76,6 +76,8 @@ Both the K2 and Maximum Likelyhood protocols rely on the n-party scalar product 
 
 Continuous data can be binned
 
+During structure learning missing data will be replaced by mean mode values depending on the type of attribute.
+
 ### Input data:
 
 #### Handling a Hybird split
@@ -88,6 +90,47 @@ Important to note; datasets still need to have the same ordering for their recor
 handled in a preprocessing step as well.
 
 This functionality is only available in the java implementation.
+
+### Request Example createNetwork
+
+It is possible to indicate the minPercentage for binning, or to manually define bins for use during K2.
+
+```
+{
+  "minPercentage" : 10,
+  "nodes" : [ {
+    "parents" : [ ],
+    "name" : "x1",
+    "type" : "numeric",
+    "probabilities" : [ ],
+    "bins" : [ {
+      "upperLimit" : "1.5",
+      "lowerLimit" : "0.5"
+    }, {
+      "upperLimit" : "0.5",
+      "lowerLimit" : "-0.5"
+    } ]
+  }, {
+    "parents" : [ ],
+    "name" : "x2",
+    "type" : "numeric",
+    "probabilities" : [ ],
+    "bins" : [ {
+      "upperLimit" : "1.5",
+      "lowerLimit" : "0.5"
+    }, {
+      "upperLimit" : "0.5",
+      "lowerLimit" : "-0.5"
+    } ]
+  }, {
+    "parents" : [ ],
+    "name" : "x3",
+    "type" : "string",
+    "probabilities" : [ ],
+    "bins" : [ ]
+  } ]
+}
+```
 
 ### Request example Expectation Maximization
 
