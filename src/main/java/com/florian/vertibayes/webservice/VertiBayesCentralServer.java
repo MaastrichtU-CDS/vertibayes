@@ -98,12 +98,16 @@ public class VertiBayesCentralServer extends CentralServer {
         //it is possible to include a round of k-fold cross-validation here.
         //This will perform SVDG validation
         double auc = 0;
+
         for (int i = 0; i < req.getFolds(); i++) {
+            WebBayesNetwork internal = new WebBayesNetwork();
+            internal.setTarget(req.getTarget());
+            internal.setNodes(req.getNodes());
+            internal.setWekaResponse(true);
             initFold(folds, i);
-            req.setWekaResponse(true);
             ExpectationMaximizationWekaResponse trainModel =
                     (ExpectationMaximizationWekaResponse) performExpectationMaximization(
-                            req);
+                            internal);
             initValidationFold(folds, i);
             WebBayesNetwork validationModel = maximumLikelyhood(req);
             auc += validate(trainModel.getWeka(), validationModel.getNodes(), req.getTarget());

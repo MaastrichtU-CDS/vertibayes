@@ -200,190 +200,312 @@ empty in the request.
 {
   "nodes" : [ {
     "parents" : [ ],
-    "name" : "x1",
-    "type" : "real",
+    "name" : "asia",
+    "type" : "string",
     "probabilities" : [ {
       "localValue" : {
-        "localValue" : null,
-        "upperLimit" : "0.5",
-        "lowerLimit" : "-inf",
-        "range" : true
+        "localValue" : "no",
+        "upperLimit" : null,
+        "lowerLimit" : null,
+        "range" : false
       },
       "parentValues" : [ ],
-      "p" : 0.4010119726339795
+      "p" : 0.9874512548745126
     }, {
       "localValue" : {
-        "localValue" : null,
-        "upperLimit" : "inf",
-        "lowerLimit" : "0.5",
-        "range" : true
+        "localValue" : "yes",
+        "upperLimit" : null,
+        "lowerLimit" : null,
+        "range" : false
       },
       "parentValues" : [ ],
-      "p" : 0.5989880273660205
+      "p" : 0.012548745125487452
     } ],
-    "bins" : [ {
-      "upperLimit" : "inf",
-      "lowerLimit" : "0.5"
-    }, {
-      "upperLimit" : "0.5",
-      "lowerLimit" : "-inf"
-    } ]
+    "bins" : [ ]
   }, {
-    "parents" : [ "x1" ],
-    "name" : "x2",
-    "type" : "real",
+    "parents" : [ "asia" ],
+    "name" : "either",
+    "type" : "string",
     "probabilities" : [ {
       "localValue" : {
-        "localValue" : null,
-        "upperLimit" : "0.5",
-        "lowerLimit" : "-inf",
-        "range" : true
+        "localValue" : "no",
+        "upperLimit" : null,
+        "lowerLimit" : null,
+        "range" : false
       },
       "parentValues" : [ {
-        "parent" : "x1",
+        "parent" : "asia",
         "value" : {
-          "localValue" : null,
-          "upperLimit" : "0.5",
-          "lowerLimit" : "-inf",
-          "range" : true
+          "localValue" : "no",
+          "upperLimit" : null,
+          "lowerLimit" : null,
+          "range" : false
         }
       } ],
-      "p" : 0.9987562189054726
+      "p" : 0.9384872417982989
     }, {
       "localValue" : {
-        "localValue" : null,
-        "upperLimit" : "inf",
-        "lowerLimit" : "0.5",
-        "range" : true
+        "localValue" : "yes",
+        "upperLimit" : null,
+        "lowerLimit" : null,
+        "range" : false
       },
       "parentValues" : [ {
-        "parent" : "x1",
+        "parent" : "asia",
         "value" : {
-          "localValue" : null,
-          "upperLimit" : "0.5",
-          "lowerLimit" : "-inf",
-          "range" : true
+          "localValue" : "no",
+          "upperLimit" : null,
+          "lowerLimit" : null,
+          "range" : false
         }
       } ],
-      "p" : 0.0012437810945273632
+      "p" : 0.061512758201701094
     }, {
       "localValue" : {
-        "localValue" : null,
-        "upperLimit" : "0.5",
-        "lowerLimit" : "-inf",
-        "range" : true
+        "localValue" : "no",
+        "upperLimit" : null,
+        "lowerLimit" : null,
+        "range" : false
       },
       "parentValues" : [ {
-        "parent" : "x1",
+        "parent" : "asia",
         "value" : {
-          "localValue" : null,
-          "upperLimit" : "inf",
-          "lowerLimit" : "0.5",
-          "range" : true
+          "localValue" : "yes",
+          "upperLimit" : null,
+          "lowerLimit" : null,
+          "range" : false
         }
       } ],
-      "p" : 0.5323578396383536
+      "p" : 0.8293650793650794
     }, {
       "localValue" : {
-        "localValue" : null,
-        "upperLimit" : "inf",
-        "lowerLimit" : "0.5",
-        "range" : true
+        "localValue" : "yes",
+        "upperLimit" : null,
+        "lowerLimit" : null,
+        "range" : false
       },
       "parentValues" : [ {
-        "parent" : "x1",
+        "parent" : "asia",
         "value" : {
-          "localValue" : null,
-          "upperLimit" : "inf",
-          "lowerLimit" : "0.5",
-          "range" : true
+          "localValue" : "yes",
+          "upperLimit" : null,
+          "lowerLimit" : null,
+          "range" : false
         }
       } ],
-      "p" : 0.46764216036164646
+      "p" : 0.17063492063492064
     } ],
-    "bins" : [ {
-      "upperLimit" : "inf",
-      "lowerLimit" : "0.5"
-    }, {
-      "upperLimit" : "0.5",
-      "lowerLimit" : "-inf"
-    } ]
+    "bins" : [ ]
   }, {
-    "parents" : [ "x2" ],
-    "name" : "x3",
-    "type" : null,
+    "parents" : [ "either", "asia" ],
+    "name" : "lung",
+    "type" : "string",
     "probabilities" : [ {
       "localValue" : {
-        "localValue" : "0",
+        "localValue" : "no",
         "upperLimit" : null,
         "lowerLimit" : null,
         "range" : false
       },
       "parentValues" : [ {
-        "parent" : "x2",
+        "parent" : "either",
         "value" : {
-          "localValue" : null,
-          "upperLimit" : "0.5",
-          "lowerLimit" : "-inf",
-          "range" : true
+          "localValue" : "no",
+          "upperLimit" : null,
+          "lowerLimit" : null,
+          "range" : false
+        }
+      }, {
+        "parent" : "asia",
+        "value" : {
+          "localValue" : "no",
+          "upperLimit" : null,
+          "lowerLimit" : null,
+          "range" : false
         }
       } ],
-      "p" : 0.3986727416798732
+      "p" : 0.9986514187075197
     }, {
       "localValue" : {
-        "localValue" : "1",
+        "localValue" : "yes",
         "upperLimit" : null,
         "lowerLimit" : null,
         "range" : false
       },
       "parentValues" : [ {
-        "parent" : "x2",
+        "parent" : "either",
         "value" : {
-          "localValue" : null,
-          "upperLimit" : "0.5",
-          "lowerLimit" : "-inf",
-          "range" : true
+          "localValue" : "no",
+          "upperLimit" : null,
+          "lowerLimit" : null,
+          "range" : false
+        }
+      }, {
+        "parent" : "asia",
+        "value" : {
+          "localValue" : "no",
+          "upperLimit" : null,
+          "lowerLimit" : null,
+          "range" : false
         }
       } ],
-      "p" : 0.6013272583201268
+      "p" : 0.0013485812924803108
     }, {
       "localValue" : {
-        "localValue" : "0",
+        "localValue" : "no",
         "upperLimit" : null,
         "lowerLimit" : null,
         "range" : false
       },
       "parentValues" : [ {
-        "parent" : "x2",
+        "parent" : "either",
         "value" : {
-          "localValue" : null,
-          "upperLimit" : "inf",
-          "lowerLimit" : "0.5",
-          "range" : true
+          "localValue" : "yes",
+          "upperLimit" : null,
+          "lowerLimit" : null,
+          "range" : false
+        }
+      }, {
+        "parent" : "asia",
+        "value" : {
+          "localValue" : "no",
+          "upperLimit" : null,
+          "lowerLimit" : null,
+          "range" : false
         }
       } ],
-      "p" : 0.002793296089385475
+      "p" : 0.9952380952380953
     }, {
       "localValue" : {
-        "localValue" : "1",
+        "localValue" : "yes",
         "upperLimit" : null,
         "lowerLimit" : null,
         "range" : false
       },
       "parentValues" : [ {
-        "parent" : "x2",
+        "parent" : "either",
         "value" : {
-          "localValue" : null,
-          "upperLimit" : "inf",
-          "lowerLimit" : "0.5",
-          "range" : true
+          "localValue" : "yes",
+          "upperLimit" : null,
+          "lowerLimit" : null,
+          "range" : false
+        }
+      }, {
+        "parent" : "asia",
+        "value" : {
+          "localValue" : "no",
+          "upperLimit" : null,
+          "lowerLimit" : null,
+          "range" : false
         }
       } ],
-      "p" : 0.9972067039106145
+      "p" : 0.004761904761904762
+    }, {
+      "localValue" : {
+        "localValue" : "no",
+        "upperLimit" : null,
+        "lowerLimit" : null,
+        "range" : false
+      },
+      "parentValues" : [ {
+        "parent" : "either",
+        "value" : {
+          "localValue" : "no",
+          "upperLimit" : null,
+          "lowerLimit" : null,
+          "range" : false
+        }
+      }, {
+        "parent" : "asia",
+        "value" : {
+          "localValue" : "yes",
+          "upperLimit" : null,
+          "lowerLimit" : null,
+          "range" : false
+        }
+      } ],
+      "p" : 0.11759868421052631
+    }, {
+      "localValue" : {
+        "localValue" : "yes",
+        "upperLimit" : null,
+        "lowerLimit" : null,
+        "range" : false
+      },
+      "parentValues" : [ {
+        "parent" : "either",
+        "value" : {
+          "localValue" : "no",
+          "upperLimit" : null,
+          "lowerLimit" : null,
+          "range" : false
+        }
+      }, {
+        "parent" : "asia",
+        "value" : {
+          "localValue" : "yes",
+          "upperLimit" : null,
+          "lowerLimit" : null,
+          "range" : false
+        }
+      } ],
+      "p" : 0.8824013157894737
+    }, {
+      "localValue" : {
+        "localValue" : "no",
+        "upperLimit" : null,
+        "lowerLimit" : null,
+        "range" : false
+      },
+      "parentValues" : [ {
+        "parent" : "either",
+        "value" : {
+          "localValue" : "yes",
+          "upperLimit" : null,
+          "lowerLimit" : null,
+          "range" : false
+        }
+      }, {
+        "parent" : "asia",
+        "value" : {
+          "localValue" : "yes",
+          "upperLimit" : null,
+          "lowerLimit" : null,
+          "range" : false
+        }
+      } ],
+      "p" : 0.5227272727272727
+    }, {
+      "localValue" : {
+        "localValue" : "yes",
+        "upperLimit" : null,
+        "lowerLimit" : null,
+        "range" : false
+      },
+      "parentValues" : [ {
+        "parent" : "either",
+        "value" : {
+          "localValue" : "yes",
+          "upperLimit" : null,
+          "lowerLimit" : null,
+          "range" : false
+        }
+      }, {
+        "parent" : "asia",
+        "value" : {
+          "localValue" : "yes",
+          "upperLimit" : null,
+          "lowerLimit" : null,
+          "range" : false
+        }
+      } ],
+      "p" : 0.4772727272727273
     } ],
     "bins" : [ ]
   } ],
-  "syntheticTrainingAuc": 0.49951998702044903
+  "scvAuc" : 0.5270323037974682,
+  "svdgAuc" : 0.5596742377548273,
+  "openMarkov" : "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\r\n<ProbModelXML formatVersion=\"0.2.0\">\r\n  <ProbNet type=\"BayesianNetwork\">\r\n    <DecisionCriteria>\r\n      <Criterion name=\"---\" unit=\"---\"/>\r\n    </DecisionCriteria>\r\n    <Properties/>\r\n    <Variables>\r\n      <Variable name=\"asia\" role=\"chance\" type=\"finiteStates\">\r\n        <States>\r\n          <State name=\"no\"/>\r\n          <State name=\"yes\"/>\r\n        </States>\r\n      </Variable>\r\n      <Variable name=\"either\" role=\"chance\" type=\"finiteStates\">\r\n        <States>\r\n          <State name=\"no\"/>\r\n          <State name=\"yes\"/>\r\n        </States>\r\n      </Variable>\r\n      <Variable name=\"lung\" role=\"chance\" type=\"finiteStates\">\r\n        <States>\r\n          <State name=\"no\"/>\r\n          <State name=\"yes\"/>\r\n        </States>\r\n      </Variable>\r\n    </Variables>\r\n    <Links>\r\n      <Link directed=\"true\">\r\n        <Variable name=\"asia\"/>\r\n        <Variable name=\"either\"/>\r\n      </Link>\r\n      <Link directed=\"true\">\r\n        <Variable name=\"either\"/>\r\n        <Variable name=\"lung\"/>\r\n      </Link>\r\n      <Link directed=\"true\">\r\n        <Variable name=\"asia\"/>\r\n        <Variable name=\"lung\"/>\r\n      </Link>\r\n    </Links>\r\n    <Potentials>\r\n      <Potential role=\"conditionalProbability\" type=\"Table\">\r\n        <Variables>\r\n          <Variable name=\"asia\"/>\r\n        </Variables>\r\n        <Values>0.9874512548745126 0.012548745125487452</Values>\r\n      </Potential>\r\n      <Potential role=\"conditionalProbability\" type=\"Table\">\r\n        <Variables>\r\n          <Variable name=\"either\"/>\r\n          <Variable name=\"asia\"/>\r\n        </Variables>\r\n        <Values>0.9384872417982989 0.061512758201701094 0.8293650793650794 0.17063492063492064</Values>\r\n      </Potential>\r\n      <Potential role=\"conditionalProbability\" type=\"Table\">\r\n        <Variables>\r\n          <Variable name=\"lung\"/>\r\n          <Variable name=\"either\"/>\r\n          <Variable name=\"asia\"/>\r\n        </Variables>\r\n        <Values>0.9986514187075197 0.0013485812924803108 0.9952380952380953 0.004761904761904762 0.11759868421052631 0.8824013157894737 0.5227272727272727 0.4772727272727273</Values>\r\n      </Potential>\r\n    </Potentials>\r\n  </ProbNet>\r\n  <InferenceOptions>\r\n    <MulticriteriaOptions>\r\n      <SelectedAnalysisType>UNICRITERION</SelectedAnalysisType>\r\n      <Unicriterion>\r\n        <Scales>\r\n          <Scale Criterion=\"---\" Value=\"1.0\"/>\r\n        </Scales>\r\n      </Unicriterion>\r\n      <CostEffectiveness>\r\n        <Scales>\r\n          <Scale Criterion=\"---\" Value=\"1.0\"/>\r\n        </Scales>\r\n        <CE_Criteria>\r\n          <CE_Criterion Criterion=\"---\" Value=\"Cost\"/>\r\n        </CE_Criteria>\r\n      </CostEffectiveness>\r\n    </MulticriteriaOptions>\r\n  </InferenceOptions>\r\n</ProbModelXML>\r\n"
 }
 ```
 
