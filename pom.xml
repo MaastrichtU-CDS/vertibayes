@@ -6,7 +6,7 @@
 
     <groupId>com.florian</groupId>
     <artifactId>vertibayes</artifactId>
-    <version>2.1-STABLE</version>
+    <version>2.1-LIBRARY</version>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
@@ -170,10 +170,10 @@
                 </executions>
             </plugin>
             <!-- Turn this off to be able to use it as a library, stupid spring boot ruins libraries apparently-->
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-            </plugin>
+            <!--            <plugin>-->
+            <!--                <groupId>org.springframework.boot</groupId>-->
+            <!--                <artifactId>spring-boot-maven-plugin</artifactId>-->
+            <!--            </plugin>-->
         </plugins>
     </build>
 
