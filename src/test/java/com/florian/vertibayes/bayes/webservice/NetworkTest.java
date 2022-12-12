@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class NetworkTest {
-
+    
     @Test
     public void testCreateNetwork() {
         BayesServer station1 = new BayesServer("resources/Experiments/k2/smallK2Example_firsthalf.csv", "1");
@@ -254,11 +254,11 @@ public class NetworkTest {
         assertEquals(nodes.get(3).getName(), "bool_parquet");
         assertEquals(nodes.get(3).getType(), Attribute.AttributeType.bool);
 
-        assertEquals(nodes.get(4).getName(), "numeric_arff");
-        assertEquals(nodes.get(4).getType(), Attribute.AttributeType.numeric);
+        assertEquals(nodes.get(4).getName(), "real_arff");
+        assertEquals(nodes.get(4).getType(), Attribute.AttributeType.real);
 
-        assertEquals(nodes.get(5).getName(), "real_arff");
-        assertEquals(nodes.get(5).getType(), Attribute.AttributeType.real);
+        assertEquals(nodes.get(5).getName(), "numeric_arff");
+        assertEquals(nodes.get(5).getType(), Attribute.AttributeType.numeric);
 
         assertEquals(nodes.get(6).getName(), "string_arff");
         assertEquals(nodes.get(6).getType(), Attribute.AttributeType.string);

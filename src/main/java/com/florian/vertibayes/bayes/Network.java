@@ -26,7 +26,7 @@ public class Network {
     private List<ServerEndpoint> endpoints;
     private ServerEndpoint secretServer;
 
-    private static final int TEN = 10;
+    private static final int FIVE = 5;
     private static final int HUNDRED = 100;
 
     public Network(List<ServerEndpoint> endpoints, ServerEndpoint secretServer, VertiBayesCentralServer central,
@@ -36,14 +36,14 @@ public class Network {
         }
 
         int r = HUNDRED;
-        if (population > HUNDRED * TEN) {
+        if (population > HUNDRED * FIVE) {
             while (r < population) {
                 // set ROUNDING decimals based on populationsize, with a minimum of 100 decimals because
                 //K2 involves calculations like 1/(POPULATION!) which needs more decimals with a larger population
                 // Only start doing this for populations > 1000
-                r *= TEN;
+                r *= FIVE;
             }
-            r *= TEN;
+            r *= FIVE;
         }
         rounding = r;
 
@@ -144,9 +144,9 @@ public class Network {
                     prodaijk = prodaijk.multiply(factorial(aijk));
                 }
             }
-            return (ri1factorial.divide(factorial(sumaijk.add(ri).subtract(BigDecimal.ONE)), rounding,
-                                        RoundingMode.HALF_UP))
-                    .multiply(prodaijk);
+            return (ri1factorial.multiply(prodaijk)
+                    .divide(factorial(sumaijk.add(ri).subtract(BigDecimal.ONE)), rounding,
+                            RoundingMode.HALF_UP));
         } else {
             for (List<AttributeRequirement> req : requirements) {
                 sumaijk = BigDecimal.ZERO;
