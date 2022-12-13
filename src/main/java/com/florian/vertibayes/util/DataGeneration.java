@@ -27,7 +27,7 @@ public final class DataGeneration {
             s = "";
             s += "@Attribute";
             s += " " + n.getName() + " ";
-            if (n.getType() == Attribute.AttributeType.string) {
+            if (n.getType() == Attribute.AttributeType.string || n.getType() == Attribute.AttributeType.bool) {
                 s += "{";
                 int count = 0;
                 for (String unique : n.getUniquevalues()) {
