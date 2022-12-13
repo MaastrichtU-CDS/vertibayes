@@ -169,7 +169,7 @@
                     </execution>
                 </executions>
             </plugin>
-            Turn this off to be able to use it as a library, stupid spring boot ruins libraries apparently
+            <!--            Turn this off to be able to use it as a library, stupid spring boot ruins libraries apparently-->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
