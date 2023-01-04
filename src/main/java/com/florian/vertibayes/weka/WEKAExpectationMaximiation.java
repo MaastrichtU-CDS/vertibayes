@@ -14,15 +14,13 @@ import java.util.List;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-import static com.florian.vertibayes.util.DataGeneration.generateDataARRF;
+import static com.florian.vertibayes.util.DataGeneration.generateDataARRFString;
 import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNodeToNode;
 import static com.florian.vertibayes.weka.BifMapper.fromWekaBif;
 import static com.florian.vertibayes.weka.BifMapper.toBIF;
 
 public final class WEKAExpectationMaximiation {
     private static final String BIFF = "test.xml";
-    private static final String ARFF = "test.arff";
-    private static final String VALIDATE_ARFF = "validate.arff";
     private static final int SAMPLE_SIZE = 10000;
     public static final int FOLDS = 10;
 
@@ -31,12 +29,9 @@ public final class WEKAExpectationMaximiation {
 
     public static double validate(BayesNet trainModel, List<WebNode> validationModel, String target)
             throws Exception {
-        generateDataARRF(mapWebNodeToNode(validationModel), SAMPLE_SIZE, VALIDATE_ARFF);
-        FromFile search = new FromFile();
-        search.setBIFFile(BIFF);
-
+        String arff = generateDataARRFString(mapWebNodeToNode(validationModel), SAMPLE_SIZE);
         Instances data = new Instances(
-                new BufferedReader(new FileReader(VALIDATE_ARFF)));
+                new BufferedReader(new StringReader(arff)));
         for (int i = 0; i < data.numAttributes(); i++) {
             if (data.attribute(i).name().equals(target)) {
                 data.setClassIndex(i);
@@ -54,17 +49,27 @@ public final class WEKAExpectationMaximiation {
                                                                                   String target)
             throws Exception {
 
-        generateDataARRF(mapWebNodeToNode(nodes), SAMPLE_SIZE, ARFF);
-        printBIF(toBIF(nodes));
+        String arff = generateDataARRFString(mapWebNodeToNode(nodes), SAMPLE_SIZE);
+
+        String unique = "";
+        boolean isAvailable = false;
+        int index = 0;
+        while (!isAvailable) {
+            unique = BIFF.replace(".xml", index + ".xml");
+            File f = new File(unique);
+            isAvailable = !f.exists();
+            index += 1;
+        }
+        printBIF(toBIF(nodes), unique);
 
 
         FromFile search = new FromFile();
-        search.setBIFFile(BIFF);
+        search.setBIFFile(unique);
 
         BayesNet network = new BayesNet();
         network.setSearchAlgorithm(search);
         Instances data = new Instances(
-                new BufferedReader(new FileReader(ARFF)));
+                new BufferedReader(new StringReader(arff)));
 
         for (int i = 0; i < data.numAttributes(); i++) {
             if (data.attribute(i).name().equals(target)) {
@@ -86,11 +91,13 @@ public final class WEKAExpectationMaximiation {
 
         response.setWeka(network);
         response.setNodes(fromWekaBif(network.graph()));
+        File f = new File(unique);
+        f.delete();
         return response;
     }
 
-    private static void printBIF(String bif) {
-        File bifFile = new File(BIFF);
+    private static void printBIF(String bif, String path) {
+        File bifFile = new File(path);
         List<String> data = Arrays.stream(bif.split("\n")).collect(Collectors.toList());
         try (PrintWriter pw = new PrintWriter(bifFile)) {
             data.stream()

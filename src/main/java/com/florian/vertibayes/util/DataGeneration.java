@@ -56,6 +56,50 @@ public final class DataGeneration {
         printARFF(data, path);
     }
 
+    public static String generateDataARRFString(List<Node> nodes, int samplesize) {
+        List<String> data = new ArrayList<>();
+        String s = "@Relation genericBIFF";
+        data.add(s);
+
+        for (Node n : nodes) {
+            s = "";
+            s += "@Attribute";
+            s += " " + n.getName() + " ";
+            if (n.getType() == Attribute.AttributeType.string || n.getType() == Attribute.AttributeType.bool) {
+                s += "{";
+                int count = 0;
+                for (String unique : n.getUniquevalues()) {
+                    if (!unique.equals("?")) {
+                        //only print valid values here, otherwiseweka will think ? is also valid.
+                        if (count > 0) {
+                            s += ",";
+                        }
+                        count++;
+                        s += unique;
+                    }
+                }
+                s += "}";
+            } else {
+                s += n.getType();
+            }
+            data.add(s);
+        }
+        data.add("");
+        data.add("@DATA");
+
+        for (int i = 0; i < samplesize; i++) {
+            data.add(generateIndividual(nodes));
+        }
+        String dataString = "";
+        for (int i = 0; i < data.size(); i++) {
+            dataString += data.get(i);
+            if (i < data.size() - 1) {
+                dataString += "\n";
+            }
+        }
+        return dataString;
+    }
+
     public static String generateIndividual(List<Node> nodes) {
         Map<String, String> individual = new HashMap<>();
         boolean done = false;
