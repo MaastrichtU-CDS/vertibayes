@@ -27,19 +27,32 @@ public final class BifMapper {
     }
 
     public static List<WebNode> fromOpenMarkovBif(String bif) throws JsonProcessingException {
+        bif = bif.replace("\r", "");
         bif = bif.replace(MARKOVHEADER, "");
         bif = bif.replace(MARKOVFOOTER, "");
         bif = bif.replace("\n", "").replace("\"", "").replace("/>", "");
         List<Node> nodes = new ArrayList<>();
-        String[] split1 = bif.split("<Links>");
-        String[] variables = split1[0].replace("<Variables>", "").replace("</Variables>", "").split("</Variable>");
+
+
+        String[] potentials = null;
         Map<String, List<String>> states = new HashMap<>();
         Map<String, List<Bin>> bins = new HashMap<>();
-        nodes.addAll(createNodes(variables, states, bins));
-        String[] split2 = split1[1].split("</Links>");
-        String[] links = split2[0].replace("<Link directed=true>", "").split("</Link>");
-        linkParents(nodes, links);
-        String[] potentials = split2[1].replace("<Potentials>", "").replace("</Potentials>", "").split("</Potential>");
+        if (bif.contains("</Links>")) {
+            String[] split1 = bif.split("<Links>");
+            String[] variables = split1[0].replace("<Variables>", "").replace("</Variables>", "").split("</Variable>");
+            nodes.addAll(createNodes(variables, states, bins));
+            String[] split2 = split1[1].split("</Links>");
+            String[] links = split2[0].replace("<Link directed=true>", "").split("</Link>");
+            linkParents(nodes, links);
+            potentials = split2[1].replace("<Potentials>", "").replace("</Potentials>", "")
+                    .split("</Potential>");
+        } else {
+            String[] split1 = bif.split("<Links");
+            String[] variables = split1[0].replace("<Variables>", "").replace("</Variables>", "").split("</Variable>");
+            nodes.addAll(createNodes(variables, states, bins));
+            potentials = split1[1].replace("<Potentials>", "").replace("</Potentials>", "")
+                    .split("</Potential>");
+        }
 
         setProbabilities(nodes, potentials, states, bins);
 

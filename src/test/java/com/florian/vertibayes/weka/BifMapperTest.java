@@ -52,6 +52,33 @@ public class BifMapperTest {
         assertEquals(bif, mapped);
     }
 
+    @Test
+    public void testMapperOpenMarkovBackAndForth2() throws Exception {
+        String bif = readFile("resources/Experiments/openMarkov2.pgmx");
+        List<WebNode> nodes = fromOpenMarkovBif(bif);
+        String mapped = toOpenMarkovBif(nodes).replace("\r", "");
+
+        assertEquals(bif, mapped);
+    }
+
+    @Test
+    public void testMapperOpenMarkovBackAndForth4() throws Exception {
+        String bif = readFile("resources/Experiments/openMarkov4.pgmx");
+        List<WebNode> nodes = fromOpenMarkovBif(bif);
+        String mapped = toOpenMarkovBif(nodes).replace("\r", "");
+
+        assertEquals(bif, mapped);
+    }
+
+    @Test
+    public void testMapperOpenMarkovBackAndForth3() throws Exception {
+        String bif = readFile("resources/Experiments/openMarkov3.pgmx");
+        List<WebNode> nodes = fromOpenMarkovBif(bif);
+        String mapped = toOpenMarkovBif(nodes).replace("\r", "");
+
+        assertEquals(bif, mapped);
+    }
+
     private String readFile(String path)
             throws IOException {
         File myObj = new File(path);

@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ProbModelXML formatVersion="0.2.0">
+  <ProbNet type="BayesianNetwork">
+    <DecisionCriteria>
+      <Criterion name="---" unit="---"/>
+    </DecisionCriteria>
+    <Properties/>
+    <Variables>
+      <Variable name="Glucose" role="chance" type="finiteStates">
+        <States>
+          <State name="(127.5-154.5]"/>
+          <State name="(154.5-inf)"/>
+          <State name="(99.5-127.5]"/>
+          <State name="(-inf-99.5]"/>
+        </States>
+      </Variable>
+      <Variable name="BloodPressure" role="chance" type="finiteStates">
+        <States>
+          <State name="All"/>
+        </States>
+      </Variable>
+      <Variable name="SkinThickness" role="chance" type="finiteStates">
+        <States>
+          <State name="All"/>
+        </States>
+      </Variable>
+      <Variable name="Insulin" role="chance" type="finiteStates">
+        <States>
+          <State name="(121-inf)"/>
+          <State name="(14.5-121]"/>
+          <State name="(-inf-14.5]"/>
+        </States>
+      </Variable>
+      <Variable name="BMI" role="chance" type="finiteStates">
+        <States>
+          <State name="(27.85-inf)"/>
+          <State name="(-inf-27.85]"/>
+        </States>
+      </Variable>
+      <Variable name="DiabetesPedigreeFunction" role="chance" type="finiteStates">
+        <States>
+          <State name="(-inf-0.5275]"/>
+          <State name="(0.5275-inf)"/>
+        </States>
+      </Variable>
+      <Variable name="Age" role="chance" type="finiteStates">
+        <States>
+          <State name="(28.5-inf)"/>
+          <State name="(-inf-28.5]"/>
+        </States>
+      </Variable>
+      <Variable name="Outcome" role="chance" type="finiteStates">
+        <States>
+          <State name="0"/>
+          <State name="1"/>
+        </States>
+      </Variable>
+    </Variables>
+    <Links/>
+    <Potentials>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="Glucose"/>
+        </Variables>
+        <Values>0.598130373925215 0.40176964607078586 4.999000199960008E-5 4.999000199960008E-5</Values>
+      </Potential>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="BloodPressure"/>
+        </Variables>
+        <Values>1.0</Values>
+      </Potential>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="SkinThickness"/>
+        </Variables>
+        <Values>1.0</Values>
+      </Potential>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="Insulin"/>
+        </Variables>
+        <Values>0.6289556566515023 0.37099435084737287 4.999250112483127E-5</Values>
+      </Potential>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="BMI"/>
+        </Variables>
+        <Values>0.8312668733126687 0.16873312668733126</Values>
+      </Potential>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="DiabetesPedigreeFunction"/>
+        </Variables>
+        <Values>0.7897710228977103 0.21022897710228977</Values>
+      </Potential>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="Age"/>
+        </Variables>
+        <Values>0.7424757524247575 0.25752424757524245</Values>
+      </Potential>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="Outcome"/>
+        </Variables>
+        <Values>0.7947705229477052 0.20522947705229477</Values>
+      </Potential>
+    </Potentials>
+  </ProbNet>
+  <InferenceOptions>
+    <MulticriteriaOptions>
+      <SelectedAnalysisType>UNICRITERION</SelectedAnalysisType>
+      <Unicriterion>
+        <Scales>
+          <Scale Criterion="---" Value="1.0"/>
+        </Scales>
+      </Unicriterion>
+      <CostEffectiveness>
+        <Scales>
+          <Scale Criterion="---" Value="1.0"/>
+        </Scales>
+        <CE_Criteria>
+          <CE_Criterion Criterion="---" Value="Cost"/>
+        </CE_Criteria>
+      </CostEffectiveness>
+    </MulticriteriaOptions>
+  </InferenceOptions>
+</ProbModelXML>

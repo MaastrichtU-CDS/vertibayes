@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<ProbModelXML formatVersion="0.2.0">
+  <ProbNet type="BayesianNetwork">
+    <DecisionCriteria>
+      <Criterion name="---" unit="---"/>
+    </DecisionCriteria>
+    <Properties/>
+    <Variables>
+      <Variable name="Pregnancies" role="chance" type="finiteStates">
+        <States>
+          <State name="(-inf-6.5]"/>
+          <State name="(6.5-inf)"/>
+        </States>
+      </Variable>
+      <Variable name="Glucose" role="chance" type="finiteStates">
+        <States>
+          <State name="(127.5-154.5]"/>
+          <State name="(154.5-inf)"/>
+          <State name="(99.5-127.5]"/>
+          <State name="(-inf-99.5]"/>
+        </States>
+      </Variable>
+      <Variable name="BloodPressure" role="chance" type="finiteStates">
+        <States>
+          <State name="All"/>
+        </States>
+      </Variable>
+      <Variable name="SkinThickness" role="chance" type="finiteStates">
+        <States>
+          <State name="All"/>
+        </States>
+      </Variable>
+      <Variable name="Insulin" role="chance" type="finiteStates">
+        <States>
+          <State name="(121-inf)"/>
+          <State name="(14.5-121]"/>
+          <State name="(-inf-14.5]"/>
+        </States>
+      </Variable>
+      <Variable name="BMI" role="chance" type="finiteStates">
+        <States>
+          <State name="(27.85-inf)"/>
+          <State name="(-inf-27.85]"/>
+        </States>
+      </Variable>
+      <Variable name="DiabetesPedigreeFunction" role="chance" type="finiteStates">
+        <States>
+          <State name="(-inf-0.5275]"/>
+          <State name="(0.5275-inf)"/>
+        </States>
+      </Variable>
+      <Variable name="Age" role="chance" type="finiteStates">
+        <States>
+          <State name="(28.5-inf)"/>
+          <State name="(-inf-28.5]"/>
+        </States>
+      </Variable>
+      <Variable name="Outcome" role="chance" type="finiteStates">
+        <States>
+          <State name="0"/>
+          <State name="1"/>
+        </States>
+      </Variable>
+    </Variables>
+    <Links>
+      <Link directed="true">
+        <Variable name="Pregnancies"/>
+        <Variable name="BloodPressure"/>
+      </Link>
+      <Link directed="true">
+        <Variable name="BloodPressure"/>
+        <Variable name="SkinThickness"/>
+      </Link>
+    </Links>
+    <Potentials>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="Pregnancies"/>
+        </Variables>
+        <Values>0.8991600839916009 0.10083991600839916</Values>
+      </Potential>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="Glucose"/>
+        </Variables>
+        <Values>0.602129574085183 0.39777044591081784 4.999000199960008E-5 4.999000199960008E-5</Values>
+      </Potential>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="BloodPressure"/>
+          <Variable name="Pregnancies"/>
+        </Variables>
+        <Values>1.0 1.0</Values>
+      </Potential>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="SkinThickness"/>
+          <Variable name="BloodPressure"/>
+        </Variables>
+        <Values>1.0</Values>
+      </Potential>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="Insulin"/>
+        </Variables>
+        <Values>0.634954756786482 0.36499525071239314 4.999250112483127E-5</Values>
+      </Potential>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="BMI"/>
+        </Variables>
+        <Values>0.8497650234976503 0.15023497650234977</Values>
+      </Potential>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="DiabetesPedigreeFunction"/>
+        </Variables>
+        <Values>0.8483651634836517 0.15163483651634838</Values>
+      </Potential>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="Age"/>
+        </Variables>
+        <Values>0.7500749925007499 0.24992500749925006</Values>
+      </Potential>
+      <Potential role="conditionalProbability" type="Table">
+        <Variables>
+          <Variable name="Outcome"/>
+        </Variables>
+        <Values>0.832966703329667 0.16703329667033295</Values>
+      </Potential>
+    </Potentials>
+  </ProbNet>
+  <InferenceOptions>
+    <MulticriteriaOptions>
+      <SelectedAnalysisType>UNICRITERION</SelectedAnalysisType>
+      <Unicriterion>
+        <Scales>
+          <Scale Criterion="---" Value="1.0"/>
+        </Scales>
+      </Unicriterion>
+      <CostEffectiveness>
+        <Scales>
+          <Scale Criterion="---" Value="1.0"/>
+        </Scales>
+        <CE_Criteria>
+          <CE_Criterion Criterion="---" Value="Cost"/>
+        </CE_Criteria>
+      </CostEffectiveness>
+    </MulticriteriaOptions>
+  </InferenceOptions>
+</ProbModelXML>
