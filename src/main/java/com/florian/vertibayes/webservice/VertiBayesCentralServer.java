@@ -72,7 +72,7 @@ public class VertiBayesCentralServer extends CentralServer {
     @PostMapping ("maximumLikelyhood")
     public WebBayesNetwork maximumLikelyhood(@RequestBody WebBayesNetwork req) {
         initEndpoints();
-        List<Node> nodes = mapWebNodeToNode(req.getNodes());
+        List<Node> nodes = defineStructure(req);
         initNodesMaximumLikelyhood(nodes, req.getMinPercentage());
         initThetas(nodes);
         WebBayesNetwork response = new WebBayesNetwork();
@@ -104,6 +104,7 @@ public class VertiBayesCentralServer extends CentralServer {
             internal.setTarget(req.getTarget());
             internal.setNodes(req.getNodes());
             internal.setWekaResponse(true);
+            internal.setTrainStructure(req.isTrainStructure());
             initFold(folds, i);
             ExpectationMaximizationWekaResponse trainModel =
                     (ExpectationMaximizationWekaResponse) performExpectationMaximization(
@@ -168,7 +169,7 @@ public class VertiBayesCentralServer extends CentralServer {
 
     private ExpectationMaximizationResponse performExpectationMaximization(WebBayesNetwork req)
             throws Exception {
-        List<Node> nodes = mapWebNodeToNode(req.getNodes());
+        List<Node> nodes = defineStructure(req);
         initNodesMaximumLikelyhood(nodes, req.getMinPercentage());
         initThetas(nodes);
 
@@ -189,6 +190,19 @@ public class VertiBayesCentralServer extends CentralServer {
             return response;
         } else {
             return res;
+        }
+    }
+
+    private List<Node> defineStructure(WebBayesNetwork req) {
+        if (req.isTrainStructure()) {
+            //train the structure based on the given structure, given structure may be empty
+            CreateNetworkRequest structureReq = new CreateNetworkRequest();
+            structureReq.setMinPercentage(req.getMinPercentage());
+            structureReq.setNodes(req.getNodes());
+            return mapWebNodeToNode(buildNetwork(structureReq).getNodes());
+        } else {
+            //Don't train structure, assumption is that the given structure is predefined by experts
+            return mapWebNodeToNode(req.getNodes());
         }
     }
 

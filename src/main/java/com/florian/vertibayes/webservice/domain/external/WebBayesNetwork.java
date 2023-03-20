@@ -10,6 +10,7 @@ public class WebBayesNetwork {
     private boolean openMarkovResponse = false;
     private boolean wekaResponse = false;
     private int folds = 1;
+    private boolean trainStructure = false;
 
     private static final int MIN_FOLDS = 1;
     private static final int MAX_FOLDS = 10;
@@ -67,5 +68,13 @@ public class WebBayesNetwork {
 
     public void setWekaResponse(boolean wekaResponse) {
         this.wekaResponse = wekaResponse;
+    }
+
+    public boolean isTrainStructure() {
+        return trainStructure;
+    }
+
+    public void setTrainStructure(boolean trainStructure) {
+        this.trainStructure = trainStructure;
     }
 }

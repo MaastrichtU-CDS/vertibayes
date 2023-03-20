@@ -5,7 +5,7 @@ import com.florian.vertibayes.webservice.domain.external.WebNode;
 import java.util.List;
 
 public class CreateNetworkRequest {
-    private int minPercentage;
+    private double minPercentage;
     private List<WebNode> nodes;
 
     public List<WebNode> getNodes() {
@@ -16,11 +16,11 @@ public class CreateNetworkRequest {
         this.nodes = nodes;
     }
 
-    public int getMinPercentage() {
+    public double getMinPercentage() {
         return minPercentage;
     }
 
-    public void setMinPercentage(int minPercentage) {
+    public void setMinPercentage(double minPercentage) {
         this.minPercentage = minPercentage;
     }
 }

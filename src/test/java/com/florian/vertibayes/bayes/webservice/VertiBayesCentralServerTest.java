@@ -1714,6 +1714,64 @@ public class VertiBayesCentralServerTest {
 
     }
 
+    @Test
+    public void testMaximumLikelyhoodAsiaPredefinedStructureVSNoStructure() throws Exception {
+        //Small test with only partial database.
+        // Test is purely to show predefined structure & using "trainStructure" flag will result in different DAGs
+        BayesServer station1 = new BayesServer("resources/Experiments/threeParty/Asia10k_first.csv", "1");
+        BayesServer station2 = new BayesServer("resources/Experiments/threeParty/Asia10k_second.csv", "2");
+
+        VertiBayesEndpoint endpoint1 = new VertiBayesEndpoint(station1);
+        VertiBayesEndpoint endpoint2 = new VertiBayesEndpoint(station2);
+        BayesServer secret = new BayesServer("4", Arrays.asList(endpoint1, endpoint2));
+
+        ServerEndpoint secretEnd = new ServerEndpoint(secret);
+
+        List<ServerEndpoint> all = new ArrayList<>();
+        all.add(endpoint1);
+        all.add(endpoint2);
+        all.add(secretEnd);
+        secret.setEndpoints(all);
+        station1.setEndpoints(all);
+        station2.setEndpoints(all);
+
+        List<WebNode> WebNodes = buildSmallAsiaStructureTestNetwork();
+        WebBayesNetwork reqPredefined = new WebBayesNetwork();
+        reqPredefined.setNodes(WebNodes);
+        reqPredefined.setTarget("asia");
+
+        VertiBayesCentralServer central = new VertiBayesCentralServer();
+        central.initEndpoints(Arrays.asList(endpoint1, endpoint2), secretEnd);
+
+        List<Node> predefined = mapWebNodeToNode(central.expectationMaximization(reqPredefined).getNodes());
+
+        WebBayesNetwork reqUseK2 = new WebBayesNetwork();
+        reqUseK2.setTrainStructure(true);
+        reqUseK2.setTarget("asia");
+        reqUseK2.setFolds(1);
+        List<Node> useK2 = mapWebNodeToNode(central.expectationMaximization(reqUseK2).getNodes());
+
+        //predefined only contains 3 nodes, K2 uses all 6
+        assertEquals(predefined.size(), 3);
+        assertEquals(useK2.size(), 6);
+
+        int parentCountPredefined = 0;
+        int parentCountk2 = 0;
+        for (Node n : predefined) {
+            parentCountPredefined += n.getParents().size();
+        }
+
+        for (Node n : useK2) {
+            parentCountk2 += n.getParents().size();
+        }
+
+        //predefined has 3 links in the network
+        assertEquals(parentCountPredefined, 3);
+        //k2 finds 4 links
+        assertEquals(parentCountk2, 4);
+        
+    }
+
     private List<WebNode> buildSmallAlarmNetwork() {
         WebNode vtub = createWebNode("VENTTUBE", Attribute.AttributeType.string, new ArrayList<>());
         WebNode kink = createWebNode("KINKEDTUBE", Attribute.AttributeType.string, new ArrayList<>());
@@ -1722,6 +1780,16 @@ public class VertiBayesCentralServerTest {
                                      Arrays.asList(inT.getName(), kink.getName(), vtub.getName()));
         //list nodes in the order you want the attributes printed
         return Arrays.asList(vtub, kink, inT, vlng);
+    }
+
+    private List<WebNode> buildSmallAsiaStructureTestNetwork() {
+        WebNode asia = createWebNode("asia", Attribute.AttributeType.string, new ArrayList<>());
+        WebNode either = createWebNode("either", Attribute.AttributeType.string, Arrays.asList(asia.getName()));
+        WebNode lung = createWebNode("smoke", Attribute.AttributeType.string,
+                                     Arrays.asList(either.getName(), asia.getName()));
+
+        //list nodes in the order you want the attributes printed
+        return Arrays.asList(asia, either, lung);
     }
 
     private List<WebNode> buildSmallAsiaNetwork() {
