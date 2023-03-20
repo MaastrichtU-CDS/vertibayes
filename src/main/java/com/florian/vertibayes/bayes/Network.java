@@ -66,7 +66,7 @@ public class Network {
         }
     }
 
-    private void initNodes(int minPercentage) {
+    private void initNodes(double minPercentage) {
         for (Node n : nodes) {
             if (n.getType() != Attribute.AttributeType.real && n.getType() != Attribute.AttributeType.numeric) {
                 initNode(n);

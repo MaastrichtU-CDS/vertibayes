@@ -78,6 +78,12 @@ Continuous data can be binned
 
 During structure learning missing data will be replaced by mean mode values depending on the type of attribute.
 
+There are three ways to call the algorithm;
+
+1) With a predefined structure
+2) With a predefined structure that needs to be expanded by K2. This can also be used for attribute selection
+3) Without a predefined structure
+
 ### Input data:
 
 #### Handling a Hybird split
@@ -181,6 +187,7 @@ The request for Maximum Likelyhood is similar except it does not contain a targe
   "target" : "x3"
   "minPercentage":"0.1",
   "folds":1,
+  "trainStructure" : true
 }
 ```
 
@@ -193,6 +200,8 @@ made large enough to achieve this it will be merged with the last bin.
 
 They will be automatically generated if the attribute in question is a number (real or integer) and the bins were left
 empty in the request.
+
+The trainstructure flag is used to trigger K2.
 
 ### Response example:
 
