@@ -6,7 +6,7 @@
 
     <groupId>com.florian</groupId>
     <artifactId>vertibayes</artifactId>
-    <version>3.0-STABLE</version>
+    <version>3.1-SNAPSHOT</version>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
