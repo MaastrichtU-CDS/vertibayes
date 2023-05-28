@@ -223,15 +223,15 @@ public final class DataGeneration {
     }
 
 
-    private static Double checkMaximum(AttributeRequirement local, Double upper, Double generated) {
-        if (round(generated, local.getLowerLimit().getType()) == upper) {
+    public static Double checkMaximum(AttributeRequirement local, Double upper, Double generated) {
+        if (round(generated, local.getLowerLimit().getType()) >= upper) {
             // don't generate values equal to upperlimit
             if (local.getLowerLimit().getType() == Attribute.AttributeType.numeric) {
                 //Integer
                 generated = upper - 1;
             } else {
                 //Double
-                generated = generated - Math.pow(TEN, -MAX_VALUE_PRECISION); //remove 1 precision.
+                generated = upper - Math.pow(TEN, -MAX_VALUE_PRECISION); //remove 1 precision.
                 // e.g. if precision is 3, and max value is 1.123, turn this value into 1.122
             }
         }
