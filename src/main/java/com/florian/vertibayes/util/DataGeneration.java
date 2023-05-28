@@ -13,7 +13,7 @@ import static com.florian.vertibayes.util.PrintingPress.printARFF;
 
 public final class DataGeneration {
 
-    public static final double MAX_VALUE = 0.99;
+    public static final double MAX_VALUE_PRECISION = 3;
 
     private DataGeneration() {
     }
@@ -230,7 +230,8 @@ public final class DataGeneration {
                 generated = upper - 1;
             } else {
                 //Double
-                generated = MAX_VALUE * upper;
+                generated = generated - Math.pow(10, -MAX_VALUE_PRECISION); //remove 1 precision.
+                // e.g. if precision is 3, and max value is 1.123, turn this value into 1.122
             }
         }
         return generated;
