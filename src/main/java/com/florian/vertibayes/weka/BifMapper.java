@@ -303,12 +303,16 @@ public final class BifMapper {
             if (!t.getLocalValue().isRange()) {
                 s += "<OUTCOME>" + t.getLocalValue().getLocalValue() + "</OUTCOME>\n";
             } else {
-                s += "<OUTCOME>&apos;(";
-                s += t.getLocalValue().getLowerLimit() + "-" + t.getLocalValue().getUpperLimit();
-                if (i < unique.size() - 1) {
-                    s += "]&apos;</OUTCOME>\n";
+                if (t.getLocalValue().getLowerLimit().equals("All")) {
+                    s += "<OUTCOME>&apos;All&apos;</OUTCOME>\n";
                 } else {
-                    s += ")&apos;</OUTCOME>\n";
+                    s += "<OUTCOME>&apos;(";
+                    s += t.getLocalValue().getLowerLimit() + "-" + t.getLocalValue().getUpperLimit();
+                    if (i < unique.size() - 1) {
+                        s += "]&apos;</OUTCOME>\n";
+                    } else {
+                        s += ")&apos;</OUTCOME>\n";
+                    }
                 }
             }
         }
