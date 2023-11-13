@@ -5,11 +5,13 @@ import com.florian.vertibayes.weka.performance.tests.base.PerformanceMissingTest
 import com.florian.vertibayes.weka.performance.tests.base.PerformanceTestBase;
 import com.florian.vertibayes.weka.performance.tests.util.Performance;
 import com.florian.vertibayes.weka.performance.tests.util.Variance;
+import com.florian.vertibayes.weka.performance.tests.util.VertiBayesKFoldPerformanceMultipleParties;
 import weka.core.Instances;
 
 import java.util.List;
 
 import static com.florian.vertibayes.notunittests.generatedata.GenerateNetworks.buildAsiaNetwork;
+import static com.florian.vertibayes.weka.performance.TestPerformance.printResults;
 import static com.florian.vertibayes.weka.performance.tests.util.Performance.averagePerformance;
 import static com.florian.vertibayes.weka.performance.tests.util.Performance.checkVariance;
 import static com.florian.vertibayes.weka.performance.tests.util.Util.readData;
@@ -107,6 +109,29 @@ public class Asia {
 
 
         return p;
+    }
+
+    public static void multiplePartiesTest() throws Exception {
+        initNodes();
+        Instances fullDataSet = readData(LABEL, TEST_FULL);
+        VertiBayesKFoldPerformanceMultipleParties test = new VertiBayesKFoldPerformanceMultipleParties();
+
+        for (int i = 2; i < 9; i++) {
+            printResults(System.currentTimeMillis(),
+                         test.buildAndValidateFold("resources/Experiments/asia/Asia10k.csv", 4,
+                                                   readData(LABEL, TEST_FULL),
+                                                   LABEL, TEST_FULL.replace("WEKA.arff", ".csv"),
+                                                   NODES, MINPERCENTAGE, fullDataSet, 10), 0.0, true);
+        }
+        String testFullUnknown = "resources/Experiments/asia/Asia10kMissingTreshold0_1.arff";
+        fullDataSet = readData(LABEL, testFullUnknown);
+        for (int i = 2; i < 9; i++) {
+            printResults(System.currentTimeMillis(),
+                         test.buildAndValidateFold("resources/Experiments/asia/Asia10kMissingTreshold0_1.csv", 4,
+                                                   readData(LABEL, testFullUnknown),
+                                                   LABEL, testFullUnknown,
+                                                   NODES, MINPERCENTAGE, fullDataSet, 10), 0.1, true);
+        }
     }
 
     public static Performance kFold() throws Exception {
