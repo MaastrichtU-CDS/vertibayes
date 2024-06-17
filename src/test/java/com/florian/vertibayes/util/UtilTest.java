@@ -1,13 +1,17 @@
 package com.florian.vertibayes.util;
 
 import com.florian.nscalarproduct.data.Attribute;
+import com.florian.vertibayes.bayes.Bin;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.HashSet;
+import java.util.Set;
 
 import static com.florian.vertibayes.util.MathUtil.factorial;
 import static com.florian.vertibayes.util.MathUtil.round;
+import static com.florian.vertibayes.util.Util.mapBins;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class UtilTest {
@@ -20,6 +24,20 @@ public class UtilTest {
 
         assertEquals(i, BigInteger.valueOf(6));
         assertEquals(j, BigDecimal.valueOf(6));
+    }
+
+    @Test
+    public void testBinMapper() {
+        Set<Bin> bins = new HashSet<>();
+        Bin b = new Bin();
+        b.setUpperLimit("1");
+        b.setLowerLimit("0");
+        bins.add(b);
+
+        assertEquals(((Bin) mapBins(bins).toArray()[0]).getUpperLimit(), "1");
+        //pointless test for coverage
+        bins.remove(b);
+        assertEquals(mapBins(bins).toArray().length, 0);
     }
 
     @Test

@@ -12,9 +12,11 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.florian.vertibayes.util.MathUtil.factorial;
+import static com.florian.vertibayes.util.Util.mapBins;
 import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNodeToNode;
 
 
@@ -132,10 +134,9 @@ public class Network {
                     prodaijk = prodaijk.multiply(factorial(aijk));
                 }
             } else {
-                System.out.println("Doing something with bins");
-                System.out.println(node.getBins());
+                Set<Bin> bins = mapBins(node.getBins());
                 try {
-                    for (Bin bin : node.getBins()) {
+                    for (Bin bin : bins) {
                         List<AttributeRequirement> req = new ArrayList<>();
                         Attribute lowerLimit = new Attribute(node.getType(), bin.getLowerLimit(), node.getName());
                         Attribute upperLimit = new Attribute(node.getType(), bin.getUpperLimit(), node.getName());
@@ -147,9 +148,6 @@ public class Network {
                         prodaijk = prodaijk.multiply(factorial(aijk));
                     }
                 } catch (Exception e) {
-                    System.out.println("The fuck goes wrong here");
-                    System.out.println(node.getBins());
-                    System.out.println(e);
                     throw e;
                 }
             }
@@ -171,7 +169,8 @@ public class Network {
                         prodaijk = prodaijk.multiply(factorial(aijk));
                     }
                 } else {
-                    for (Bin bin : node.getBins()) {
+                    Set<Bin> bins = mapBins(node.getBins());
+                    for (Bin bin : bins) {
                         List<AttributeRequirement> r = new ArrayList<>(req);
                         Attribute lowerLimit = new Attribute(node.getType(), bin.getLowerLimit(), node.getName());
                         Attribute upperLimit = new Attribute(node.getType(), bin.getUpperLimit(), node.getName());
@@ -191,6 +190,7 @@ public class Network {
         }
         return partial;
     }
+
 
     private BigDecimal calculateAijk(List<AttributeRequirement> req) {
         List<ServerEndpoint> relevantEndpoints = new ArrayList<>();
@@ -228,7 +228,8 @@ public class Network {
                 }
                 requirements = temp;
             } else {
-                for (Bin bin : node.getBins()) {
+                Set<Bin> bins = mapBins(node.getBins());
+                for (Bin bin : bins) {
                     if (requirements.size() == 0) {
                         List<AttributeRequirement> req = new ArrayList<>();
                         Attribute lowerLimit = new Attribute(node.getType(), bin.getLowerLimit(), node.getName());
