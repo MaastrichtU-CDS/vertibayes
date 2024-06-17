@@ -134,16 +134,23 @@ public class Network {
             } else {
                 System.out.println("Doing something with bins");
                 System.out.println(node.getBins());
-                for (Bin bin : node.getBins()) {
-                    List<AttributeRequirement> req = new ArrayList<>();
-                    Attribute lowerLimit = new Attribute(node.getType(), bin.getLowerLimit(), node.getName());
-                    Attribute upperLimit = new Attribute(node.getType(), bin.getUpperLimit(), node.getName());
-                    req.add(new AttributeRequirement(lowerLimit, upperLimit));
-                    //this should be a webservice call
-                    BigDecimal aijk = calculateAijk(req);
+                try {
+                    for (Bin bin : node.getBins()) {
+                        List<AttributeRequirement> req = new ArrayList<>();
+                        Attribute lowerLimit = new Attribute(node.getType(), bin.getLowerLimit(), node.getName());
+                        Attribute upperLimit = new Attribute(node.getType(), bin.getUpperLimit(), node.getName());
+                        req.add(new AttributeRequirement(lowerLimit, upperLimit));
+                        //this should be a webservice call
+                        BigDecimal aijk = calculateAijk(req);
 
-                    sumaijk = sumaijk.add(aijk);
-                    prodaijk = prodaijk.multiply(factorial(aijk));
+                        sumaijk = sumaijk.add(aijk);
+                        prodaijk = prodaijk.multiply(factorial(aijk));
+                    }
+                } catch (Exception e) {
+                    System.out.println("The fuck goes wrong here");
+                    System.out.println(node.getBins());
+                    System.out.println(e);
+                    throw e;
                 }
             }
             return (ri1factorial.multiply(prodaijk)
