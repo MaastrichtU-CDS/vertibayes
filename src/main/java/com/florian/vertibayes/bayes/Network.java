@@ -132,6 +132,8 @@ public class Network {
                     prodaijk = prodaijk.multiply(factorial(aijk));
                 }
             } else {
+                System.out.println("Doing something with bins");
+                System.out.println(node.getBins());
                 for (Bin bin : node.getBins()) {
                     List<AttributeRequirement> req = new ArrayList<>();
                     Attribute lowerLimit = new Attribute(node.getType(), bin.getLowerLimit(), node.getName());
