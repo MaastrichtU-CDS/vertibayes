@@ -24,6 +24,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.florian.vertibayes.bayes.Node.findSliblings;
+import static com.florian.vertibayes.util.Util.mapBins;
 import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNodeFromNode;
 import static com.florian.vertibayes.webservice.mapping.WebNodeMapper.mapWebNodeToNode;
 import static com.florian.vertibayes.weka.BifMapper.toOpenMarkovBif;
@@ -272,7 +273,8 @@ public class VertiBayesCentralServer extends CentralServer {
                     node.getProbabilities().add(t);
                 }
             } else {
-                for (Bin bin : node.getBins()) {
+                Set<Bin> bins = mapBins(node.getBins());
+                for (Bin bin : bins) {
                     Theta t = new Theta();
                     Attribute lowerLimit = new Attribute(node.getType(), bin.getLowerLimit(), node.getName());
                     Attribute upperLimit = new Attribute(node.getType(), bin.getUpperLimit(), node.getName());
